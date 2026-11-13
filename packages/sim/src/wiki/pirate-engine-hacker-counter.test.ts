@@ -4,9 +4,9 @@ import { armSpike, launchSpike } from "../extras/spike.ts";
 import { choiceDisabled, choose, createGame, evasionPercent, playerHackingOff } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const LEAD =
-  "Your Hacking System automatically counters the digital assault and you move in to fight the ship.";
+const LEAD = eventText("event_AUTO_HACKER_c2_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -25,7 +25,9 @@ describe("Pirate engine hacker hacking counter", () => {
     open(g);
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === "c:pirate-engine-hacker:1" && c.label === "Counter the remote hacking.",
+        (c) =>
+          c.id === "c:pirate-engine-hacker:1" &&
+          c.label === "Fight. Hacking offline; engines keep power.",
       ),
     );
     assert.equal(choiceDisabled(g, "c:pirate-engine-hacker:1"), "Needs a Hacking system");

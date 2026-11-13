@@ -31,7 +31,7 @@ export { allItemBlueprints, itemBlueprint } from "./extras/items.ts";
 export type { ItemBlueprint } from "./extras/items.ts";
 export { roomLayout } from "./extras/rooms.ts";
 export type { RoomLayout } from "./extras/rooms.ts";
-export { archivePhrase } from "./extras/phrases.ts";
+export { archivePhrase, clearArchivePhrases } from "./extras/phrases.ts";
 export { tutorialScript } from "./extras/tutorial.ts";
 export type { TutorialOrder, TutorialStep } from "./extras/tutorial.ts";
 export {
@@ -151,6 +151,8 @@ export {
   stalemateStat,
   skillSpeeds,
   skillMult,
+  achievementRules,
+  achievementRule,
   aiTarget,
   aiTargets,
   overchargerWaits,
@@ -221,6 +223,7 @@ export type {
   EscapeTimers,
   Stalemate,
   SkillSpeed,
+  AchievementRules,
   OverchargerWaits,
   IonIntruderRule,
   CrystalVengeanceRule,

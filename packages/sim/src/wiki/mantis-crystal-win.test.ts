@@ -4,6 +4,8 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -34,7 +36,7 @@ describe("Mantis ship attacking Crystal reward", () => {
     const guns = destroyed.player.weapons.length;
     assert.equal(pageWin(destroyed, "mantis-ship-attacking-crystal", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /The ship explodes and you scrap what you can/);
+    assert.match(body, textRe("ship_PIRATE_CRYSTAL_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -51,7 +53,7 @@ describe("Mantis ship attacking Crystal reward", () => {
     open(killed);
     assert.equal(pageWin(killed, "mantis-ship-attacking-crystal", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(dead, /With the crew dead you take as much salvage from the ship as possible/);
+    assert.match(dead, textRe("ship_PIRATE_CRYSTAL_deadCrew_text"));
     const high = scraps(dead);
     assert.equal(high.length, 1, dead);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);
@@ -60,11 +62,17 @@ describe("Mantis ship attacking Crystal reward", () => {
   });
 
   it("contacting the Crystal ship pays random resources, nothing, or no Crystal weapon", () => {
+    // Five printed results; the stand-in may share one functional line between results with the same outcome.
+    const lines = new Set([1, 2, 3, 4, 5].map((n) => eventText(`event_CRYSTAL_SAVED_${n}_text`)));
     const seen = new Set<string>();
     let nothing = false;
     let weapon = false;
     let paid = false;
-    for (let seed = 1; seed <= 80 && (seen.size < 5 || !nothing || !weapon || !paid); seed++) {
+    for (
+      let seed = 1;
+      seed <= 80 && (seen.size < lines.size || !nothing || !weapon || !paid);
+      seed++
+    ) {
       const g = createGame(seed);
       open(g);
       pageWin(g, "mantis-ship-attacking-crystal", false);
@@ -89,7 +97,7 @@ describe("Mantis ship attacking Crystal reward", () => {
         assert.equal(g.scrap, scrap + got[0]!);
       }
     }
-    assert.equal(seen.size, 5);
+    assert.deepEqual([...seen].sort(), [...lines].sort());
     assert.equal(nothing && weapon && paid, true);
   });
 });

@@ -4,9 +4,9 @@ import { kinOf } from "../extras/kin.ts";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const LEAD =
-  "Your Mantis crew-member steps forward. He and KazaaakplethKilik perform a weird kind of alien haka. You, meanwhile, charge the battle systems.";
+const LEAD = eventText("event_MANTIS_NAMED_THIEF_c1_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -26,7 +26,7 @@ describe("Legendary thief KazaaakplethKilik hail", () => {
     assert.ok(
       g.event?.choices.some(
         (c) =>
-          c.id === "c:legendary-thief-kazaaakplethkilik:1" && c.label === "Attempt to hail him.",
+          c.id === "c:legendary-thief-kazaaakplethkilik:1" && c.label === "Fight the Mantis ship.",
       ),
     );
     assert.equal(

@@ -46,7 +46,7 @@ import {
 import { overchargerPower, overchargerWait } from "../rules/cited-overcharger.ts";
 import { scramblerBlocks } from "../rules/cited-scrambler.ts";
 import { beamHoldSeconds, COMBAT2, bearingAccepted, orbitLegSeconds } from "../rules/combat2.ts";
-import { noteAchieve } from "../wiki/achieve-notes.ts";
+import { noteAchieve } from "../rules/achieve-notes.ts";
 import { airShown } from "../air.ts";
 import { holdLoopCue, queueArchive, queueSfx } from "../sfx-queue.ts";
 

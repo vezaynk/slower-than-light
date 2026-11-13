@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game, Kit } from "../types.ts";
@@ -41,7 +42,7 @@ describe("Pirate ship selling weapon", () => {
     assert.equal(choiceDisabled(g, MIND), "Needs Mind Control");
     const scrap = g.scrap;
     choose(g, MIND);
-    assert.match(g.event?.body ?? "", /black market weapons trader/);
+    assert.equal(g.event?.body, "Weapon seller. Nebula.");
     assert.equal(g.scrap, scrap);
     assert.equal(g.phase, "event");
   });
@@ -59,8 +60,11 @@ describe("Pirate ship selling weapon", () => {
       const body = g.event?.body ?? "";
       if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         lie = true;
-        assert.match(body, /planned to attack your ship/);
-        assert.equal(/planned to attack your ship/.test(g.log.join(" ")), false);
+        assert.ok(body.includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_2_text")));
+        assert.equal(
+          g.log.join(" ").includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_2_text")),
+          false,
+        );
         assert.equal(g.scrap, scrap);
         assert.equal(g.player.weapons.length, guns);
         choose(g, "ship-resume");
@@ -68,19 +72,24 @@ describe("Pirate ship selling weapon", () => {
         assert.equal(g.fightEvent, "pirate-ship-selling-weapon");
         assert.equal(g.scrap, scrap);
         assert.equal(g.player.weapons.length, guns);
-        assert.equal(/planned to attack your ship/.test(g.log.join(" ")), false);
+        assert.equal(
+          g.log.join(" ").includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_2_text")),
+          false,
+        );
       } else {
         deal = true;
         assert.equal(g.phase, "event");
-        assert.match(body, /takes back his discount/);
+        assert.ok(body.includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_text")));
         assert.equal(g.scrap, scrap);
         assert.equal(g.player.weapons.length, guns);
         assert.deepEqual(
-          g.event?.choices.map((c) => c.label),
-          ["Decline."],
+          g.event?.choices.map((c) => c.id),
+          ["s:pirate-weapon:decline"],
         );
         choose(g, "s:pirate-weapon:decline");
-        assert.match(g.event?.body ?? "", /thank him for his offer/);
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_c2_text")),
+        );
         assert.match(g.event?.body ?? "", /Nothing happens/);
         assert.equal(g.scrap, scrap);
         assert.equal(g.player.weapons.length, guns);

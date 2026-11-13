@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -17,8 +18,7 @@ function open(g: Game) {
 
 describe("Lanius lone ship", () => {
   it("attacking shows the lead-in card and starts a Lanius ship fight", () => {
-    const lead =
-      "The civilian ship hastily retreats while you intercept the path of the ship and lock on weapons. It turns and prepares for a fight.";
+    const lead = eventText("event_LANIUS_SCARED_CIVILIAN_c1_text");
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-lone-ship:0");

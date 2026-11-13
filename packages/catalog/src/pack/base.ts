@@ -10,7 +10,9 @@ import { STORE_RARITY } from "../wiki/store-rarity.ts";
 import {
   crewPowers,
   droneDetail,
+  hullDetail,
   shortLabel,
+  type HullNames,
   weaponDetail,
   weaponFlavor,
 } from "../extras/blueprint-copy.ts";
@@ -45,6 +47,7 @@ import { FACTION_SURRENDER, REWARD_TABLE } from "../wiki/rewards.ts";
 import { ESCAPE_TIMERS, FACTION_ESCAPE } from "../wiki/escape-rules.ts";
 import { NO_SURRENDER_SHIPS, STALEMATE } from "../wiki/surrender-rules.ts";
 import { SKILL_SPEED } from "../wiki/skill-rules.ts";
+import { ACHIEVEMENT_RULES } from "../wiki/achievement-rules.ts";
 import { AI_TARGET } from "../wiki/targeting-rules.ts";
 import { CRYSTAL_VENGEANCE, ION_INTRUDER, OVERCHARGER_WAITS } from "../wiki/augment-rules.ts";
 import { BONUS_ITEM_WEIGHTS, CARGO_SLOTS } from "../wiki/rack-rules.ts";
@@ -171,7 +174,7 @@ function droneRow(row: (typeof CITED_DRONES)[number] & { image?: string }): Dron
   const gun = DRONE_GUN_OF[row.ref];
   if (gun) drone.weapon = gun;
   drone.short = shortLabel(row.name);
-  const detail = droneDetail(row.type, row.power);
+  const detail = droneDetail(row.type, row.power, row.target);
   if (detail) drone.detail = detail;
   return drone;
 }
@@ -608,13 +611,30 @@ function copyOffer(row: OfferRow): OfferRow {
   };
 }
 
+/**
+ * Names the hull summary prints. A `_PLAYER` schematic reads its base row's name. An artillery gun with no
+ * weapon row prints "Artillery". Any other unknown id prints as itself.
+ */
+const HULL_NAMES: HullNames = {
+  weapon: (id) => WEAPONS[id]?.name ?? (id.startsWith("ARTILLERY") ? "Artillery" : id),
+  drone: (id) => {
+    const rows = [...CITED_DRONES, ...BOSS_DRONES];
+    const base = id.replace(/_PLAYER$/, "");
+    return (rows.find((row) => row.ref === id) ?? rows.find((row) => row.ref === base))?.name ?? id;
+  },
+  augment: (id) => CATALOG.find((row) => row.id === id)?.name ?? id,
+  kin: (id) => (KIN as Record<string, { name: string } | undefined>)[id]?.name ?? id,
+  kit: (id) =>
+    id === "drones" ? "Drone Control" : (CITED_SYSTEMS.find((row) => row.ref === id)?.name ?? id),
+};
+
 function hullRow(spec: HullSpec): HullDef {
   const row: HullDef = {
     id: spec.id,
     cruiser: spec.cruiser,
     layout: LAYOUT_FILE[spec.id] ?? spec.layout,
     name: spec.name,
-    quote: spec.quote,
+    quote: hullDetail(spec, HULL_NAMES),
     unlock: spec.unlock,
     weaponSlots: spec.weaponSlots,
     droneSlots: spec.droneSlots,
@@ -1221,7 +1241,7 @@ const STORE_PAGE: EventDef = {
   flag: "STORE",
   aliases: [],
   sectors: [],
-  body: "A trading post hangs at this beacon, open for business.",
+  body: "Store.",
   choices: [],
   store: true,
 };
@@ -1236,15 +1256,15 @@ const REBEL_TRADE: EventDef = {
   flag: "STORE_REBELSIDE",
   aliases: [],
   sectors: [],
-  body: 'You come across a large trade station. However, as soon as you approach a warning goes out to all ships in the region: "Do not associate with the Federation sympathizer. All who oppose the Rebels will be punished."',
+  body: "Store: closed.",
   choices: [
     {
       id: "c:large-trade-station:1",
-      label: "Leave.",
+      label: "Nothing happens.",
       fx: [
         {
           k: "note",
-          text: "You decide it's better not to push your luck and move on.",
+          text: "Nothing happens.",
         },
       ],
     },
@@ -1274,55 +1294,19 @@ function laniusTrade(
 }
 
 const LANIUS_TRADE_PAGES: EventDef[] = [
-  laniusTrade(
-    "LANIUS_TRADER_LIST_FUEL",
-    "fuel",
-    15,
-    30,
-    "They take the fuel and leave a heap of scrap.",
-  ),
-  laniusTrade(
-    "LANIUS_TRADER_LIST_MISSILES",
-    "missiles",
-    20,
-    40,
-    "They take the missiles and leave a heap of scrap.",
-  ),
-  laniusTrade(
-    "LANIUS_TRADER_LIST_PARTS",
-    "parts",
-    20,
-    40,
-    "They take the drone parts and leave a heap of scrap.",
-  ),
-  laniusTrade(
-    "LANIUS_TRADER_LIST2_FUEL",
-    "fuel",
-    20,
-    35,
-    "The second offer takes the fuel and leaves a larger heap.",
-  ),
-  laniusTrade(
-    "LANIUS_TRADER_LIST2_MISSILES",
-    "missiles",
-    25,
-    50,
-    "The second offer takes the missiles and leaves a larger heap.",
-  ),
-  laniusTrade(
-    "LANIUS_TRADER_LIST2_PARTS",
-    "parts",
-    25,
-    50,
-    "The second offer takes the drone parts and leaves a larger heap.",
-  ),
+  laniusTrade("LANIUS_TRADER_LIST_FUEL", "fuel", 15, 30, "Trade complete."),
+  laniusTrade("LANIUS_TRADER_LIST_MISSILES", "missiles", 20, 40, "Trade complete."),
+  laniusTrade("LANIUS_TRADER_LIST_PARTS", "parts", 20, 40, "Trade complete."),
+  laniusTrade("LANIUS_TRADER_LIST2_FUEL", "fuel", 20, 35, "Trade complete."),
+  laniusTrade("LANIUS_TRADER_LIST2_MISSILES", "missiles", 25, 50, "Trade complete."),
+  laniusTrade("LANIUS_TRADER_LIST2_PARTS", "parts", 25, 50, "Trade complete."),
   {
     id: "LANIUS_TRANSLATOR_HIRE",
     dest: "LANIUS_TRANSLATOR_HIRE",
     flag: "LANIUS_TRANSLATOR_HIRE",
     aliases: [],
     sectors: [],
-    body: "The crate walks up the ramp. The Lanius who learned your language is called Translator.",
+    body: "Gain 1 Lanius crew, named Translator.",
     choices: [],
     fx: [{ k: "res", id: "scrap", sign: -1, lo: 40, hi: 40 }],
     grants: [{ kind: "crew", id: "anaerobic", amount: 1, name: "Translator" }],
@@ -1396,8 +1380,91 @@ function campaignEvents(): EventDef[] {
       event.aliases = [...event.aliases, "quest-rock-sun"];
     }
   }
+  shapeRockAtheist(named);
+  // The sensors button is on the page now. The req holder must not keep a second copy.
+  const placed = new Set<string>();
+  for (const event of named) {
+    if (event.id === "blue-button-reqs") continue;
+    for (const choice of event.choices) if (choice.reqs?.length) placed.add(choice.id);
+  }
+  const holder = named.find((event) => event.id === "blue-button-reqs");
+  if (holder) holder.choices = holder.choices.filter((choice) => !placed.has(choice.id));
   return named;
 }
+
+const ROCK_LIES = "The Rock ship turns hostile. Fight.";
+const ROCK_TRAITORS = "The Rock ship turns hostile. Fight.";
+const ROCK_JOIN = "Gain 1 Rock crew.";
+const ROCK_REFUSE = "The Rock ship jumps away. Nothing happens.";
+const ROCK_SENSORS = "Gain 1 Rock crew.";
+
+/** ftl.dat's ROCK_ATHIEST: a quiet Rock ship, three hidden choices, and the promise list. */
+function shapeRockAtheist(events: EventDef[]): void {
+  const event = events.find((row) => row.id === "ROCK_ATHIEST");
+  if (!event) return;
+  event.body = "Neutral Rock ship. It may join your crew.";
+  event.ship = { hostile: false, load: "ROCK_SHIP" };
+  event.choices = [
+    stampedChoice({
+      id: "c:rock-atheists:0",
+      label: "Fight the Rock ship.",
+      hidden: true,
+      fx: [],
+      textLoad: "ROCK_ATHIEST_BAD",
+      ship: { hostile: true },
+    }),
+    stampedChoice({
+      id: "c:rock-atheists:1",
+      label: "1 in 3: gain 1 Rock crew. 2 in 3: nothing happens.",
+      hidden: true,
+      fx: [{ k: "goto", id: "ROCK_ATHIEST_GOOD" }],
+    }),
+    stampedChoice({
+      id: "c:rock-atheists:2",
+      label: "Gain 1 Rock crew.",
+      hidden: true,
+      fx: [{ k: "note", text: ROCK_SENSORS }],
+      grants: [{ kind: "crew", id: "rock", amount: 1 }],
+    }),
+  ];
+}
+
+function rockListPage(id: string, body: string, grants?: EventDef["grants"]): EventDef {
+  const page: EventDef = {
+    id,
+    dest: id,
+    flag: id,
+    aliases: [],
+    sectors: [],
+    body,
+    choices: [],
+  };
+  if (grants?.length) page.grants = grants;
+  return page;
+}
+
+const ROCK_ATHIEST_GOOD = {
+  id: "ROCK_ATHIEST_GOOD",
+  entries: [
+    {
+      id: "ROCK_ATHIEST_GOOD_JOIN",
+      unique: false,
+      page: rockListPage("ROCK_ATHIEST_GOOD_JOIN", ROCK_JOIN, [
+        { kind: "crew" as const, id: "rock", amount: 1 },
+      ]),
+    },
+    {
+      id: "ROCK_ATHIEST_GOOD_AWAY",
+      unique: false,
+      page: rockListPage("ROCK_ATHIEST_GOOD_AWAY", ROCK_REFUSE),
+    },
+    {
+      id: "ROCK_ATHIEST_GOOD_AWAY",
+      unique: false,
+      page: rockListPage("ROCK_ATHIEST_GOOD_AWAY", ROCK_REFUSE),
+    },
+  ],
+};
 
 /**
  * Choice-attribute fixture. It is a catalog page so the emitter writes it.
@@ -1472,7 +1539,7 @@ const START_PAGE: EventDef = {
   flag: "START_BEACON",
   aliases: [],
   sectors: [],
-  body: "The jump drive spins down. Fresh sensor returns trickle in from the beacons ahead.",
+  body: "Start beacon.",
   choices: [],
 };
 
@@ -1486,11 +1553,11 @@ const FINISH_PAGE: EventDef = {
   flag: "FINISH_BEACON",
   aliases: [],
   sectors: [],
-  body: "A long-range relay marks the way out of this sector. Charge the drive to jump onward.",
+  body: "Sector exit. Jump to the next sector.",
   choices: [
     {
       id: "continue",
-      label: "Continue...",
+      label: "Continue.",
       hidden: true,
       fx: [{ k: "goto", id: "EXIT_LIST" }],
     },
@@ -1504,7 +1571,7 @@ const FINISH_NEBULA_PAGE: EventDef = {
   flag: "FINISH_BEACON_NEBULA",
   aliases: [],
   sectors: [],
-  body: "The long-range relay is buried in nebula haze, but its signal holds. Charge the drive to jump onward.",
+  body: "Sector exit. Nebula. Jump to the next sector.",
   choices: [],
 };
 
@@ -1536,30 +1603,30 @@ function fuelNothing(id: string, dest: string, lines: readonly string[]): EventD
 }
 
 const FUEL_NOTHING = fuelNothing("FUEL_NOTHING", "No fuel: wait fail (distress off)", [
-  "No ship is in scanning range and no one arrives at the beacon.",
-  "Your waiting yields nothing while the fleet surely gets closer...",
-  "A freighter suddenly arrives nearby. They are so close you can almost wave at them, but your hails are ignored and the ship quickly jumps away.",
-  "Small traffic passes within a short distance of you, but no one responds to your hails.",
-  "The only ship within hailing range appears to be a civilian vessel. However, it quickly leaves once it picks up your signal.",
-  "As you wait, a small asteroid storm pelts softly against your shields and hull.",
-  "You begin to wonder if turning on the beacon would be worth the risk of detection. The fleet slowly approaches.",
-  "You contemplate the vastness of space.",
-  "The prolonged wait in empty space is causing tension among the crew. Still no contact.",
-  "Cabin fever begins to spread among your crew.",
-  "Long range scanners detect a small settlement, but they refuse all contact.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
 ]);
 
 const FUEL_NOTHING_DISTRESS = fuelNothing(
   "FUEL_NOTHING_DISTRESS",
   "No fuel: wait fail (distress on)",
   [
-    "You contemplate that it is fortunate the ship's life support system does not rely on FTL fuel cells.",
-    "Nothing happens. Your calls go unanswered.",
-    "The distress beacon's light is the only movement visible outside the ship.",
-    "No ships jump into the sector...",
-    "A few passing ships seem oblivious to your distress call and ignore all hails.",
-    "A few civilian ships are within scanning range, yet none respond to your calls.",
-    "No ships pass through the area.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
   ],
 );
 
@@ -1668,6 +1735,7 @@ export function loadCatalog(): void {
       escapeTimers: { ...ESCAPE_TIMERS },
       stalemate: { ...STALEMATE },
       skillSpeed: { ...SKILL_SPEED },
+      achievementRules: { ...ACHIEVEMENT_RULES },
       aiTarget: { ...AI_TARGET },
       overchargerWaits: { ...OVERCHARGER_WAITS },
       ionIntruder: { ...ION_INTRUDER },
@@ -1698,6 +1766,7 @@ export function loadCatalog(): void {
         NO_FUEL_LIST,
         NO_FUEL_DISTRESS_LIST,
         ...LANIUS_TRADE_LISTS,
+        ROCK_ATHIEST_GOOD,
         { id: "STANDIN_EMPTY", entries: [] },
       ],
       beaconEvents: { ...BEACON_EVENTS },
@@ -1708,18 +1777,19 @@ export function loadCatalog(): void {
           id: "LANIUS_TRADER_TEXT",
           lines: [
             {
-              text: "A Lanius skiff holds its guns cold and asks for spare supplies, scrap in return.",
+              text: "Lanius ship. Trade offer: supplies for scrap.",
             },
             {
-              text: "A small Lanius hull drifts in with empty racks. The hail is clumsy, but it is a trade.",
+              text: "Lanius ship. Trade offer: supplies for scrap.",
             },
             {
-              text: "A laden Lanius hull is already turning away. They will trade the metal they cannot use.",
+              text: "Lanius ship. Trade offer: supplies for scrap.",
             },
           ],
         },
         { id: "NAME_SYLLABLES", lines: NAME_SYLLABLES.map((text) => ({ text })) },
         { id: "CREW_POOL", lines: CREW_POOL.map((text) => ({ text })) },
+        { id: "ROCK_ATHIEST_BAD", lines: [{ text: ROCK_LIES }, { text: ROCK_TRAITORS }] },
       ],
       blueprints: [...SHIP_LISTS, ...enemyGearLists(enemyHullIds())].map((row) => ({
         id: row.id,

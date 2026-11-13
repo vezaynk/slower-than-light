@@ -119,7 +119,7 @@ describe("filler lists", () => {
       allEvents().find((event) => event.dest === "Large asteroid field")?.id,
       "ASTEROID_EXPLORE",
     );
-    assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap");
+    assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Lose 12 scrap. Gain 6 fuel.");
     assert.equal(eventDef("TRAP_BEACON")?.body, "");
     assert.equal(eventDef("TRAP_BEACON")?.texts?.length, 4);
     assert.equal(eventDef("PIRATE")?.body, "");
@@ -129,7 +129,8 @@ describe("filler lists", () => {
     assert.equal(hire?.body, hire?.texts?.[0]);
     const slugFight = eventDef("SLUG_REBEL");
     assert.ok(slugFight?.texts && slugFight.texts.length > 1);
-    assert.notEqual(slugFight.body, slugFight.texts?.[0]);
+    // The page body and its intro list are separate fields, though the stand-in prints the same line.
+    assert.ok(slugFight.body);
     assert.equal(eventDef("AUTO_WARNING")?.texts?.length, 9);
     assert.deepEqual(eventDef("AUTO_WARNING")?.texts, eventDef("REBEL_AUTO")?.texts);
     const before = allEvents().length;
@@ -248,10 +249,10 @@ describe("filler lists", () => {
     assert.deepEqual(
       labels.map((row) => (row.k === "label" ? row.text : "")),
       [
-        "Fly behind a moon and stay hidden.",
-        "Shut down all non-vital systems and stay hidden.",
-        "Stay quiet and hope they don't notice you.",
-        "Stay out of their way and charge your FTL drive.",
+        "Hide. Nothing happens.",
+        "Hide. Nothing happens.",
+        "Hide. Nothing happens.",
+        "Hide. Nothing happens.",
       ],
     );
     const moons = eventDef("SLUG_DISTRESS_QUESTION")?.rolls ?? [];
@@ -298,7 +299,7 @@ describe("filler lists", () => {
     beacon.flag = moonsPage.flag;
     beacon.name = moonsPage.dest;
     const moonCard = citedEvent(createGame(1), beacon);
-    assert.match(moonCard?.body ?? "", /one of the nine moons/);
+    assert.match(moonCard?.body ?? "", /Nine moons\./);
     assert.equal(moonCard?.choices[0]?.id, "c:slug-moons-question:ask:9");
     resetPackForTests();
     assert.equal(eventDef("SLUG_DISTRESS_QUESTION")?.rolls?.length, 4);
@@ -320,9 +321,9 @@ describe("filler lists", () => {
         ["c:no-fuel-refugee-trading:missiles", "c:no-fuel-refugee-trading:arm-no"],
       ],
     );
-    assert.match(cards[0]?.body ?? "", /offers to split its remaining fuel/);
-    assert.match(cards[1]?.body ?? "", /its hull looks damaged/);
-    assert.match(cards[2]?.body ?? "", /bad need of armaments/);
+    assert.match(cards[0]?.body ?? "", /It shares fuel/);
+    assert.match(cards[1]?.body ?? "", /scrap for fuel/);
+    assert.match(cards[2]?.body ?? "", /missiles for fuel/);
 
     const page = eventDef("NO_FUEL_REFUGEE");
     assert.ok(page);
@@ -360,7 +361,7 @@ describe("filler lists", () => {
     const beacon = g.beacons[0];
     assert.ok(beacon);
     beacon.flag = "filler:refueling-station";
-    assert.equal(fillerEvent(g, beacon)?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap.");
+    assert.equal(fillerEvent(g, beacon)?.choices[0]?.label, "Lose 12 scrap. Gain 6 fuel.");
     beacon.flag = "filler:pirate-ship-distress-trap";
     assert.equal(fillerEvent(g, beacon)?.choices[0]?.label, "Fight the pirate ship.");
     beacon.flag = "filler:friendly-ship-out-of-fuel";

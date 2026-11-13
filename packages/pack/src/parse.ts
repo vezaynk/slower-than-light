@@ -29,6 +29,7 @@ import type {
   EscapeTimers,
   Stalemate,
   SkillSpeed,
+  AchievementRules,
   AiTarget,
   OverchargerWaits,
   IonIntruderRule,
@@ -596,6 +597,36 @@ export function readSkillSpeed(node: XmlElement): SkillSpeed {
     const value = attrNum(raw);
     if (value == null || value <= 0) {
       warnPack(`skillSpeed: ${key}="${raw}" is not a positive number; it is skipped.`);
+      continue;
+    }
+    out[key] = value;
+  }
+  return out;
+}
+
+const ACHIEVEMENT_RULE_KEYS = [
+  "systems",
+  "power",
+  "stealthSector",
+  "blueEvents",
+  "blueSector",
+  "oxygen",
+  "engines",
+  "beamSeconds",
+] as const;
+
+/**
+ * Gap `<achievementRules>` (types.ts AchievementRules). A missing or non-positive attribute is left out,
+ * so the registry keeps the earlier value or FTL's default.
+ */
+export function readAchievementRules(node: XmlElement): AchievementRules {
+  const out: AchievementRules = {};
+  for (const key of ACHIEVEMENT_RULE_KEYS) {
+    const raw = node.getAttribute(key);
+    if (raw == null) continue;
+    const value = attrNum(raw);
+    if (value == null || value <= 0) {
+      warnPack(`achievementRules: ${key}="${raw}" is not a positive number; it is skipped.`);
       continue;
     }
     out[key] = value;
@@ -1362,6 +1393,9 @@ export function parsePack(xml: string): ContentPack {
   const skillNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "skillSpeed",
   );
+  const achievementRulesNode = elements(doc.documentElement ?? undefined).find(
+    (item) => item.tagName === "achievementRules",
+  );
   const aiTargetNode = elements(doc.documentElement ?? undefined).find(
     (item) => item.tagName === "aiTarget",
   );
@@ -1415,6 +1449,7 @@ export function parsePack(xml: string): ContentPack {
   if (timersNode) pack.escapeTimers = readEscapeTimers(timersNode);
   if (stalemateNode) pack.stalemate = readStalemate(stalemateNode);
   if (skillNode) pack.skillSpeed = readSkillSpeed(skillNode);
+  if (achievementRulesNode) pack.achievementRules = readAchievementRules(achievementRulesNode);
   if (aiTargetNode) pack.aiTarget = readAiTarget(aiTargetNode);
   if (waitsNode) pack.overchargerWaits = readOverchargerWaits(waitsNode);
   if (ionNode) pack.ionIntruder = readIonIntruder(ionNode);
@@ -1447,11 +1482,57 @@ function readList(node: XmlElement): FillerListDef | undefined {
     events += 1;
     const eventId = attr(item, "load")?.trim() || attr(item, "name")?.trim();
     if (!eventId) continue;
-    entries.push({ id: eventId, unique: item.getAttribute("unique") === "true" });
+    const entry: FillerEntry = { id: eventId, unique: item.getAttribute("unique") === "true" };
+    if (!attr(item, "load")?.trim()) {
+      const page = readInlineListPage(item, eventId);
+      if (page) entry.page = page;
+    }
+    entries.push(entry);
   }
   // A childless named list is empty on purpose. Events that name nothing are a retired spelling, so that list stays out.
   if (entries.length === 0 && events > 0) return undefined;
   return { id, entries };
+}
+
+/** An eventList child that carries its own text. A load-only row stays an id. */
+function readInlineListPage(node: XmlElement, id: string): EventDef | undefined {
+  const lines: string[] = [];
+  const grants: NonNullable<EventDef["grants"]> = [];
+  let ship: EventDef["ship"];
+  for (const item of elements(node)) {
+    if (item.tagName === "text") {
+      const text = ownText(item).trim();
+      if (text) lines.push(text);
+      continue;
+    }
+    if (item.tagName === "ship") ship ??= readEventShip(item);
+    for (const grant of readCrewGrants(item)) grants.push(grant);
+  }
+  if (lines.length === 0 && grants.length === 0 && !ship) return undefined;
+  const page: EventDef = {
+    id,
+    dest: textOf(node, "title") ?? id,
+    flag: id,
+    aliases: [],
+    sectors: [],
+    body: lines[0] ?? "",
+    choices: [],
+  };
+  if (ship) page.ship = ship;
+  if (grants.length > 0) page.grants = grants;
+  return page;
+}
+
+function readCrewGrants(node: XmlElement): NonNullable<EventDef["grants"]> {
+  if (node.tagName !== "crewMember") return [];
+  const id = attr(node, "class")?.trim() || attr(node, "type")?.trim() || attr(node, "id")?.trim();
+  if (!id) return [];
+  const grant: NonNullable<EventDef["grants"]>[number] = { kind: "crew", id };
+  const amount = intAttr(node, "amount");
+  if (amount != null) grant.amount = amount;
+  const name = attr(node, "name")?.trim();
+  if (name) grant.name = name;
+  return [grant];
 }
 
 export function readEmpty(node: XmlElement): EmptyBeaconDef | undefined {
@@ -1563,8 +1644,7 @@ export function readEvent(node: XmlElement): EventDef | undefined {
       continue;
     }
     if (item.tagName === "crewMember") {
-      const grant = readCrewGrant(item);
-      if (grant) grants.push(grant);
+      for (const grant of readCrewGrants(item)) grants.push(grant);
       continue;
     }
     if (item.tagName === "roll") {
@@ -2239,18 +2319,6 @@ function resourceEffects(node: XmlElement): EventEffect[] {
   return rows;
 }
 
-/** `<crewMember class="anaerobic">Translator</crewMember>` grants that person. */
-function readCrewGrant(node: XmlElement): ArchiveGrant | undefined {
-  const race = attr(node, "class")?.trim() || attr(node, "type")?.trim();
-  const named = ownText(node).trim();
-  if (!race && !named) return undefined;
-  const grant: ArchiveGrant = { kind: "crew", id: race || "human" };
-  if (named && named !== grant.id) grant.name = named;
-  const amount = intAttr(node, "amount");
-  if (amount != null) grant.amount = amount;
-  return grant;
-}
-
 /** Campaign buttons, including the buttons on a result page. */
 function readCampaignChoice(node: XmlElement): EventChoice | undefined {
   const choiceId = attr(node, "name")?.trim();
@@ -2271,6 +2339,7 @@ function readCampaignChoice(node: XmlElement): EventChoice | undefined {
   if (reward) choice.reward = reward;
   const environment = readEnvironment(node);
   if (environment) choice.environment = environment;
+  attachChoiceResult(choice, node);
   const result = elements(node).find((item) => item.tagName === "event");
   if (result && !attr(result, "load")?.trim()) {
     const nested = elements(result)
@@ -2282,6 +2351,38 @@ function readCampaignChoice(node: XmlElement): EventChoice | undefined {
     if (nested.length > 0) choice.choices = nested;
   }
   return choice;
+}
+function choiceResultPayload(node: XmlElement): boolean {
+  const text = child(node, "text");
+  const textLoad = text && !ownText(text).trim() ? attr(text, "load")?.trim() : undefined;
+  const ship = child(node, "ship");
+  const shipLoad = ship ? attr(ship, "load")?.trim() : undefined;
+  return Boolean(textLoad || (ship && !shipLoad) || readCrewGrantsFrom(node).length);
+}
+
+/** A result event's text load, shipless ship, and crew, stored on the choice. */
+function attachChoiceResult(choice: EventChoice, node: XmlElement): void {
+  for (const item of elements(node)) {
+    if (item.tagName !== "event" || attr(item, "load")?.trim()) continue;
+    const text = child(item, "text");
+    const textLoad = text && !ownText(text).trim() ? attr(text, "load")?.trim() : undefined;
+    if (textLoad) choice.textLoad = textLoad;
+    const shipNode = child(item, "ship");
+    if (shipNode && !attr(shipNode, "load")?.trim()) {
+      const ship = readEventShip(shipNode);
+      if (ship) choice.ship = ship;
+    }
+    const grants = readCrewGrantsFrom(item);
+    if (grants.length > 0) choice.grants = grants;
+  }
+}
+
+function readCrewGrantsFrom(node: XmlElement): NonNullable<EventChoice["grants"]> {
+  const grants: NonNullable<EventChoice["grants"]> = [];
+  for (const item of elements(node)) {
+    for (const grant of readCrewGrants(item)) grants.push(grant);
+  }
+  return grants;
 }
 
 /** Choice results, in document order. */
@@ -2322,6 +2423,8 @@ function readChoiceEffect(node: XmlElement): EventEffect[] | undefined {
     const text = textOf(node, "text");
     const quests = questEffects(node);
     if (text != null) return [{ k: "note", text }, ...quests];
+    // A text load, a hostile ship with no load, or a crew grant is stored on the choice, not as an effect.
+    if (choiceResultPayload(node)) return quests;
     return quests.length > 0 ? quests : [{ k: "nothing" }];
   }
   if (node.tagName === "damage") {

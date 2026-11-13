@@ -5,11 +5,11 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "A number of large transports are being pursued by a Rebel bombing squadron. One bomber has managed to slip through the defensive fire, and is poised to wreak among the enormous yet vulnerable transports. There's time for you to advance and take it out!",
-  "Shots fly by your port windows followed by a Rebel scout in pursuit of a damaged cruiser. Should we move in to engage?",
-  "There seems to be a small Federation colony under attack by a Rebel forward scout. Will you protect them?",
-  "A battle rages nearby between small fighters; apparently fighting over a space station. The Federation appears to be losing ships fast. Shall we assist them?",
-  "A civilian ship is broadcasting a request for assistance on a secure Federation channel. They are being harassed by Rebel scouts. Will you respond?",
+  "Rebel ship attacking civilian ships.",
+  "Rebel ship attacking civilian ships.",
+  "Rebel ship attacking civilian ships.",
+  "Rebel ship attacking civilian ships.",
+  "Rebel ship attacking civilian ships.",
 ];
 
 function open(g: Game) {
@@ -26,7 +26,7 @@ function open(g: Game) {
 describe("Rebel ship attacking civilians in Last Stand", () => {
   it("shows one of the five intros, and the fight choice starts a Rebel combat", () => {
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 80 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -39,7 +39,7 @@ describe("Rebel ship attacking civilians in Last Stand", () => {
       );
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);

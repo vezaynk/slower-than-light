@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -26,8 +27,9 @@ describe("Engi smashed ships", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "engi-smashed-ships", dead), true);
       const body = g.event?.body ?? "";
-      assert.match(body, dead ? /ship disabled/ : /ship destroyed/);
-      assert.match(body, /consolidation/);
+      const hail = dead ? "ship_ENGI_SEX_SHIP_deadCrew_text" : "ship_ENGI_SEX_SHIP_destroyed_text";
+      assert.ok(body.startsWith(eventText(hail)), body);
+      assert.ok(body.includes(eventText("event_ENGI_SEX_SHIP_DONE_text")), body);
       assert.match(body, /Nothing happens/);
       assert.equal(body.includes("Scrap:"), false);
       assert.equal(g.scrap, 10);
@@ -60,7 +62,7 @@ describe("Engi smashed ships", () => {
     assert.equal(choiceDisabled(g, "c:engi-smashed-ships:2"), null);
     choose(g, "c:engi-smashed-ships:2");
     const body = g.event?.body ?? "";
-    assert.match(body, /achieve a union/);
+    assert.ok(body.includes(eventText("event_ENGI_SEX_c3_text")));
     const paid = [...body.matchAll(/Scrap: (\d+)/g)].map((m) => Number(m[1]));
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);

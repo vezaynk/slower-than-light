@@ -26,10 +26,7 @@ describe("Pirate engine hacker", () => {
     g.here = b.id;
     g.event = citedEvent(g, b);
     g.phase = "event";
-    assert.equal(
-      g.event?.body,
-      "Once you arrive, your screen lights up with warnings. A nearby pirate seems to have advanced hacking tools and they have tried to shut down our engines. Your crew manages to keep them operational and you move in to attack.",
-    );
+    assert.equal(g.event?.body, "Hostile pirate ship. Engines hacked.");
     g.player.systems.engines.level = 5;
     g.player.systems.engines.power = 5;
     g.player.systems.engines.damage = 0;
@@ -74,10 +71,7 @@ describe("Rebel fight choice in nebula", () => {
     g.here = b.id;
     g.event = citedEvent(g, b);
     g.phase = "event";
-    assert.equal(
-      g.event?.body,
-      "Your ship emerges quite far away from the beacon. You see a rebel ship waiting nearby, undoubtedly stationed to look for you.",
-    );
+    assert.equal(g.event?.body, "Rebel ship, unaware of you. Nebula.");
     assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-fight-choice-in-nebula:0"));
     choose(g, "c:rebel-fight-choice-in-nebula:0");
     assert.equal(g.phase, "combat");

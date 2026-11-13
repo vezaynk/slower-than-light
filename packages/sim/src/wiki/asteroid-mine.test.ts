@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { allEvents } from "@stl/pack";
 import { choiceDisabled } from "../sim.ts";
@@ -13,9 +14,7 @@ describe("Large asteroid field mining", () => {
     const g = startedGame(4);
     const page = allEvents().find((event) => event.dest === "Large asteroid field");
     assert.ok(
-      page?.choices.some(
-        (choice) => choice.id === MINE && choice.label === "Attempt to mine the asteroids.",
-      ),
+      page?.choices.some((choice) => choice.id === MINE && choice.label === "Gain high scrap."),
     );
     assert.equal(choiceDisabled(g, MINE), "Needs a Scrap Recovery Arm");
     const scrap = g.scrap;
@@ -43,7 +42,7 @@ describe("Large asteroid field mining", () => {
     assert.equal(g.player.hull, 30);
     assert.ok(g.player.rooms.every((room) => room.fire === 0 && room.breach === 0));
     assert.equal(g.phase, "event");
-    assert.match(g.event!.body, /usable material/);
+    assert.ok(g.event!.body.includes(eventText("event_ASTEROID_EXPLORE_c3_text")));
     assert.match(g.event!.body, /Scrap: /);
   });
 });

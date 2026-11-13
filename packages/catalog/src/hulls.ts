@@ -14,7 +14,7 @@ import { MANTIS_HULLS } from "./wiki/hulls-mantis.ts";
  * Bars are filled until the reactor is spent, weapons first when the guns need them.
  * Scrap is not on these pages. The caller keeps the existing 10.
  *
- * @agent:unlocks. `unlock` is the page's line for the hangar lock card. The rules that gate START live in
+ * @agent:unlocks. `unlock` is the condition line for the hangar lock card. The rules that gate START live in
  * unlocks.ts (pure) and unlock-store.ts (localStorage "stl:unlocks").
  */
 
@@ -41,9 +41,8 @@ export type HullSpec = {
   cruiser: string;
   layout: "A" | "B" | "C";
   name: string;
-  quote: string;
   /**
-   * The cruiser page's unlock lines, one paragraph per line.
+   * The unlock condition, one condition per line. The ship's `<desc>` is its stat summary (blueprint-copy.ts hullDetail).
    * The hangar lock card shows these. The START gate stays in unlocks.ts.
    */
   unlock: string;
@@ -77,17 +76,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Kestrel Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_HARD",
     cruiser: "Kestrel Cruiser",
     layout: "A",
     name: "The Kestrel",
-    quote:
-      "This class of ship was decommissioned from Federation service years ago. After a number of refits and updating, this classic ship is ready for battle.",
-    unlock:
-      "Does not require unlocking (it is the only ship, the cruiser and the layout, available from the very start of the game)",
+    unlock: "Available from the start.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -118,15 +114,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Kestrel Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_HARD_2",
     cruiser: "Kestrel Cruiser",
     layout: "B",
     name: "Red-Tail",
-    quote: "This modified Kestrel class ship was created by a laser weapon aficionado.",
-    unlock: "Earn at least two out of three achievements for the Kestrel Cruiser",
+    unlock: "Earn 2 of the 3 Kestrel Cruiser achievements.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -159,17 +154,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Kestrel Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_HARD_3",
     cruiser: "Kestrel Cruiser",
     layout: "C",
     name: "The Swallow",
-    quote:
-      "This model was modified by pirates to utilize newly discovered technology. It can clone lost crewmembers and stun enemies.",
-    unlock:
-      "Reach the final sector with the Kestrel Cruiser layout B and Advanced Edition Content enabled",
+    unlock: "Reach sector 8 with the Kestrel Cruiser layout B.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -201,17 +193,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Engi Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_CIRCLE",
     cruiser: "Engi Cruiser",
     layout: "A",
     name: "The Torus",
-    quote:
-      "Although it may look like a pile of junk loosely held together, this well designed ship relies on drones and ion weaponry.",
-    unlock:
-      "Reaching a sector 5 with any Kestrel Cruiser layout automatically unlocks the Engi Cruiser",
+    unlock: "Reach sector 5 with the Kestrel Cruiser.",
     weaponSlots: 3,
     droneSlots: 3,
     health: 30,
@@ -243,15 +232,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Engi Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_CIRCLE_2",
     cruiser: "Engi Cruiser",
     layout: "B",
     name: "The Vortex",
-    quote: "Heavily understaffed, this ship relies on drones to keep the ship running.",
-    unlock: "Earn at least two out of three achievements for the Engi Cruiser",
+    unlock: "Earn 2 of the 3 Engi Cruiser achievements.",
     weaponSlots: 3,
     droneSlots: 3,
     health: 30,
@@ -282,17 +270,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Engi Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_CIRCLE_3",
     cruiser: "Engi Cruiser",
     layout: "C",
     name: "Tetragon",
-    quote:
-      "The Engi were quick to adapt to the sudden surge of hacking technology — this ship is the result of their research.",
-    unlock:
-      "Reach the final sector with the Engi Cruiser layout B and Advanced Edition Content enabled",
+    unlock: "Reach sector 8 with the Engi Cruiser layout B.",
     weaponSlots: 3,
     droneSlots: 3,
     health: 30,
@@ -328,17 +313,15 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Federation Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_FED",
     cruiser: "Federation Cruiser",
     layout: "A",
     name: "The Osprey",
-    quote:
-      "This ship features the latest in federation technology: an advanced beam weapon that pierces through shields!",
     unlock:
-      "Defeat the Flagship prototype in the Rebel Stronghold sector to unlock this ship.\nAlternatively, defeat the Rebel Flagship with the Engi Cruiser.",
+      "Beat the flagship with the Engi Cruiser.\nOr win the unlock from a Rebel sector event.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -370,15 +353,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Federation Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_FED_2",
     cruiser: "Federation Cruiser",
     layout: "B",
     name: "Nisos",
-    quote: "This ship features additional Artillery power, encouraging heavy reliance on the beam.",
-    unlock: "Earning two of the three Federation Cruiser achievements will unlock layout B.",
+    unlock: "Earn 2 of the 3 Federation Cruiser achievements.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -409,17 +391,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Federation Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_FED_3",
     cruiser: "Federation Cruiser",
     layout: "C",
     name: "The Fregatidae",
-    quote:
-      "With a Flak Artillery weapon and an improved Clone Bay, only the most suicidal of infantry chooses to fly on this ship.",
-    unlock:
-      "Reaching Sector 8 with The Federation Cruiser B and Advanced Edition content enabled will unlock Layout C.",
+    unlock: "Reach sector 8 with the Federation Cruiser layout B.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -457,16 +436,15 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Zoltan Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_ENERGY",
     cruiser: "Zoltan Cruiser",
     layout: "A",
     name: "The Adjudicator",
-    quote: "The Zoltan's advanced shields technology give this ship an edge during each battle.",
     unlock:
-      "See the Unarmed Zoltan Transport.\nAlternatively, defeat The Rebel Flagship with the Federation Cruiser.",
+      "Beat the flagship with the Federation Cruiser.\nOr win the unlock from a Zoltan sector event.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -503,15 +481,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Zoltan Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_ENERGY_2",
     cruiser: "Zoltan Cruiser",
     layout: "B",
     name: "Noether",
-    quote: "This ship starts with a weakened Shield system and must rely on its Zoltan shield.",
-    unlock: "Earning two of the three Zoltan Cruiser achievements will unlock Layout B.",
+    unlock: "Earn 2 of the 3 Zoltan Cruiser achievements.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -546,17 +523,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Zoltan Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_ENERGY_3",
     cruiser: "Zoltan Cruiser",
     layout: "C",
     name: "Cerenkov",
-    quote:
-      "The designer of this ship was not willing to spend the money for a decent reactor. Instead it relies on its Zoltan crew and Backup Battery.",
-    unlock:
-      "Getting to Sector 8 with the The Zoltan Cruiser Type B with Advanced Edition Content enabled will unlock Layout C.",
+    unlock: "Reach sector 8 with the Zoltan Cruiser layout B.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -596,17 +570,15 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Slug Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_JELLY",
     cruiser: "Slug Cruiser",
     layout: "A",
     name: "Man of War",
-    quote:
-      "Designed for use inside nebula, this cruiser lacks sensors and relies instead on the guile and cunning of the Slugs.",
     unlock:
-      "See the Slug Home Nebula Surrender random event.\nAlternatively, defeat The Rebel Flagship with the Mantis Cruiser.",
+      "Beat the flagship with the Mantis Cruiser.\nOr win the unlock from a Slug sector event.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -640,16 +612,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Slug Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_JELLY_2",
     cruiser: "Slug Cruiser",
     layout: "B",
     name: "The Stormwalker",
-    quote:
-      "This boarding ship has no medical facilities and must manage its explosives carefully to keep the crew alive.",
-    unlock: "Earning two of the three Slug Cruiser achievements will unlock Layout B.",
+    unlock: "Earn 2 of the 3 Slug Cruiser achievements.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -685,17 +655,14 @@ export const HULLS: HullSpec[] = [
    * Power fills are not on the page. INFERRED.
    * Wiki page "The Slug Cruiser", section "Layout C": Sensors is not listed, so the level is 0.
    * Chain Burst Laser is the starting gun. It takes the 2 weapon bars the reactor can spare.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_JELLY_3",
     cruiser: "Slug Cruiser",
     layout: "C",
     name: "Ariolimax",
-    quote:
-      "Slugs are often skilled in the arts of misdirection and manipulation. With Hacking and Mind Control systems, this ship capitalizes on that fact.",
-    unlock:
-      "Reaching sector 8 with the Slug Cruiser B on any difficulty with Advanced Edition Content enabled will unlock layout C.",
+    unlock: "Reach sector 8 with the Slug Cruiser layout B.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -732,17 +699,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Rock Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_ROCK",
     cruiser: "Rock Cruiser",
     layout: "A",
     name: "Bulwark",
-    quote:
-      "Similar to its designers, this super dense behemoth uses brute force to overwhelm its foes.",
-    unlock:
-      "See the Rock war vessel encounter.\nAlternatively, defeat The Rebel Flagship with the Slug cruiser.",
+    unlock: "Beat the flagship with the Slug Cruiser.\nOr win the unlock from a Rock sector event.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -775,15 +739,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Rock Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_ROCK_2",
     cruiser: "Rock Cruiser",
     layout: "B",
     name: "Shivan",
-    quote: "With no airlocks, this ship must rely entirely on its rock crew to put out fires.",
-    unlock: "Earning two of the three Rock Cruiser achievements will unlock Layout B.",
+    unlock: "Earn 2 of the 3 Rock Cruiser achievements.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -818,17 +781,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Rock Cruiser", section "Layout C": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_ROCK_3",
     cruiser: "Rock Cruiser",
     layout: "C",
     name: "Tektite",
-    quote:
-      "Contact has been made with the Crystalline race and this cruiser was offered to the Federation as part of diplomatic discussions between the sister species.",
-    unlock:
-      "Reaching sector 8 with the Rock Cruiser B with Advanced Mode enabled will unlock layout C.",
+    unlock: "Reach sector 8 with the Rock Cruiser layout B.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -861,17 +821,15 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Stealth Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_STEALTH",
     cruiser: "Stealth Cruiser",
     layout: "A",
     name: "The Nesasio",
-    quote:
-      "Constructed for the Federation by the Engi, this ship is designed to use cloaking technology and speed to get behind enemy lines.",
     unlock:
-      "See the Engi fleet discussion event.\nAlternatively, defeat the Rebel Flagship with the Rock Cruiser.",
+      "Beat the flagship with the Rock Cruiser.\nOr win the unlock from an Engi sector event.",
     weaponSlots: 3,
     droneSlots: 2,
     health: 30,
@@ -904,16 +862,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Stealth Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_STEALTH_2",
     cruiser: "Stealth Cruiser",
     layout: "B",
     name: "DA-SR 12",
-    quote:
-      "Built like a glass cannon, this ship is hard to handle. If its cloaking can keep it safe long enough to charge its weapon, few cruisers can withstand its might.",
-    unlock: "Earning two of the three Stealth Cruiser achievements will unlock Layout B.",
+    unlock: "Earn 2 of the 3 Stealth Cruiser achievements.",
     weaponSlots: 3,
     droneSlots: 2,
     health: 30,
@@ -954,17 +910,14 @@ export const HULLS: HullSpec[] = [
    * Starting Drones also lists Anti-Drone, the Anti-Combat Drone: Wiki page "Drone Control",
    * Combat Drone Mark II notes, "Anti-Combat Drone ... when playing Stealth C" (gear-look.ts "anti-drone" -> wardcut). Both
    * schematics are fitted as the loadout. INFERRED: the player kit flies one drone at a time (extras/swarm.ts deploy).
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_STEALTH_3",
     cruiser: "Stealth Cruiser",
     layout: "C",
     name: "Simo-H",
-    quote:
-      "This ship was part of an Engi experiment to make a power efficient version of the Zoltan shield. Unfortunately this required the removal of the Cloaking system.",
-    unlock:
-      "Reaching sector 8 with the Stealth Cruiser B and Advanced Mode enabled will unlock layout C.",
+    unlock: "Reach sector 8 with the Stealth Cruiser layout B.",
     weaponSlots: 3,
     droneSlots: 3,
     health: 30,
@@ -1006,16 +959,14 @@ export const HULLS: HullSpec[] = [
    * Wiki page "The Lanius Cruiser", section "Layout A": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
    * Wiki page "The Lanius Cruiser", section "Layout A": Chain Burst Laser (2 power) and Ion Stunner (1). Weapon system is level 3 and already powered to 3.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_ANAEROBIC",
     cruiser: "Lanius Cruiser",
     layout: "A",
     name: "Kruos",
-    quote:
-      "The sharp knife-like structures make Lanius ships a sight to behold. This cruiser was adapted to support the other races of the Federation.",
-    unlock: "Unlock 4 ships (Excluding The Kestrel) to unlock this ship.",
+    unlock: "Unlock 4 cruisers other than the Kestrel Cruiser.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,
@@ -1049,16 +1000,14 @@ export const HULLS: HullSpec[] = [
   /**
    * Wiki page "The Lanius Cruiser", section "Layout B": reactor, fuel, missiles, drone parts, systems, weapons, crew.
    * Power fills are not on the page. INFERRED.
-   * unlock is the page line; the gate is unlocks.ts (@agent:unlocks).
+   * unlock is the condition line; the gate is unlocks.ts (@agent:unlocks).
    */
   {
     id: "PLAYER_SHIP_ANAEROBIC_2",
     cruiser: "Lanius Cruiser",
     layout: "B",
     name: "The Shrike",
-    quote:
-      "The racial ability of the Lanius make them fearsome combatants in small quarters. Combine that with a Mind Control system and this ship is a force to be reckoned with.",
-    unlock: "Earning two of the three Lanius Cruiser achievements will unlock Layout B.",
+    unlock: "Earn 2 of the 3 Lanius Cruiser achievements.",
     weaponSlots: 4,
     droneSlots: 2,
     health: 30,

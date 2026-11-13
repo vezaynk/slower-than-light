@@ -4,6 +4,7 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -31,9 +32,9 @@ describe("Rock atheists", () => {
       assert.equal(g.phase, "event");
       assert.equal(g.event?.choices[0]?.id, "ship-resume");
       const line = g.event?.body ?? "";
-      assert.ok(line.includes("lies") || line.includes("Traitors"), line);
+      assert.ok(line.includes("guns start to charge") || line.includes("turns hostile"), line);
       assert.equal(
-        g.log.some((l) => l.includes("lies") || l.includes("Traitors")),
+        g.log.some((l) => l.includes("guns start to charge") || l.includes("turns hostile")),
         false,
       );
       seen.add(line);
@@ -63,10 +64,11 @@ describe("Rock atheists", () => {
       assert.equal(g.scrap, 10);
       if (rocks(g) === before + 1) {
         joined += 1;
-        assert.match(g.event?.body ?? "", /serve with you/);
+        assert.match(g.event?.body ?? "", /Gain 1 Rock crew/);
+        assert.match(g.event?.body ?? "", /crewmember joins you/);
       } else {
         refused += 1;
-        assert.match(g.event?.body ?? "", /Nothing happens/);
+        assert.match(g.event?.body ?? "", /jumps away/);
         assert.equal(rocks(g), before);
       }
     }
@@ -88,7 +90,8 @@ describe("Rock atheists", () => {
     const before = rocks(g);
     choose(g, "c:rock-atheists:2");
     assert.equal(rocks(g), before + 1);
-    assert.match(g.event?.body ?? "", /impressed by the data/);
+    assert.match(g.event?.body ?? "", /Gain 1 Rock crew/);
+    assert.match(g.event?.body ?? "", /crewmember joins you/);
     assert.equal(g.phase, "event");
   });
 });

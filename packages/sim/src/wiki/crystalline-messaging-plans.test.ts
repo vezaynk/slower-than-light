@@ -3,18 +3,14 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const PLANS = "c:crystalline-ship-messaging-about-rebels";
-const OUTRUN =
-  "It was never your intention to lead the Rebels here, and frankly you could do with the scrap. The Crystalline ship immediately jumps off to inform the Rebels, leaving you with a fleet to outrun!";
-const CRUISE =
-  "Unable to interpret it themselves, the Crystalline Beings assume your data will mean something to the Rebels. It should see the pursuing fleet taking a leisurely cruise before they get back on track.";
-const LIE =
-  "They take one look at your fake telemetry and realize what you've done. They apparently do not take being lied to well - they immediately attack";
-const BUOY =
-  "Your distraction buoy allows you to create a very convincing flight plan. They accept it as true and give you the scrap. The deception may not be the most honorable tactic but staying ahead of the fleet is your highest priority.";
-const APOLOGY =
-  "You apologize for the trouble you've brought them, but explain that you have no choice. They seem to understand, and break the comm link to set about preparing defenses.";
+const OUTRUN = eventText("event_CRYSTAL_REQUEST_c1_c1_text");
+const CRUISE = eventText("event_CRYSTAL_REQUEST_LIST_1_text");
+const LIE = eventText("event_CRYSTAL_REQUEST_LIST_2_text");
+const BUOY = eventText("event_CRYSTAL_REQUEST_c1_c3_text");
+const APOLOGY = eventText("event_CRYSTAL_REQUEST_c1_c4_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -45,10 +41,13 @@ describe("Crystalline ship messaging about Rebels flight plans", () => {
     assert.deepEqual(
       g.event?.choices.map((c) => [c.id, c.label]),
       [
-        [`${PLANS}:0`, "Give them your flight plans"],
-        [`${PLANS}:1`, "Accept the scrap but give them false flight plans"],
-        [`${PLANS}:2`, "Accept the scrap but give them falsified flight plans."],
-        [`${PLANS}:3`, "Refuse"],
+        [`${PLANS}:0`, "Gain high scrap. Fleet advances 1."],
+        [
+          `${PLANS}:1`,
+          "1 in 2: gain high scrap, fleet delayed 1. 1 in 2: fight and 1-2 Crystal boarders.",
+        ],
+        [`${PLANS}:2`, "Gain high scrap. Fleet delayed 1."],
+        [`${PLANS}:3`, "Nothing happens."],
       ],
     );
   });
@@ -193,7 +192,7 @@ describe("Crystalline ship messaging about Rebels flight plans", () => {
     g.fleet = 3;
     const held = gear(g);
     choose(g, `${PLANS}:3`);
-    assert.equal(g.event?.body, `${APOLOGY}\n\nNothing happens.`);
+    assert.equal(g.event?.body, `${APOLOGY}\n\n`);
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 3);
     assert.deepEqual(gear(g), held);

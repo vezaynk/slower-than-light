@@ -5,6 +5,8 @@ import type { Game } from "../types.ts";
 import { offeredChoices } from "./choice-locks.ts";
 import { citedEvent } from "./cited-events.ts";
 import { joinCrew } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 const BASE: Record<string, [number, number]> = {
   fuel: [15, 30],

@@ -15,6 +15,11 @@ const TITLES = [
   "Store (Rebel)",
 ];
 
+/** A row's dest is its wiki page title, and its slug is that title's slug. */
+function titleOf(ev: { slug: string }): string {
+  return (TITLES as readonly string[]).find((t) => slug(t) === ev.slug) ?? ev.slug;
+}
+
 function slug(title: string): string {
   return title
     .toLowerCase()
@@ -62,15 +67,15 @@ describe("cited rebel events", () => {
     // > "This random event occurs in The Last Stand." — [[Rebel fight among Rebel fleet]]
     // > "This random event occurs in Rebel Controlled Sector, Rebel Stronghold." — [[Rebel fight with boarders]]
     assert.equal(wiki.size, TITLES.length);
-    const dests = EXTRA_EVENTS.map((ev) => ev.dest);
+    const dests = EXTRA_EVENTS.map((ev) => titleOf(ev));
     assert.deepEqual(dests, ["Rebel fight among Rebel fleet", "Rebel fight with boarders"]);
     for (const ev of EXTRA_EVENTS) {
-      assert.ok(TITLES.includes(ev.dest));
-      assert.equal(ev.slug, slug(ev.dest));
+      assert.ok(TITLES.includes(titleOf(ev)));
+      assert.equal(slug(titleOf(ev)), ev.slug);
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.body.length <= 240);
-      assert.deepEqual(ev.aliases, [ev.dest]);
-      const text = wiki.get(ev.dest);
+      assert.ok(ev.aliases.includes(ev.dest));
+      const text = wiki.get(titleOf(ev));
       assert.ok(text);
       assert.deepEqual(ev.sectors, locationNames(text));
       ev.choices.forEach((choice, i) => {
@@ -84,7 +89,7 @@ describe("cited rebel events", () => {
 
   it("opens both fights against a Rebel ship", () => {
     const fleet = EXTRA_EVENTS[0].choices[0];
-    assert.equal(fleet.label, "Fight a Rebel ship");
+    assert.equal(fleet.label, "Fight the Rebel ship.");
     assert.deepEqual(fleet.fx, [{ k: "fight", tier: "Rebel ship" }]);
     const boarders = EXTRA_EVENTS[1].choices[0];
     assert.deepEqual(boarders.fx, [{ k: "fight", tier: "Rebel ship" }]);

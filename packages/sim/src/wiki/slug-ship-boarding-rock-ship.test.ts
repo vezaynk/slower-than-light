@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerChoose } from "./filler-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -41,19 +43,20 @@ describe("Slug ship boarding Rock ship", () => {
         fight = true;
         assert.equal(g.enemy?.faction, "slug");
         assert.equal(g.scrap, 10);
-        assert.match(
-          g.event?.body ?? "",
-          /You charge weapons and the Slugs quickly change course to meet your charge/,
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_ROCK_FIGHT_2_text")),
         );
         assert.equal(
-          g.log.some((line) => line.includes("change course")),
+          g.log.some((line) => line.includes(eventText("event_SLUG_DISTRESS_ROCK_FIGHT_2_text"))),
           false,
         );
         choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
       } else {
         down = true;
-        assert.match(g.event?.body ?? "", /back down/);
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_ROCK_FIGHT_1_text")),
+        );
         assert.match(g.event?.body ?? "", /Nothing happens/);
         assert.equal(g.scrap, 10);
       }
@@ -80,17 +83,14 @@ describe("Slug ship boarding Rock ship", () => {
         fight += 1;
         assert.equal(g.enemy?.faction, "rock");
         assert.equal(g.scrap, 10);
-        assert.match(g.event?.body ?? "", /don't deserve to live/);
-        assert.equal(
-          g.log.some((line) => line.includes("don't deserve to live")),
-          false,
-        );
+        const lead = eventText("event_SLUG_DISTRESS_ROCK_AVOID_3_text");
+        assert.equal(g.event?.body, lead);
+        assert.equal(g.log.includes(lead), false);
         choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
       } else {
         nothing += 1;
-        assert.match(g.event?.body ?? "", /leave them alone/);
-        assert.match(g.event?.body ?? "", /Nothing happens/);
+        assert.equal(g.event?.body, eventText("event_SLUG_DISTRESS_ROCK_AVOID_1_text"));
         assert.equal(g.scrap, 10);
       }
     }
@@ -118,19 +118,20 @@ describe("Slug ship boarding Rock ship", () => {
         const paid = scraps(body);
         assert.ok(paid.length >= 1, body);
         assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
-        if (dead) assert.match(body, /no longer a threat/);
-        else assert.match(body, /Slug ship destroyed/);
-        if (/long since abandoned/.test(body)) {
+        if (dead) assert.match(body, textRe("ship_JELLY_DISTRESS_ROCK_deadCrew_text"));
+        else assert.match(body, textRe("ship_JELLY_DISTRESS_ROCK_destroyed_text"));
+        // The abandoned freighter's line can match the win line, so it is told apart by its second payment.
+        if (paid.length === 2) {
           abandoned = true;
-          assert.equal(paid.length, 2, body);
+          assert.match(body, textRe("event_SLUG_DISTRESS_ROCK_RESULT_3_text"));
           assert.ok(paid[1]! >= 12 && paid[1]! <= 19, body);
         } else {
           assert.match(body, /Nothing happens/);
           assert.equal(paid.length, 1, body);
-          if (/ungrateful/.test(body)) left = true;
+          if (body.includes(eventText("event_SLUG_DISTRESS_ROCK_RESULT_1_text"))) left = true;
           else {
             thanks = true;
-            assert.match(body, /Thanks/);
+            assert.ok(body.includes(eventText("event_SLUG_DISTRESS_ROCK_RESULT_2_text")));
           }
         }
       }

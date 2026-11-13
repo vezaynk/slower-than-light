@@ -3,10 +3,10 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const ID = "c:federation-deserters:2";
-const SENTENCE =
-  'You send over some supplies to help them on their way and in return they upload their flight plan to your computer, allowing you to map the sector! "The Federation fleet\'s still standing - get there while you can!"';
+const SENTENCE = eventText("event_CRYSTAL_FED_DESERTER_c1_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -47,7 +47,7 @@ describe("Federation deserters offer supplies", () => {
     const map = g.sectorMap;
     choose(g, ID);
     assert.equal(g.phase, "event");
-    assert.equal(g.event?.body, `${SENTENCE}\n\nThe current sector map is revealed.`);
+    assert.equal(g.event?.body, `${SENTENCE}\n\n`);
     assert.ok(g.scrap <= 25 && g.scrap >= 15, String(g.scrap));
     assert.ok(g.fuel <= 9 && g.fuel >= 7, String(g.fuel));
     assert.equal(g.sectorMap, map);

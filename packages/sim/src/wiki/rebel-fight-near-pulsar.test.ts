@@ -5,9 +5,9 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  `A Rebel captain appears on the screen. "I thought we had been doomed to backwater assignments. This is my chance to get back in Command's good graces! Charge the weapons!"`,
-  "A small rebel research station overlooks a pulsating star. Before you can react a Rebel ship spots you and moves in to attack.",
-  "You arrive at an infrequently used beacon close to a pulsar. Before long a Rebel ship happens to jump nearby. Looks like you'll have to fight.",
+  "Hostile Rebel ship. Pulsar: ion pulses.",
+  "Hostile Rebel ship. Pulsar: ion pulses.",
+  "Hostile Rebel ship. Pulsar: ion pulses.",
 ];
 
 function open(g: Game) {
@@ -30,7 +30,7 @@ describe("Rebel fight near pulsar", () => {
     // > "You arrive at an infrequently used beacon close to a pulsar. Before long a Rebel ship happens to jump nearby. Looks like you'll have to fight." — [[Rebel fight near pulsar]]
     // > "Fight a Rebel ship (default rewards)." — [[Rebel fight near pulsar]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 40 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -38,7 +38,7 @@ describe("Rebel fight near pulsar", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-fight-near-pulsar:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);

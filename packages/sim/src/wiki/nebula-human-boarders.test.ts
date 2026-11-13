@@ -5,8 +5,7 @@ import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-humans-in-nebula:0";
-const BODY =
-  "You see a small station nearby and feel the shudder of shots ringing through the ship. You can't be sure without sensors, but it seems there may be intruders on the ship!";
+const BODY = "Nebula. 2-4 Human boarders.";
 const DEST = "Boarders: Humans in nebula";
 const SECTORS = ["CIVILIAN_SECTOR", "PIRATE_SECTOR", "NEBULA_SECTOR"];
 

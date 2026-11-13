@@ -29,7 +29,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 20,
-    blurb: "Extremely cheap and weak beam weapon.",
+    blurb: "Beam. Each shield layer cuts 1 damage per room.",
   },
   {
     id: "BEAM_LONG",
@@ -50,7 +50,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 55,
-    blurb: "Can cut across entire ships, assuming there's no shield to stop it.",
+    blurb: "Beam. Each shield layer cuts 1 damage per room.",
   },
   {
     id: "BEAM_HULL",
@@ -72,7 +72,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 70,
-    blurb: "This beam is most powerful when targeting large, empty sections of hull.",
+    blurb: "Beam. Double damage to rooms without a system.",
   },
   {
     id: "BEAM_2",
@@ -94,7 +94,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 65,
-    blurb: "Slow but reliably powerful standard beam weapon.",
+    blurb: "Beam. Each shield layer cuts 1 damage per room.",
   },
   {
     id: "BEAM_3",
@@ -115,8 +115,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 95,
-    blurb:
-      "One of the most powerful weapons of war ever created. Known to take out some ships in a single blast.",
+    blurb: "Beam. Each shield layer cuts 1 damage per room.",
   },
   {
     id: "BEAM_FIRE",
@@ -139,7 +138,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 50,
-    blurb: "This terrifying beam does no physical damage but ignites fires.",
+    blurb: "Beam. No hull damage. Starts fires.",
   },
   {
     id: "BEAM_BIO",
@@ -163,8 +162,7 @@ export const BEAM_WEAPONS: WeaponDef[] = [
     ammo: false,
     price: 50,
     persDamage: 4,
-    blurb:
-      "This terrifying beam does no physical damage, but rips through organic material, dealing heavy damage to crew members.",
+    blurb: "Beam. No hull damage. Damages crew.",
   },
 ];
 

@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, choiceDisabled, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -50,7 +51,7 @@ describe("Escort civilians FTL haywire", () => {
     assert.equal(g.fuel, fuel);
     assert.equal(g.missiles, missiles);
     assert.equal(g.player.parts, parts);
-    assert.match(g.event?.body ?? "", /quest marker/);
+    assert.match(g.event?.body ?? "", /quest marker/i);
     assert.equal(
       g.beacons.some((b) => b.quest === "escort"),
       true,
@@ -62,7 +63,7 @@ describe("Escort civilians FTL haywire", () => {
     choose(out, "c:escort-civilians-ftl-haywire:1");
     assert.equal(
       out.event?.body,
-      "Alright... If you're not going that way I guess it can't be helped. We'll just wait for the next ship to come.\n\nNothing happens.",
+      [eventText("event_ESCORT_BEACON_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(out.phase, "event");
     assert.equal(out.scrap, 10);
@@ -100,7 +101,7 @@ describe("Escort civilians FTL haywire", () => {
     assert.equal(choiceDisabled(g, "c:escort-civilians-ftl-haywire:2"), null);
     choose(g, "c:escort-civilians-ftl-haywire:2");
     const body = g.event?.body ?? "";
-    assert.match(body, /chain-jumping/);
+    assert.ok(body.startsWith(eventText("event_ESCORT_BEACON_c3_text")), body);
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 19 && paid[0]! <= 23, body);

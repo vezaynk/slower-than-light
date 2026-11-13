@@ -7,7 +7,7 @@ import { CRYSTAL_SECTOR } from "@stl/sim/sector-ids.ts";
 import { canJumpTo, choose, commitJump, continueReward, createGame } from "@stl/sim/sim.ts";
 import type { Game } from "@stl/sim/types.ts";
 import { playerShipIds } from "@stl/sim/unlocks.ts";
-import { QUEST_CANCELLED } from "@stl/sim/wiki/quests.ts";
+import { questCancelled } from "@stl/sim/wiki/quests.ts";
 import { overtaken } from "@stl/sim/rules/sector-map.ts";
 
 const XML = `<?xml version="1.0" encoding="UTF-8"?>
@@ -151,7 +151,7 @@ describe("archive quest, secret sector, and map marks", () => {
       late.beacons.some((beacon) => beacon.quest === "ember-stash"),
       false,
     );
-    assert.ok(late.log.includes(QUEST_CANCELLED));
+    assert.ok(late.log.includes(questCancelled()));
   });
 
   it("places nothing when the quest event is missing", () => {

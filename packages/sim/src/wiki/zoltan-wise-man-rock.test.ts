@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -19,7 +20,7 @@ describe("Zoltan wise man Rockmen", () => {
   it("prints the veteran sentence and fights a Rock ship", () => {
     const g = createGame(1);
     open(g);
-    const lead = `"A hardened foe for a hardened veteran." You detect a wormhole opening up, and a Rock ship appears with guns blazing. It appears they were in combat when they were thrust across space-time.`;
+    const lead = eventText("event_ZOLTAN_RIFT_FIGHT_c3_text");
     choose(g, "c:zoltan-wise-man:2");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

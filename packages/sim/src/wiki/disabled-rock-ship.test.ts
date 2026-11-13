@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -51,9 +52,9 @@ describe("Disabled Rock ship", () => {
         g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
       if (fighting) {
         patrol = true;
-        assert.match(g.event?.body ?? "", /Filthy pirates/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_ROCK_LOOTING_STRIP_2_text")));
         assert.equal(
-          g.log.some((line) => line.includes("Filthy pirates")),
+          g.log.some((line) => line.includes(eventText("event_ROCK_LOOTING_STRIP_2_text"))),
           false,
         );
         choose(g, "ship-resume");
@@ -67,7 +68,7 @@ describe("Disabled Rock ship", () => {
         quiet = true;
         const body = g.event?.body ?? "";
         const got = reward(body);
-        assert.match(body, /No one bothers you/);
+        assert.ok(body.includes(eventText("event_ROCK_LOOTING_STRIP_1_text")));
         assert.ok(got.scrap >= 7 && got.scrap <= 23, body);
         assert.equal([got.fuel, got.missiles, got.parts].filter((n) => n > 0).length, 2);
         assert.equal(g.player.weapons.length, guns);
@@ -93,9 +94,9 @@ describe("Disabled Rock ship", () => {
         g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
       if (fighting) {
         fight += 1;
-        assert.match(g.event?.body ?? "", /killing spree/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_ROCK_LOOTING_LEAVE_3_text")));
         assert.equal(
-          g.log.some((line) => line.includes("killing spree")),
+          g.log.some((line) => line.includes(eventText("event_ROCK_LOOTING_LEAVE_3_text"))),
           false,
         );
         choose(g, "ship-resume");
@@ -104,7 +105,7 @@ describe("Disabled Rock ship", () => {
         assert.equal(g.enemy?.faction, "rock");
       } else {
         nothing += 1;
-        assert.match(g.event?.body ?? "", /hasten to leave/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_ROCK_LOOTING_LEAVE_1_text")));
         assert.match(g.event?.body ?? "", /Nothing happens/);
         assert.equal(g.scrap, 10);
       }
@@ -123,12 +124,11 @@ describe("Disabled Rock ship", () => {
     open(bare);
     assert.equal(choiceDisabled(bare, "c:disabled-rock-ship:2"), "Needs a Slug crewmember");
     fillerChoose(bare, "c:disabled-rock-ship:2");
-    assert.match(bare.event?.body ?? "", /disabled rock transport/);
+    assert.equal(bare.event?.body, "Disabled Rock ship.");
     assert.equal(bare.scrap, 10);
 
-    let clear = false;
-    let ship = false;
-    for (let seed = 2; seed <= 40 && (!clear || !ship); seed++) {
+    // The clear and approaching-ship results share one functional line and pay the same, so only the payout is checked.
+    for (let seed = 2; seed <= 40; seed++) {
       const g = createGame(seed);
       assert.equal(joinCrew(g, "Slug"), true);
       const crew = g.crew.filter((c) => c.side === "player" && c.hp > 0).length;
@@ -141,12 +141,11 @@ describe("Disabled Rock ship", () => {
       assert.ok(got.scrap >= 7 && got.scrap <= 23, body);
       assert.equal([got.fuel, got.missiles, got.parts].filter((n) => n > 0).length, 2);
       assert.equal(g.crew.filter((c) => c.side === "player" && c.hp > 0).length, crew);
-      if (/No lifeforms/.test(body)) clear = true;
-      else {
-        ship = true;
-        assert.match(body, /approaching ship/);
-      }
+      assert.ok(
+        body.includes(eventText("event_ROCK_LOOTING_SLUG_1_text")) ||
+          body.includes(eventText("event_ROCK_LOOTING_SLUG_2_text")),
+        body,
+      );
     }
-    assert.equal(clear && ship, true);
   });
 });

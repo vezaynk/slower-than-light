@@ -65,7 +65,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     breach: 0,
     ammo: false,
     price: 80,
-    blurb: "Three bolts. The first one only buys down a shield layer.",
+    blurb: "Laser. Each shield layer stops one shot.",
   },
   // Laser (Weapons), "Basic Laser": "Sells for: 10 (cannot be bought or found)".
   // ftl.dat `<cost>` is 20. Sell is half of that. Rarity 0 is the line that keeps it off the shelf.
@@ -85,7 +85,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     breach: 0,
     ammo: false,
     price: 20,
-    blurb: "One bolt. A shield layer stops it whole.",
+    blurb: "Laser. Each shield layer stops one shot.",
   },
   // Laser (Weapons), "Dual Lasers": "Sells for: 12 (cannot be bought or found)".
   // ftl.dat `<cost>` is 25. Sell is half of that. Rarity 0 is the line that keeps it off the shelf.
@@ -106,7 +106,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     breach: 0,
     ammo: false,
     price: 25,
-    blurb: "Two bolts from a single power bar.",
+    blurb: "Laser. Each shield layer stops one shot.",
   },
   // Laser (Weapons), "Heavy Laser Mark I": purchase price 50, power 1, charge 9 seconds, shots 1, damage per shot 2.
   // Laser (Weapons), "Types of lasers": the 30% fire chance is rolled first, then (if no fires started) the 30% breach chance.
@@ -125,7 +125,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     ammo: false,
     price: 50,
     stunChance: 0.2,
-    blurb: "Two hull if it lands. One shield layer still eats the entire shot.",
+    blurb: "Laser. Each shield layer stops one shot.",
   },
   // INVENTED. Charge is 14 seconds, which is not Artemis (Missile (Weapons), "Artemis Missiles", 11 seconds) or Leto ("Leto Missiles", 9 seconds), so it is not renamed.
   dart: {
@@ -142,7 +142,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     breach: 0.25,
     ammo: true,
     price: 40,
-    blurb: "Ignores shields. Spends one missile. Can still miss.",
+    blurb: "Missile. Ignores shields.",
   },
   // Ion (Weapons), "Ion Blast": purchase price 30, power 1, charge 8 seconds, shots 1, ion damage per shot 1.
   // The section and the page lead give no hull damage, so damage is 0. Effect: low chance to stun. stunChance is that chance as a fraction.
@@ -161,7 +161,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     ammo: false,
     price: 30,
     stunChance: 0.1,
-    blurb: "No hull damage. A shield blocks it. If it lands, it locks one power bar for 5 seconds.",
+    blurb: "Ion. No hull damage. Each ion locks 1 power bar for 5 s.",
   },
   // Missile (Weapons), "Artemis Missiles": "Sells for: 19 (cannot be bought or found)".
   // ftl.dat `<cost>` is 38. Sell is half of that, rounded down. Rarity 0 keeps it off the shelf.
@@ -183,7 +183,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     ammo: true,
     price: 38,
     stunChance: 0.1,
-    blurb: "Ignores shields. Two damage. Spends one missile. Can still miss.",
+    blurb: "Missile. Ignores shields.",
   },
   // Missile (Weapons), "Leto Missiles": "Sells for: 10 (cannot be bought or found)".
   // ftl.dat `<cost>` is 20. Sell is half of that. Rarity 0 keeps it off the shelf.
@@ -205,7 +205,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     ammo: true,
     price: 20,
     stunChance: 0.1,
-    blurb: "Ignores shields. One damage. Spends one missile. Can still miss.",
+    blurb: "Missile. Ignores shields.",
   },
   // Ion (Weapons), "Ion Blast Mark II": purchase price 70, power 3, charge 4 seconds, shots 1, ion damage per shot 1.
   // No hull damage is stated, so damage is 0. Effect: low chance to stun. No percent is published. Stun is not a field.
@@ -223,7 +223,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     breach: 0,
     ammo: false,
     price: 70,
-    blurb: "No hull damage. Locks one power bar for 5 seconds if it gets past the shields.",
+    blurb: "Ion. No hull damage. Each ion locks 1 power bar for 5 s.",
   },
   // Ion (Weapons), "Heavy Ion": purchase price 45, power 2, charge 13 seconds, shots 1, ion damage per shot 2.
   // No hull damage is stated, so damage is 0. Effect: moderate-low chance to stun. stunChance is that chance as a fraction.
@@ -242,7 +242,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     ammo: false,
     price: 45,
     stunChance: 0.2,
-    blurb: "No hull damage. Two ion if it lands, which is two locked bars.",
+    blurb: "Ion. No hull damage. Each ion locks 1 power bar for 5 s.",
   },
   // Ion (Weapons), "Ion Stunner": purchase price 35, power 1, charge 10 seconds, shots 1, ion damage per shot 1.
   // No hull damage is stated, so damage is 0. Boarding, "Stun effect": the room stun is 5 seconds (sim.ts).
@@ -260,7 +260,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     breach: 0,
     ammo: false,
     price: 35,
-    blurb: "No hull damage. One ion if it lands. Stuns the room for 5 seconds.",
+    blurb: "Ion. No hull damage. Stuns crew in the room for 5 s.",
   },
   // Beam (Weapons), "Pike Beam": purchase price 55, power 2, charge 16 seconds, damage 1 per room.
   // Archive blueprint BEAM_LONG. The display name stays Pike Beam.
@@ -279,7 +279,7 @@ export const WEAPONS: Record<string, WeaponDef> = {
     breach: 0,
     ammo: false,
     price: 55,
-    blurb: "One evade roll for the whole sweep. Shields subtract damage and stay up.",
+    blurb: "Beam. Each shield layer cuts 1 damage per room.",
   },
 };
 

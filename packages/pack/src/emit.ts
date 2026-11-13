@@ -27,6 +27,7 @@ import type {
   EscapeTimers,
   Stalemate,
   SkillSpeed,
+  AchievementRules,
   AiTarget,
   OverchargerWaits,
   IonIntruderRule,
@@ -211,6 +212,7 @@ export function emitGapDocument(pack: ContentPack): string {
   if (pack.escapeTimers) add(root, escapeTimersElement(doc, pack.escapeTimers));
   if (pack.stalemate) add(root, stalemateElement(doc, pack.stalemate));
   if (pack.skillSpeed) add(root, skillSpeedElement(doc, pack.skillSpeed));
+  if (pack.achievementRules) add(root, achievementRulesElement(doc, pack.achievementRules));
   if (pack.aiTarget) add(root, aiTargetElement(doc, pack.aiTarget));
   if (pack.overchargerWaits) add(root, overchargerWaitsElement(doc, pack.overchargerWaits));
   if (pack.ionIntruder) add(root, ionIntruderElement(doc, pack.ionIntruder));
@@ -282,6 +284,24 @@ function skillSpeedElement(doc: XmlDocument, row: SkillSpeed): XmlElement {
     if (row[key] != null) attrs[key] = num(row[key]);
   }
   return element(doc, "skillSpeed", attrs);
+}
+
+/** `<achievementRules>`: achievement thresholds FTL's executable hard-codes (types.ts AchievementRules). */
+function achievementRulesElement(doc: XmlDocument, row: AchievementRules): XmlElement {
+  const attrs: Record<string, string> = {};
+  for (const key of [
+    "systems",
+    "power",
+    "stealthSector",
+    "blueEvents",
+    "blueSector",
+    "oxygen",
+    "engines",
+    "beamSeconds",
+  ] as const) {
+    if (row[key] != null) attrs[key] = num(row[key]);
+  }
+  return element(doc, "achievementRules", attrs);
 }
 
 /** `<aiTarget>`: enemy weapon targeting numbers FTL's executable hard-codes (types.ts AiTarget). */
@@ -614,9 +634,35 @@ function statFind(doc: XmlDocument, tag: "crewBlueprint" | "race", race: CrewDef
 function listElement(doc: XmlDocument, list: FillerListDef): XmlElement {
   const node = element(doc, "eventList", { name: list.id });
   for (const entry of list.entries) {
+    if (entry.page) {
+      add(node, inlineListEvent(doc, entry));
+      continue;
+    }
     add(node, element(doc, "event", { load: entry.id, unique: entry.unique ? "true" : "false" }));
   }
   return node;
+}
+
+/** A list row that stores its page. The name is the entry id. Text and crew live on that event. */
+function inlineListEvent(doc: XmlDocument, entry: FillerListDef["entries"][number]): XmlElement {
+  const page = entry.page!;
+  const node = element(doc, "event", {
+    name: entry.id,
+    unique: entry.unique ? "true" : "false",
+  });
+  if (page.body) add(node, leaf(doc, "text", page.body));
+  if (page.ship) add(node, archiveShipElement(doc, page.ship));
+  for (const grant of page.grants ?? []) add(node, crewGrantElement(doc, grant));
+  return node;
+}
+
+function crewGrantElement(doc: XmlDocument, grant: ArchiveGrant): XmlElement {
+  const attrs: Record<string, string> = {};
+  if (grant.amount != null) attrs.amount = num(grant.amount);
+  if (grant.kind === "crew") attrs.class = grant.id;
+  else attrs.id = grant.id;
+  if (grant.name) attrs.name = grant.name;
+  return element(doc, grant.kind === "crew" ? "crewMember" : grant.kind, attrs);
 }
 
 function textListElement(doc: XmlDocument, list: TextListDef): XmlElement {
@@ -667,9 +713,10 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   if (event.ship) add(node, archiveShipElement(doc, event.ship));
   if (event.environment) add(node, environmentElement(doc, event.environment));
   if (event.store) add(node, element(doc, "store", {}));
-  for (const effect of event.fx ?? []) if (effect.k !== "quest") add(node, effectElement(doc, effect));
+  for (const effect of event.fx ?? [])
+    if (effect.k !== "quest") add(node, effectElement(doc, effect));
   for (const grant of event.grants ?? [])
-    if (grant.kind === "crew") add(node, crewGrant(doc, grant));
+    if (grant.kind === "crew") add(node, crewGrantElement(doc, grant));
   for (const list of offerLists(doc, event.offers ?? [])) add(node, list);
   for (const roll of event.rolls ?? []) add(node, rollElement(doc, roll));
   for (const price of event.prices ?? []) add(node, priceElement(doc, price));
@@ -682,6 +729,7 @@ function eventElement(doc: XmlDocument, event: EventDef): XmlElement {
   return node;
 }
 
+/** One button, with the buttons on its result page nested inside that result. */
 function namedChoice(doc: XmlDocument, choice: EventChoice): XmlElement {
   const choiceNode = element(doc, "choice", choiceAttributes(choice));
   add(choiceNode, leaf(doc, "text", choice.label));
@@ -691,6 +739,7 @@ function namedChoice(doc: XmlDocument, choice: EventChoice): XmlElement {
   }
   let placedGift = false;
   let note: XmlElement | undefined;
+  let granted = false;
   for (const fx of choice.fx) {
     if (fx.k === "nothing" && choice.gift && !placedGift) {
       add(choiceNode, nothingEvent(doc, choice.gift));
@@ -706,29 +755,41 @@ function namedChoice(doc: XmlDocument, choice: EventChoice): XmlElement {
         add(holder, quest);
         add(choiceNode, holder);
       }
-    } else {
+    } else if (fx.k === "note") {
       const written = effectElement(doc, fx);
+      if (!granted && choice.grants?.length) {
+        for (const grant of choice.grants) add(written, crewGrantElement(doc, grant));
+        granted = true;
+      }
       add(choiceNode, written);
-      if (fx.k === "note") note = written;
-      else if (written.tagName === "event") note = undefined;
+      note = written;
+    } else {
+      const node = effectElement(doc, fx);
+      add(choiceNode, node);
+      if (node.tagName === "event") note = undefined;
     }
+  }
+  if (
+    !granted &&
+    (choice.textLoad ||
+      choice.grants?.length ||
+      (choice.ship && !choice.fx.some((fx) => fx.k === "fight")))
+  ) {
+    const result = element(doc, "event", {});
+    if (choice.textLoad) add(result, element(doc, "text", { load: choice.textLoad }));
+    if (choice.ship && !choice.fx.some((fx) => fx.k === "fight"))
+      add(result, archiveShipElement(doc, choice.ship));
+    for (const grant of choice.grants ?? []) add(result, crewGrantElement(doc, grant));
+    add(choiceNode, result);
   }
   if (choice.choices?.length) {
     const holder = note ?? element(doc, "event", {});
     if (!note) add(choiceNode, holder);
-    for (const nested of choice.choices) add(holder, namedChoice(doc, nested));
+    for (const inner of choice.choices) add(holder, namedChoice(doc, inner));
   }
   if (choice.reward) add(choiceNode, autoReward(doc, choice.reward.name, choice.reward.level));
   if (choice.environment) add(choiceNode, environmentElement(doc, choice.environment));
   return choiceNode;
-}
-
-function crewGrant(doc: XmlDocument, grant: ArchiveGrant): XmlElement {
-  const attrs: Record<string, string> = { class: grant.id };
-  if (grant.amount != null) attrs.amount = num(grant.amount);
-  const node = element(doc, "crewMember", attrs);
-  if (grant.name) node.appendChild(doc.createTextNode(grant.name));
-  return node;
 }
 
 function environmentElement(

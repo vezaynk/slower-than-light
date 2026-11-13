@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -56,7 +58,7 @@ describe("Rock and Slug standoff", () => {
     g.scrap = 0;
     choose(g, debt.id);
     assert.equal(g.scrap, 0);
-    assert.match(g.event?.body ?? "", /thick boulder heads/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_ROCK_SLUG_ARGUMENT_c1_text")));
   });
 
   it("paying the debt spends that scrap and the Slug captain answers", () => {
@@ -80,17 +82,18 @@ describe("Rock and Slug standoff", () => {
       choose(g, debt.id);
       assert.equal(g.scrap, 40 - n);
       const body = g.event?.body ?? "";
-      assert.match(body, /pay off the debt/);
-      if (/free reactor upgrade/.test(body)) {
+      assert.match(body, textRe("event_ROCK_SLUG_ARGUMENT_c1_c1_text"));
+      if (textRe("event_ROCK_SLUG_GRATEFUL_2_text").test(body)) {
         free = true;
         assert.equal(g.player.reactor, reactor + 1);
         assert.match(body, /Your ship reactor is upgraded/);
-      } else if (/fair' price/.test(body)) {
+      } else if (g.event?.choices.some((c) => c.id === "s:rock-slug:decline")) {
         price = true;
         assert.equal(g.player.reactor, reactor);
         assert.ok(g.event?.choices.some((c) => c.id.startsWith("s:rock-slug:upgrade:")));
       } else {
         thanks = true;
+        assert.match(body, textRe("event_ROCK_SLUG_GRATEFUL_1_text"));
         assert.match(body, /Nothing happens/);
         assert.equal(g.player.reactor, reactor);
       }
@@ -127,14 +130,15 @@ describe("Rock and Slug standoff", () => {
         assert.equal(g.enemy?.faction, "rock");
         assert.equal(g.enemy?.pirate, false);
         assert.equal(g.player.hull, hull);
-        assert.ok((g.event?.body ?? "").includes("slime balls"));
+        const lead = eventText("event_ROCK_SLUG_COMMAND_1_text");
+        assert.ok((g.event?.body ?? "").includes(lead));
         assert.equal(
-          g.log.some((line) => line.includes("slime balls")),
+          g.log.some((line) => line.includes(lead)),
           false,
         );
         if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
-      } else if (/massive explosion/.test(g.event?.body ?? "")) {
+      } else if ((g.event?.body ?? "").includes(eventText("event_ROCK_SLUG_COMMAND_3_text"))) {
         boom = true;
         assert.equal(g.player.hull, hull - 5);
         assert.equal(g.scrap, 10);
@@ -144,7 +148,7 @@ describe("Rock and Slug standoff", () => {
         assert.equal(hit.length, 2);
       } else {
         pay = true;
-        assert.match(g.event?.body ?? "", /agrees to pay the price/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_ROCK_SLUG_COMMAND_2_text")));
         assert.equal(g.scrap, 10);
         assert.equal(g.player.hull, hull);
       }
@@ -172,21 +176,22 @@ describe("Rock and Slug standoff", () => {
         const paid = scraps(body).filter((n) => n > 0);
         assert.equal(paid.length, 1, body);
         if (dead) {
-          assert.match(body, /Rock crew dead/);
+          assert.match(body, textRe("ship_ROCK_SLUG_REACTOR_SHIP_deadCrew_text"));
           assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
         } else {
-          assert.match(body, /Rock Ship destroyed/);
+          assert.match(body, textRe("ship_ROCK_SLUG_REACTOR_SHIP_destroyed_text"));
           assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
         }
         assert.equal(resources(body), 2, body);
-        if (/free reactor upgrade/.test(body)) {
+        if (textRe("event_ROCK_SLUG_GRATEFUL_2_text").test(body)) {
           free = true;
           assert.equal(g.player.reactor, reactor + 1);
-        } else if (/fair' price/.test(body)) {
+        } else if (g.event?.choices.some((c) => c.id === "s:rock-slug:decline")) {
           price = true;
           assert.equal(g.player.reactor, reactor);
         } else {
           thanks = true;
+          assert.match(body, textRe("event_ROCK_SLUG_GRATEFUL_1_text"));
           assert.match(body, /Nothing happens/);
         }
       }
@@ -241,7 +246,7 @@ describe("Rock and Slug standoff", () => {
       g.phase = "combat";
       g.player.reactor = 25;
       pageWin(g, "rock-and-slug-standoff", false);
-      if (!/free reactor upgrade/.test(g.event?.body ?? "")) continue;
+      if (!textRe("event_ROCK_SLUG_GRATEFUL_2_text").test(g.event?.body ?? "")) continue;
       assert.equal(g.player.reactor, 25);
       assert.equal((g.event?.body ?? "").includes("Your ship reactor is upgraded."), false);
       capped = true;

@@ -21,12 +21,12 @@ const LAST_STAND: RollEntry[] = [
   { k: "hull", id: "rebel-invader" },
 ];
 
-/** Four hide labels. The page gives no odds. */
+/** Four hide labels, one drawn per card. All four do nothing. */
 const HIDE: RollEntry[] = [
-  { k: "label", text: "Fly behind a moon and stay hidden." },
-  { k: "label", text: "Shut down all non-vital systems and stay hidden." },
-  { k: "label", text: "Stay quiet and hope they don't notice you." },
-  { k: "label", text: "Stay out of their way and charge your FTL drive." },
+  { k: "label", text: "Hide. Nothing happens." },
+  { k: "label", text: "Hide. Nothing happens." },
+  { k: "label", text: "Hide. Nothing happens." },
+  { k: "label", text: "Hide. Nothing happens." },
 ];
 
 /** Four printed moon counts. The page gives no odds. */

@@ -6,6 +6,6 @@
  */
 export const TEXT_MISC_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <FTL>
-  <text name="continue">Carry on.</text>
+  <text name="continue">Continue.</text>
 </FTL>
 `;

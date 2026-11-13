@@ -6,8 +6,7 @@ import type { Game } from "../types.ts";
 import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const BODY =
-  "You spy two pirate ships lurking in the nebula here. They remain unaware of your presence; you're able to get your scanners to at least identify their cargo: One is carrying the fuel supplies, the other the ammunition. They begin to drift away from each other in the storm.";
+const BODY = "Two pirate ships. One carries fuel, one carries missiles. Plasma storm.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

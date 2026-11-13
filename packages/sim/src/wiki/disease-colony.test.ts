@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
@@ -104,14 +105,14 @@ describe("Unknown disease on mining colony", () => {
       open(g);
       fillerChoose(g, "c:unknown-disease-on-mining-colony:0");
       const body = g.event?.body ?? "";
-      if (/signs of infection/.test(body)) {
+      if (body.includes(eventText("event_DISTRESS_STATION_DISEASE_LIST_2_text"))) {
         lost = true;
         assert.equal(g.crew.length, crew - 1);
         assert.equal(g.player.weapons.length, weapons);
         mediumStuff(body);
       } else {
         quiet = true;
-        assert.match(body, /retreat hastily/);
+        assert.ok(body.includes(eventText("event_DISTRESS_STATION_DISEASE_LIST_1_text")));
         assert.equal(g.crew.length, crew);
         assert.equal(g.scrap, 10);
       }
@@ -136,9 +137,12 @@ describe("Unknown disease on mining colony", () => {
       const crew = g.crew.length;
       open(g);
       fillerChoose(g, "c:unknown-disease-on-mining-colony:0");
-      if (!/signs of infection/.test(g.event?.body ?? "")) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_DISEASE_LIST_2_text")))
+        continue;
       seen = true;
-      assert.match(g.event?.body ?? "", /against Federation regulation/);
+      assert.ok(
+        (g.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_DISEASE_LIST_2_c0_clone")),
+      );
       assert.equal(/revived/.test(g.event?.body ?? ""), false);
       assert.equal(g.crew.length, crew - 1);
     }
@@ -150,7 +154,7 @@ describe("Unknown disease on mining colony", () => {
     const crew = g.crew.length;
     open(g);
     fillerChoose(g, "c:unknown-disease-on-mining-colony:1");
-    assert.match(g.event?.body ?? "", /mission is too important/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_DISEASE_c2_text")));
     assert.equal(g.crew.length, crew);
     assert.equal(g.scrap, 10);
     choose(g, "ack");
@@ -163,7 +167,9 @@ describe("Unknown disease on mining colony", () => {
     const crew = rock.crew.length;
     open(rock);
     fillerChoose(rock, "c:unknown-disease-on-mining-colony:2");
-    assert.match(rock.event?.body ?? "", /immune system/);
+    assert.ok(
+      (rock.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_DISEASE_c3_text")),
+    );
     assert.equal(rock.crew.length, crew);
     mediumStuff(rock.event?.body ?? "");
 
@@ -172,7 +178,9 @@ describe("Unknown disease on mining colony", () => {
     const aboard = engi.crew.length;
     open(engi);
     fillerChoose(engi, "c:unknown-disease-on-mining-colony:3");
-    assert.match(engi.event?.body ?? "", /human physiology/);
+    assert.ok(
+      (engi.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_DISEASE_c4_text")),
+    );
     assert.equal(engi.crew.length, aboard);
     mediumStuff(engi.event?.body ?? "");
   });
@@ -184,7 +192,7 @@ describe("Unknown disease on mining colony", () => {
     const weapons = g.player.weapons.length;
     open(g);
     fillerChoose(g, "c:unknown-disease-on-mining-colony:4");
-    assert.match(g.event?.body ?? "", /unknown spore/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_DISEASE_c5_text")));
     assert.equal(
       g.event?.choices.some((c) => c.id === "s:unknown-disease:medbot"),
       false,
@@ -202,7 +210,7 @@ describe("Unknown disease on mining colony", () => {
     assert.ok(bots.event?.choices.some((c) => c.id === "s:unknown-disease:medbot"));
     fillerChoose(bots, "s:unknown-disease:medbot");
     const body = bots.event?.body ?? "";
-    assert.match(body, /nano dispersal/);
+    assert.ok(body.includes(eventText("event_DISTRESS_STATION_DISEASE_c5_c2_text")));
     const got = reward(body);
     assert.ok(got.scrap >= 19 && got.scrap <= 23);
     assert.equal(got.fuel, 0);

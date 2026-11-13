@@ -22,7 +22,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:ancient-device",
     aliases: ["Ancient device", "Ancient Device"],
     sectors: ["Rock Homeworlds"],
-    body: "An ancient device is orbiting within the crystal rings of a nearby gas giant. You can't discern its nature or function, but it seems to have been deactivated for a very long time. Perhaps you can get some scrap from it.",
+    body: "Inactive device.",
     choices: [
       {
         id: "c:ancient-device:0",
@@ -30,23 +30,23 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "Scrap it." — [[Ancient device]]
         // > "You receive high scrap." — [[Ancient device]]
         // > "Fight a Rock ship (default rewards)." — [[Ancient device]]
-        label: "Scrap it.",
-        fx: [{ k: "note", text: "You break it apart, or a Rock military ship answers." }],
+        label: "1 in 2: gain high scrap. 1 in 2: fight a Rock ship.",
+        fx: [{ k: "note", text: "1 in 2: gain high scrap. 1 in 2: fight a Rock ship." }],
       },
       {
         id: "c:ancient-device:1",
         // Wiki citations:
         // > "Leave it alone." — [[Ancient device]]
         // > "Nothing happens." — [[Ancient device]]
-        label: "Leave it alone.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
       {
         id: "c:ancient-device:2",
         // Wiki citations:
         // > "(Crystal Crew) Reactivate it." — [[Ancient device]]
-        label: "Reactivate it.",
-        fx: [{ k: "note", text: "The device opens a wormhole." }],
+        label: "Gain 1 fuel. Jump to the hidden sector.",
+        fx: [{ k: "note", text: "Gain 1 fuel. Jump to the hidden sector." }],
       },
     ],
   },
@@ -61,18 +61,18 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:rock-war-vessel-encounter",
     aliases: ["Rock war vessel encounter", "Rock War Vessel Encounter"],
     sectors: ["Rock Homeworlds"],
-    body: "You are immediately messaged by an imposing looking Rock war vessel, \"You're the ship off to 'save the Federation,' aren't you? And you expect to survive with that hunk of junk?\"",
+    body: "Rock ship. Quest offer.",
     choices: [
       {
         id: "c:rock-war-vessel-encounter:0",
         // Wiki citations:
         // > "We're going to save them or die trying." — [[Rock war vessel encounter]]
         // > "A quest marker is added to your map." — [[Rock war vessel encounter]]
-        label: '"We\'re going to save them or die trying."',
+        label: "Quest beacon added.",
         fx: [
           {
             k: "note",
-            text: '"The latter being more likely. Still... we can potentially help you and your precious fleet, but you\'ll need to prove yourself first. Meet us at these coordinates." They jump away.',
+            text: "Quest beacon added.",
           },
           { k: "quest", id: "rock-sun" },
         ],
@@ -82,11 +82,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "We're strong enough to destroy you!" — [[Rock war vessel encounter]]
         // > "A quest marker is added to your map." — [[Rock war vessel encounter]]
-        label: '"We\'re strong enough to destroy you!"',
+        label: "Quest beacon added.",
         fx: [
           {
             k: "note",
-            text: '"One ship is not the same as a fleet, but at least you\'ve got some fire. Meet us at these coordinates if you want to prove to us that the Federation is worth saving." They jump away.',
+            text: "Quest beacon added.",
           },
           { k: "quest", id: "rock-sun" },
         ],
@@ -96,7 +96,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Ignore them." — [[Rock war vessel encounter]]
         // > "Nothing happens." — [[Rock war vessel encounter]]
-        label: "Ignore them.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -112,7 +112,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:unarmed-zoltan-transport",
     aliases: ["Unarmed Zoltan transport", "Unarmed Zoltan Transport"],
     sectors: ["Zoltan Homeworlds"],
-    body: 'An unarmed Zoltan transport vessel is slowly making its way toward the beacon here. They hail: "This is a Zoltan peace envoy. We carry no weapons or shielding and rely on the mercy of others to communicate our message."',
+    body: "Unarmed Zoltan ship.",
     choices: [
       {
         id: "c:unarmed-zoltan-transport:0",
@@ -120,7 +120,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "Attack them." — [[Unarmed Zoltan transport]]
         // > "Fight an unarmed Zoltan ship." — [[Unarmed Zoltan transport]]
         // > "Fight a Zoltan ship." — [[Unarmed Zoltan transport]]
-        label: "Attack them.",
+        label: "Fight the Zoltan ship.",
         fx: [{ k: "fight", tier: "Zoltan ship" }],
       },
       {
@@ -128,13 +128,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Hear them out." — [[Unarmed Zoltan transport]]
         // > "A quest marker is added to your map." — [[Unarmed Zoltan transport]]
-        label: "Hear them out.",
+        label: "Quest beacon added.",
         fx: [
           {
             k: "note",
-            text: `They continue. "We take your silence for interested contemplation." They talk at length about peace and harmony, but either it's beyond your simple mind or it's all nonsense.
-
-They finish: "Please, spread the word of enlightenment to those that have not heard. Once you have, contact our brethren." They transmit coordinates of their so-called "brethren".`,
+            text: "Quest beacon added.",
           },
           { k: "quest", id: "zoltan-peace" },
         ],
@@ -143,7 +141,7 @@ They finish: "Please, spread the word of enlightenment to those that have not he
         id: "c:unarmed-zoltan-transport:2",
         // Wiki citations:
         // > "Nothing happens." — [[Unarmed Zoltan transport]]
-        label: "Leave.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -163,42 +161,38 @@ They finish: "Please, spread the word of enlightenment to those that have not he
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "You arrive at a Zoltan research facility. They say they are researching genetic distortion due to stasis sleep and prolonged FTL travel. They ask if your crew has the time to undergo a few scans.",
+    body: "Station. Offer: scan your crew.",
     choices: [
       {
         id: "c:zoltan-research-facility:0",
         // Wiki citations:
         // > "Participate in their study." — [[Zoltan research facility]]
-        label: "Participate in their study.",
-        fx: [{ k: "note", text: "The Zoltans take their readings." }],
+        label: "2 in 3: gain low scrap. 1 in 3: fight and 2 boarders.",
+        fx: [{ k: "note", text: "2 in 3: gain low scrap. 1 in 3: fight and 2 boarders." }],
       },
       {
         id: "c:zoltan-research-facility:1",
         // Wiki citations:
         // > "Decline." — [[Zoltan research facility]]
-        label: "Decline.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
       {
         id: "c:zoltan-research-facility:2",
         // Wiki citations:
         // > "Give them your medical records." — [[Zoltan research facility]]
-        label: "Give them your medical records.",
-        fx: [{ k: "note", text: "They pay for the data." }],
+        label: "Gain a drone and low resources.",
+        fx: [{ k: "note", text: "Gain a drone and low resources." }],
       },
       {
         id: "c:zoltan-research-facility:3",
         // Wiki citations:
         // > "(Damaged Stasis Pod) Ask if they can fix this." — [[Zoltan research facility]]
-        label: "Ask if they can fix this.",
+        label: "Gain 1 Crystal crew.",
         fx: [
           {
             k: "note",
-            text: `"Interesting. I've never seen a cryogenic system like this. It appears to still be functioning..." They hook it up to their system and run a number of tests on it.
-
-"Amazing! It has the ability to reconstruct the body if it was damaged during transit. Watch." They reactivate the pod and you watch as the hunks of crystal inside reform to build a humanoid structure. The pod slides open and the re-formed alien steps out.
-
-It speaks slowly, "Greetings. I appear to be in your debt. My people isolated themselves a long time ago, but perhaps it's time to re-establish a connection. There's a hidden wormhole near the Rock home-worlds. Perhaps you can take me there so I can properly repay you?"`,
+            text: "Gain 1 Crystal crew.",
           },
         ],
       },
@@ -215,36 +209,36 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
     flag: "cited:zoltan-trade-hub",
     aliases: ["Zoltan trade hub", "Zoltan Trade Hub"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "You come to a Zoltan trade and supply hub - everything the weary traveler needs, provided they have the right documentation.",
+    body: "Store. Entry needs papers.",
     choices: [
       {
         id: "c:zoltan-trade-hub:0",
         // Wiki citations:
         // > "Try to talk your way in." — [[Zoltan trade hub]]
         // > "2-4 zoltan boarders beam aboard your ship and you fight a Zoltan ship (default rewards)." — [[Zoltan trade hub]]
-        label: "Try to talk your way in.",
-        fx: [{ k: "note", text: "You try your luck at the airlock." }],
+        label: "1 in 2: fight and 2-4 Zoltan boarders. 1 in 2: more options.",
+        fx: [{ k: "note", text: "1 in 2: fight and 2-4 Zoltan boarders. 1 in 2: more options." }],
       },
       {
         id: "c:zoltan-trade-hub:1",
         // Wiki citations:
         // > "(Teleporter) Beam directly to the civilian deck." — [[Zoltan trade hub]]
-        label: "Beam directly to the civilian deck.",
-        fx: [{ k: "note", text: "In the Zoltan hub." }],
+        label: "1 in 2: store. 1 in 2: more options.",
+        fx: [{ k: "note", text: "1 in 2: store. 1 in 2: more options." }],
       },
       {
         id: "c:zoltan-trade-hub:2",
         // Wiki citations:
         // > "(Zoltan Crew) Present his official documentation and pay the entry fee." — [[Zoltan trade hub]]
         // > "You lose Scrap lost: 10." — [[Zoltan trade hub]]
-        label: "Present his official documentation and pay the entry fee.",
+        label: "Lose 10 scrap. 1 in 2: store. 1 in 2: more options.",
         fx: [{ k: "res", id: "scrap", sign: -1, lo: 10, hi: 10 }],
       },
       {
         id: "c:zoltan-trade-hub:3",
         // Wiki citations:
         // > "Nothing happens." — [[Zoltan trade hub]]
-        label: "Leave.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -260,18 +254,18 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
     flag: "cited:rock-bride",
     aliases: ["Rock bride", "Rock Bride", "Rock Bride Transport"],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
-    body: 'A rock captain hails you: "It is improper of me to contact off-worlders, but this is an emergency. We were on our way to deliver our passenger to her new husband - the Grand Basilisk of Numa V - when our engines broke down. Will you take possession of her, and make haste to Numa V?"',
+    body: "Rock ship. Quest offer: carry a passenger.",
     choices: [
       {
         id: "c:rock-bride:0",
         // Wiki citations:
         // > "Accept the passenger." — [[Rock bride]]
         // > "A quest marker is added to your map." — [[Rock bride]]
-        label: "Accept the passenger.",
+        label: "Quest beacon added.",
         fx: [
           {
             k: "note",
-            text: '"You surprise me, off-worlder. Thank you. The passenger will be with you momentarily." She refuses to enter the main hold and prefers to wait in the cargo bay.',
+            text: "Quest beacon added.",
           },
           { k: "quest", id: "rock-bride" },
         ],
@@ -280,7 +274,7 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
         id: "c:rock-bride:1",
         // Wiki citations:
         // > "Nothing happens." — [[Rock bride]]
-        label: "Refuse.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],

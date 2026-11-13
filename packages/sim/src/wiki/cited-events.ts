@@ -30,6 +30,7 @@ import {
   joinCrew,
   mantisBoarders,
   pageCard,
+  pageFight,
   plasmaHumanBoarders,
   scrapBand,
   rockBoarders,
@@ -45,6 +46,7 @@ import { affordStock, partsLine, takeStock } from "./stock-spend.ts";
 import { grantRandomItem } from "../rules/bonus-item.ts";
 import { showArchivePage } from "../archive-pay.ts";
 import { queueSfx } from "../sfx-queue.ts";
+import { eventText } from "../event-text.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
 export function citedEngineCap(id: string): number | null {
@@ -125,6 +127,11 @@ type ChoiceDef = {
   fx: Fx[];
   /** Buttons on an inline result. A load stores the next page on a goto instead. */
   choices?: ChoiceDef[];
+  hidden?: boolean;
+  owner?: "filler" | "missing" | "cited" | "quest";
+  textLoad?: string;
+  grants?: { kind: string; id: string; amount?: number; name?: string }[];
+  ship?: { hostile: boolean; load?: string };
 };
 
 type EventDef = {
@@ -250,8 +257,7 @@ const TRADE_RESOURCES_TAKE =
 // INFERRED: each offer is equally likely. The numbers are rolled once and stay on Trade.
 // Wiki citations:
 // > "It's hard to see why, but this beacon is apparently a tourist destination. One of the ships at the small station is offering a deal." — [[Trade resources in nebula]]
-const TRADE_RESOURCES_NEBULA_INTRO =
-  "It's hard to see why, but this beacon is apparently a tourist destination. One of the ships at the small station is offering a deal.";
+const TRADE_RESOURCES_NEBULA_INTRO = "event_NEBULA_TRADER_text";
 
 const TRADE_RESOURCES_NEBULA_TAKE =
   /^c:trade-resources-in-nebula:take:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/;
@@ -293,8 +299,11 @@ function tradeResourcesEvent(g: Game, title: string): GameEvent {
     title,
     body: `${intro} ${sentence}`,
     choices: [
-      { id: `c:trade-resources:take:${offer.pay}:${cost}:${offer.get}:${gain}`, label: "Trade." },
-      { id: "c:trade-resources:4", label: "Ignore." },
+      {
+        id: `c:trade-resources:take:${offer.pay}:${cost}:${offer.get}:${gain}`,
+        label: eventText("event_TRADER_CIV_c1_choice"),
+      },
+      { id: "c:trade-resources:4", label: eventText("event_TRADER_CIV_c2_choice") },
     ],
   };
 }
@@ -307,13 +316,13 @@ function tradeResourcesNebulaEvent(g: Game, title: string): GameEvent {
   const sentence = `You lose ${cost} ${RES_WORD[offer.pay]} and receive ${gain} ${RES_WORD[offer.get]}.`;
   return {
     title,
-    body: `${TRADE_RESOURCES_NEBULA_INTRO} ${sentence}`,
+    body: `${eventText(TRADE_RESOURCES_NEBULA_INTRO)} ${sentence}`,
     choices: [
       {
         id: `c:trade-resources-in-nebula:take:${offer.pay}:${cost}:${offer.get}:${gain}`,
-        label: "Trade.",
+        label: eventText("event_NEBULA_TRADER_c1_choice"),
       },
-      { id: "c:trade-resources-in-nebula:4", label: "Ignore." },
+      { id: "c:trade-resources-in-nebula:4", label: eventText("event_NEBULA_TRADER_c2_choice") },
     ],
   };
 }
@@ -398,14 +407,18 @@ export function stampCitedEvents(g: Game) {
   markRuwenEntry(g);
 }
 
-const SLUG_MOON_QUESTION =
-  'As you drift closer, you are contacted by a Slug marooned on the moon\'s surface. "I shall join your crew, sssay I, if you can answer me this simple quesssstion. How many moons are there in orbit here?"';
-
-const SLUG_MOON_CORRECT =
-  '"That isss... correct. You sssurprise me. Human, is it? Yesss... we can be partners." The Slug beams aboard and joins your crew!';
-
-const SLUG_MOON_WRONG =
-  '"That issss... incorrect." Further, I have taken advantage of your lack of acuity to beam aboard your ship and steal your stuff!';
+// ftl.dat text ids. Every moon page shares the first page's question and answer buttons.
+const SLUG_MOON_QUESTION = "event_SLUG_DISTRESS_QUESTION_LIST_1_c1_text";
+const SLUG_MOON_CORRECT = "event_SLUG_DISTRESS_QUESTION_TRUE_text";
+const SLUG_MOON_WRONG = "event_SLUG_DISTRESS_QUESTION_FALSE_text";
+/** ftl.dat's tracking pages by moon count: SLUG_DISTRESS_QUESTION_LIST_1 to _4. */
+/** ftl.dat's tracking page text by moon count. */
+const MOON_PAGES: Record<number, string> = {
+  5: "event_SLUG_DISTRESS_QUESTION_LIST_1_text",
+  6: "event_SLUG_DISTRESS_QUESTION_LIST_2_text",
+  7: "event_SLUG_DISTRESS_QUESTION_LIST_3_text",
+  11: "event_SLUG_DISTRESS_QUESTION_LIST_4_text",
+};
 
 const SLUG_MOON_ASK = /^c:slug-moons-question:ask:(\d+)$/;
 const SLUG_MOON_ANSWER = /^c:slug-moons-question:answer:(\d+):(\d+)$/;
@@ -440,12 +453,22 @@ function slugMoonsCard(g: Game, b: Beacon, title: string): GameEvent {
   b.kind = "nebula";
   const rows = moonRows("SLUG_DISTRESS_QUESTION");
   const row = rows[between(g, [0, rows.length - 1])]!;
+  // ftl.dat writes one tracking page per moon count. A count it has no page for shows the packed word.
+  const page = MOON_PAGES[row.n];
+  const tracking = page
+    ? eventText(page)
+    : `${row.word[0]!.toUpperCase()}${row.word.slice(1)} moons.`;
   return {
     title,
-    body: `You arrive near the distress beacon's signal.
+    body: `${eventText("event_SLUG_DISTRESS_QUESTION_text")}
 
-You track the distress beacon with difficulty to one of the ${row.word} moons of a planet hidden in the nebula.`,
-    choices: [{ id: `c:slug-moons-question:ask:${row.n}`, label: "Investigate." }],
+${tracking}`,
+    choices: [
+      {
+        id: `c:slug-moons-question:ask:${row.n}`,
+        label: eventText("event_SLUG_DISTRESS_QUESTION_LIST_1_c1_choice"),
+      },
+    ],
   };
 }
 
@@ -460,7 +483,7 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
     const title = ctx.g.beacons.find((b) => b.id === ctx.g.here)?.name ?? "Slug moons question";
     ctx.g.event = {
       title,
-      body: SLUG_MOON_QUESTION,
+      body: eventText(SLUG_MOON_QUESTION),
       choices: moonRows("SLUG_DISTRESS_QUESTION").map((pick) => ({
         id: `c:slug-moons-question:answer:${n}:${pick.n}`,
         label: `${pick.word[0]!.toUpperCase()}${pick.word.slice(1)}.`,
@@ -486,7 +509,7 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
       ? "You receive a Slug crewmember."
       : "There is no room aboard for the new crewmember.";
     ctx.note(line);
-    citedResult(ctx.g, SLUG_MOON_CORRECT, [line]);
+    citedResult(ctx.g, eventText(SLUG_MOON_CORRECT), [line]);
     return true;
   }
   // Wiki citations:
@@ -506,30 +529,25 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
   if (bill.fuel) paid.push(`Fuel: -${bill.fuel}.`);
   if (bill.parts) paid.push(`Drone parts: -${bill.parts}.`);
   for (const line of paid) ctx.note(line);
-  citedResult(g, SLUG_MOON_WRONG, paid);
+  citedResult(g, eventText(SLUG_MOON_WRONG), paid);
   return true;
 }
 
-const ZOLTAN_MOON_OPEN = "Something strikes you as odd about a moon in the distance.";
-const ZOLTAN_MOON_CAVE =
-  "It looks as if a team could break through the fragile layer of the moon's surface into a hidden cavern.";
-const ZOLTAN_MOON_SHUTTLE =
-  "Sending a shuttle to explore a beckoning cave system you discover signs of a battle - and a still-functioning weapon!";
-const ZOLTAN_MOON_HEAP =
-  "A deep scan of the surface reveals a cave system that runs for miles, and what looks like a scrap heap left over from some heavy-duty construction.";
-const ZOLTAN_MOON_QUIET =
-  "A closer inspection reveals signs of habitation on the surface, but nothing else particularly interesting.";
-const ZOLTAN_MOON_LEAVE =
-  "You try not to fixate on the moon in the aft scanner as you set the coordinates for the next jump.";
-const ZOLTAN_MOON_BASE =
-  "Your explosives reveal the 'cave' is actually a secret base, located in a network of bunkers just under the surface. Everyone inside is dead; Mantis clearly came through here recently. It looks like the Zoltan were researching advanced ship weaponry. You take one of the better examples back to your ship.";
-const ZOLTAN_MOON_REMAINS =
-  "A portion of the surface layer is destroyed in an impressive display, revealing miles of caves. You don't have time to fully explore them, but you find some remains of an old subterranean base that could be useful.";
-const ZOLTAN_MOON_WASTE =
-  "The explosives are set remotely, but the detonation achieves nothing. What a waste.";
-const ZOLTAN_MOON_DRONE = `Initial scans indicate a network of caves not far underground. You launch a boarding drone and it breaks through the surface into the cavern below.
+// ftl.dat text ids for the Zoltan odd moon pages.
+export const ZOLTAN_MOON_OPEN = "event_ZOLTAN_ODD_MOON_text";
+export const ZOLTAN_MOON_CAVE = "event_ZOLTAN_ODD_MOON_CHECK_4_text";
+export const ZOLTAN_MOON_SHUTTLE = "event_ZOLTAN_ODD_MOON_CHECK_2_text";
+export const ZOLTAN_MOON_HEAP = "event_ZOLTAN_ODD_MOON_CHECK_3_text";
+export const ZOLTAN_MOON_QUIET = "event_ZOLTAN_ODD_MOON_CHECK_1_text";
+export const ZOLTAN_MOON_LEAVE = "event_ZOLTAN_ODD_MOON_c2_text";
+export const ZOLTAN_MOON_BASE = "event_ZOLTAN_ODD_MOON_EXPLOSION_3_text";
+export const ZOLTAN_MOON_REMAINS = "event_ZOLTAN_ODD_MOON_EXPLOSION_1_text";
+export const ZOLTAN_MOON_WASTE = "event_ZOLTAN_ODD_MOON_EXPLOSION_2_text";
 
-Your drone discovers a vast cave network and evidence of excavation. Buried deep below you find a Zoltan scientist, still hard at work. He tells you that all his colleagues are long dead. You decide not to ask questions and offer to let him join your crew.`;
+/** The drone's two pages: the launch, then the find. */
+function zoltanMoonDrone(): string {
+  return `${eventText("event_ZOLTAN_ODD_MOON_c3_text")}\n\n${eventText("event_ZOLTAN_ODD_MOON_c3_c1_text")}`;
+}
 
 function zoltanMoonTitle(g: Game): string {
   return g.beacons.find((b) => b.id === g.here)?.name ?? "Zoltan odd moon";
@@ -540,19 +558,19 @@ function zoltanOddCard(title: string): GameEvent {
   // > "Something strikes you as odd about a moon in the distance." — [[Zoltan odd moon]]
   return {
     title,
-    body: ZOLTAN_MOON_OPEN,
+    body: eventText(ZOLTAN_MOON_OPEN),
     choices: [
       {
         id: "c:zoltan-odd-moon:look",
         // Wiki citations:
         // > "Check it out." — [[Zoltan odd moon]]
-        label: "Check it out.",
+        label: eventText("event_ZOLTAN_ODD_MOON_c1_choice"),
       },
       {
         id: "c:zoltan-odd-moon:leave",
         // Wiki citations:
         // > "Leave it be." — [[Zoltan odd moon]]
-        label: "Leave it be.",
+        label: eventText("event_ZOLTAN_ODD_MOON_c2_choice"),
       },
       {
         id: "c:zoltan-odd-moon:drone",
@@ -560,7 +578,7 @@ function zoltanOddCard(title: string): GameEvent {
         // > "Send a drone to probe the surface." — [[Zoltan odd moon]]
         // > "(Boarding Drone)" — [[Zoltan odd moon]]
         // > "Drone parts lost: 1" — [[Zoltan odd moon]]
-        label: "Send a drone to probe the surface.",
+        label: eventText("event_ZOLTAN_ODD_MOON_c3_choice"),
       },
     ],
   };
@@ -606,20 +624,19 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       // > "It looks as if a team could break through the fragile layer of the moon's surface into a hidden cavern." — [[Zoltan odd moon]]
       g.event = {
         title: zoltanMoonTitle(g),
-        body: ZOLTAN_MOON_CAVE,
+        body: eventText(ZOLTAN_MOON_CAVE),
         choices: [
           {
             id: "c:zoltan-odd-moon:boom",
             // Wiki citations:
             // > "Attempt to detonate some explosives to break through the surface." — [[Zoltan odd moon]]
-            label: "Attempt to detonate some explosives to break through the surface.",
+            label: eventText("event_ZOLTAN_ODD_MOON_CHECK_4_c1_choice"),
           },
           {
             id: "c:zoltan-odd-moon:spare",
             // Wiki citations:
             // > "Explosives are too valuable to waste on excavation work. Let's get out of here." — [[Zoltan odd moon]]
-            label:
-              "Explosives are too valuable to waste on excavation work. Let's get out of here.",
+            label: eventText("event_ZOLTAN_ODD_MOON_CHECK_4_c2_choice"),
           },
         ],
       };
@@ -634,7 +651,7 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       const line = payTier(ctx, "low");
       const item = grantRandomItem(g, "weapon");
       ctx.note(item);
-      citedResult(g, ZOLTAN_MOON_SHUTTLE, ["You receive a weapon with low scrap.", line, item]);
+      citedResult(g, eventText(ZOLTAN_MOON_SHUTTLE), [line, item]);
       return true;
     }
     if (which === 2) {
@@ -642,27 +659,28 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       // > "A deep scan of the surface reveals a cave system that runs for miles, and what looks like a scrap heap left over from some heavy-duty construction." — [[Zoltan odd moon]]
       // > "You receive medium scrap." — [[Zoltan odd moon]]
       const line = payTier(ctx, "medium");
-      citedResult(g, ZOLTAN_MOON_HEAP, ["You receive medium scrap.", line]);
+      citedResult(g, eventText(ZOLTAN_MOON_HEAP), [line]);
       return true;
     }
     // Wiki citations:
     // > "A closer inspection reveals signs of habitation on the surface, but nothing else particularly interesting." — [[Zoltan odd moon]]
     // > "Nothing happens." — [[Zoltan odd moon]]
-    citedResult(g, ZOLTAN_MOON_QUIET, ["Nothing happens."]);
+    citedResult(g, eventText(ZOLTAN_MOON_QUIET), []);
     return true;
   }
   if (id === "c:zoltan-odd-moon:leave") {
     // Wiki citations:
     // > "You try not to fixate on the moon in the aft scanner as you set the coordinates for the next jump." — [[Zoltan odd moon]]
     // > "Nothing happens." — [[Zoltan odd moon]]
-    citedResult(g, ZOLTAN_MOON_LEAVE, ["Nothing happens."]);
+    citedResult(g, eventText(ZOLTAN_MOON_LEAVE), []);
     return true;
   }
   if (id === "c:zoltan-odd-moon:spare") {
     // Wiki citations:
     // > "Explosives are too valuable to waste on excavation work. Let's get out of here." — [[Zoltan odd moon]]
     // > "Nothing happens." — [[Zoltan odd moon]]
-    citedResult(g, "Nothing happens.", ["Nothing happens."]);
+    // ftl.dat's choice writes no text, so the page closes.
+    ctx.resolve();
     return true;
   }
   if (id === "c:zoltan-odd-moon:boom") {
@@ -681,12 +699,7 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       const line = payRandomTier(ctx);
       const item = grantRandomItem(g, "weapon");
       ctx.note(item);
-      citedResult(g, ZOLTAN_MOON_BASE, [
-        "You receive a weapon with a random amount of scrap.",
-        line,
-        item,
-        "Missiles: -1.",
-      ]);
+      citedResult(g, eventText(ZOLTAN_MOON_BASE), [line, item, "Missiles: -1."]);
       return true;
     }
     if (which === 1) {
@@ -694,17 +707,13 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       // > "A portion of the surface layer is destroyed in an impressive display, revealing miles of caves. You don't have time to fully explore them, but you find some remains of an old subterranean base that could be useful." — [[Zoltan odd moon]]
       // > "You receive a random amount of scrap." — [[Zoltan odd moon]]
       const line = payRandomTier(ctx);
-      citedResult(g, ZOLTAN_MOON_REMAINS, [
-        "You receive a random amount of scrap.",
-        line,
-        "Missiles: -1.",
-      ]);
+      citedResult(g, eventText(ZOLTAN_MOON_REMAINS), [line, "Missiles: -1."]);
       return true;
     }
     // Wiki citations:
     // > "The explosives are set remotely, but the detonation achieves nothing. What a waste." — [[Zoltan odd moon]]
     // > "Nothing happens." — [[Zoltan odd moon]]
-    citedResult(g, ZOLTAN_MOON_WASTE, ["Nothing happens.", "Missiles: -1."]);
+    citedResult(g, eventText(ZOLTAN_MOON_WASTE), ["Missiles: -1."]);
     return true;
   }
   if (id === "c:zoltan-odd-moon:drone") {
@@ -726,7 +735,7 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
       ? "You receive a Zoltan crewmember."
       : "There is no room aboard for the new crewmember.";
     ctx.note(line);
-    citedResult(g, ZOLTAN_MOON_DRONE, [line, spent]);
+    citedResult(g, zoltanMoonDrone(), [line, spent]);
     return true;
   }
   return false;
@@ -789,7 +798,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
         {
           id: "c:auto-ship-near-radar-station:2",
-          label: "Send a drone to distract the automated ship.",
+          label: eventText("event_AUTO_DEFENSE_RADAR_c3_choice"),
         },
       ],
     };
@@ -803,19 +812,19 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
         {
           id: "c:auto-ship-near-storage-station-in-nebula:2",
-          label: "Attempt to stealthily access the space station.",
+          label: eventText("event_NEBULA_AUTO_DEFENSE_ITEM_c3_choice"),
         },
         {
           id: "c:auto-ship-near-storage-station-in-nebula:3",
-          label: "Use your stealth to access the space station.",
+          label: eventText("event_NEBULA_AUTO_DEFENSE_ITEM_c4_choice"),
         },
         {
           id: "c:auto-ship-near-storage-station-in-nebula:4",
-          label: "Try to hack the station to prevent an alert.",
+          label: eventText("event_NEBULA_AUTO_DEFENSE_ITEM_c5_choice"),
         },
         {
           id: "c:auto-ship-near-storage-station-in-nebula:5",
-          label: "Hack the station to prevent an alert.",
+          label: eventText("event_NEBULA_AUTO_DEFENSE_ITEM_c6_choice"),
         },
       ],
     };
@@ -829,7 +838,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
         {
           id: "c:pirate-ship-attacking-civilian-distress:2",
-          label: "Fire a warning shot from your strongest weapon.",
+          label: eventText("event_PIRATE_CIVILIAN_BEACON_c3_choice"),
         },
       ],
     };
@@ -845,14 +854,17 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:zoltan-security-checkpoint:1", label: "Submit to profiling." },
+        {
+          id: "c:zoltan-security-checkpoint:1",
+          label: eventText("event_ZOLTAN_CREW_SCAN_c2_choice"),
+        },
         {
           id: "c:zoltan-security-checkpoint:2",
-          label: "Have your Slug talk them into letting you go.",
+          label: eventText("event_ZOLTAN_CREW_SCAN_c3_choice"),
         },
         {
           id: "c:zoltan-security-checkpoint:3",
-          label: "Make the guards believe they have already checked your crew today.",
+          label: eventText("event_ZOLTAN_CREW_SCAN_c4_choice"),
         },
       ],
     };
@@ -866,8 +878,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
         {
           id: "c:escort-civilians-ftl-haywire:2",
-          label:
-            "Have your navigation software calculate and upload route instructions to their ship.",
+          label: eventText("event_ESCORT_BEACON_c3_choice"),
         },
       ],
     };
@@ -878,9 +889,9 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: ev.body,
       choices: [
-        { id: "c:slug-drink:1", label: "Drink." },
+        { id: "c:slug-drink:1", label: eventText("event_SLUG_DRINK_c1_choice") },
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:slug-drink:2", label: "Have your Rockman pose as captain." },
+        { id: "c:slug-drink:2", label: eventText("event_SLUG_DRINK_c3_choice") },
       ],
     };
   }
@@ -891,7 +902,10 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:rock-ship-in-plasma-storm:2", label: "Offer to lead them out of the nebula." },
+        {
+          id: "c:rock-ship-in-plasma-storm:2",
+          label: eventText("event_NEBULA_ROCK_RACIST_c3_choice"),
+        },
       ],
     };
   }
@@ -901,9 +915,9 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: ev.body,
       choices: [
-        { id: "c:deactivated-auto-ship:1", label: "Attempt to download the ship's data stores." },
+        { id: "c:deactivated-auto-ship:1", label: eventText("event_BROKEN_REBEL_DRONE_c1_choice") },
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:deactivated-auto-ship:2", label: "Remotely scan the ship." },
+        { id: "c:deactivated-auto-ship:2", label: eventText("event_BROKEN_REBEL_DRONE_c3_choice") },
       ],
     };
   }
@@ -914,9 +928,18 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:auto-ship-fight-in-plasma-storm:1", label: "Attempt to out-run it." },
-        { id: "c:auto-ship-fight-in-plasma-storm:2", label: "Attempt to out-run it." },
-        { id: "c:auto-ship-fight-in-plasma-storm:3", label: "Use your cloaking to escape." },
+        {
+          id: "c:auto-ship-fight-in-plasma-storm:1",
+          label: eventText("event_STORM_AUTO_c2_choice"),
+        },
+        {
+          id: "c:auto-ship-fight-in-plasma-storm:2",
+          label: eventText("event_STORM_AUTO_c3_choice"),
+        },
+        {
+          id: "c:auto-ship-fight-in-plasma-storm:3",
+          label: eventText("event_STORM_AUTO_c4_choice"),
+        },
       ],
     };
   }
@@ -929,7 +952,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
         {
           id: "c:auto-ship-near-storage-station:2",
-          label: "Attempt to cloak and access the cache.",
+          label: eventText("event_AUTO_DEFENSE_ITEM_c3_choice"),
         },
       ],
     };
@@ -943,11 +966,11 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
         {
           id: "c:auto-ship-near-sensor-station:2",
-          label: "Use your sensors to attempt to access the data.",
+          label: eventText("event_AUTO_DEFENSE_MAP_c3_choice"),
         },
         {
           id: "c:auto-ship-near-sensor-station:3",
-          label: "Beam directly onto the station to try to avoid detection.",
+          label: eventText("event_AUTO_DEFENSE_MAP_c4_choice"),
         },
       ],
     };
@@ -963,25 +986,10 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     // > "(Weapons) Activate your advanced weapons threateningly." — [[Pirate smuggler]]
     return {
       title: ev.dest,
-      body: "A pirate ship arrives shortly after you. Judging from the fact that it is attempting to avoid your ship, you assume that it's a smuggler trying to stay away from beacons.",
+      body: eventText("event_NEBULA_PIRATE_SMUGGLE_text"),
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:pirate-smuggler:2", label: "Activate your advanced weapons threateningly." },
-      ],
-    };
-  }
-  // Rock atheists. {{Blue Option|Improved Sensors|level=2+}}. The button stays visible.
-  if (ev.slug === "ROCK_ATHIEST") {
-    return {
-      title: ev.dest,
-      body: "You encounter a small craft with minimal propulsion; its Rock crew-member explains that the Rock home-world is run on lies and propaganda that keep the populace in check, and that they want no part of it.",
-      choices: [
-        { id: "c:rock-atheists:0", label: "Tell them their god sent them here to join your crew." },
-        {
-          id: "c:rock-atheists:1",
-          label: "Promise to share with them the truths they've been denied.",
-        },
-        { id: "c:rock-atheists:2", label: "Show them to your data suite." },
+        { id: "c:pirate-smuggler:2", label: eventText("event_NEBULA_PIRATE_SMUGGLE_c3_choice") },
       ],
     };
   }
@@ -991,9 +999,15 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       title: ev.dest,
       body: ev.body,
       choices: [
-        { id: "q:pirate-drones:hail", label: "Hail the ship." },
-        { id: "c:pirate-ship-selling-drones:1", label: "Attack him before he can attack!" },
-        { id: "c:pirate-ship-selling-drones:2", label: "Quickly prepare to jump away." },
+        { id: "q:pirate-drones:hail", label: eventText("event_PIRATE_SALESMAN_c1_choice") },
+        {
+          id: "c:pirate-ship-selling-drones:1",
+          label: eventText("event_PIRATE_SALESMAN_c2_choice"),
+        },
+        {
+          id: "c:pirate-ship-selling-drones:2",
+          label: eventText("event_PIRATE_SALESMAN_c3_choice"),
+        },
       ],
     };
   }
@@ -1003,12 +1017,12 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     const body = opening(g, "REBEL_CHECKPOINT");
     const labels = hideLabels("REBEL_CHECKPOINT");
     const choices = [
-      { id: "c:rebel-checkpoint:0", label: "Fend for yourself, attack, and escape." },
+      { id: "c:rebel-checkpoint:0", label: eventText("event_REBEL_CHECKPOINT_c1_choice") },
     ];
     if (cost != null) {
       choices.push({
         id: `q:rebel-checkpoint:bribe:${cost}`,
-        label: `Bribe the Rebels to release the civilian ships. [${cost} scrap]`,
+        label: `${eventText("event_REBEL_CHECKPOINT_c2_choice")} [${cost} scrap]`,
       });
     }
     choices.push({
@@ -1027,7 +1041,7 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
         {
           id: "c:space-station-under-construction:2",
-          label: "Offer to have your crewmember help.",
+          label: eventText("event_QUEST_CONSTRUCTIONYARD_c3_choice"),
         },
       ],
     };
@@ -1326,29 +1340,25 @@ function sellStationThanks(id: string): string | null {
     id === "c:sell-missiles-for-scrap:1" ||
     id === "c:sell-missiles-for-scrap:2"
   ) {
-    return '"Thank you, this will help greatly."';
+    return eventText("event_SELL_MISSILES_STATION_c1_text");
   }
   if (
     id === "c:sell-drone-parts-for-scrap:0" ||
     id === "c:sell-drone-parts-for-scrap:1" ||
     id === "c:sell-drone-parts-for-scrap:2"
   ) {
-    return '"Thank you for your business."';
+    return eventText("event_SELL_DRONES_STATION_c1_text");
   }
   return null;
 }
 
 const CRYSTAL_PLANS = "c:crystalline-ship-messaging-about-rebels";
-const CRYSTAL_OUTRUN =
-  "It was never your intention to lead the Rebels here, and frankly you could do with the scrap. The Crystalline ship immediately jumps off to inform the Rebels, leaving you with a fleet to outrun!";
-const CRYSTAL_CRUISE =
-  "Unable to interpret it themselves, the Crystalline Beings assume your data will mean something to the Rebels. It should see the pursuing fleet taking a leisurely cruise before they get back on track.";
-const CRYSTAL_LIE =
-  "They take one look at your fake telemetry and realize what you've done. They apparently do not take being lied to well - they immediately attack";
-const CRYSTAL_BUOY =
-  "Your distraction buoy allows you to create a very convincing flight plan. They accept it as true and give you the scrap. The deception may not be the most honorable tactic but staying ahead of the fleet is your highest priority.";
-const CRYSTAL_REFUSE =
-  "You apologize for the trouble you've brought them, but explain that you have no choice. They seem to understand, and break the comm link to set about preparing defenses.";
+// ftl.dat text ids for CRYSTAL_REQUEST's results.
+const CRYSTAL_OUTRUN = "event_CRYSTAL_REQUEST_c1_c1_text";
+const CRYSTAL_CRUISE = "event_CRYSTAL_REQUEST_LIST_1_text";
+const CRYSTAL_LIE = "event_CRYSTAL_REQUEST_LIST_2_text";
+const CRYSTAL_BUOY = "event_CRYSTAL_REQUEST_c1_c3_text";
+const CRYSTAL_REFUSE = "event_CRYSTAL_REQUEST_c1_c4_text";
 
 function citedResult(g: Game, sentence: string, paid: string[]) {
   const title = g.beacons.find((b) => b.id === g.here)?.name ?? "Event";
@@ -1393,16 +1403,16 @@ function crystallineRebelPlans(ctx: CitedChoice, id: string): boolean | null {
   if (!id.startsWith(`${CRYSTAL_PLANS}:`)) return null;
   const g = ctx.g;
   if (id === `${CRYSTAL_PLANS}:0`) {
-    citedResult(g, CRYSTAL_OUTRUN, [highScrapNote(ctx), doubledPursuit(ctx)]);
+    citedResult(g, eventText(CRYSTAL_OUTRUN), [highScrapNote(ctx), doubledPursuit(ctx)]);
     return true;
   }
   if (id === `${CRYSTAL_PLANS}:1`) {
     // Two results, no odds. INFERRED: equal.
     if (ctx.irand(2) === 0) {
-      citedResult(g, CRYSTAL_CRUISE, [highScrapNote(ctx), delayedPursuit(ctx)]);
+      citedResult(g, eventText(CRYSTAL_CRUISE), [highScrapNote(ctx), delayedPursuit(ctx)]);
       return true;
     }
-    ctx.note(CRYSTAL_LIE);
+    ctx.note(eventText(CRYSTAL_LIE));
     ctx.fight("Crystal ship");
     // INFERRED: the count is inclusive. The boarders are added after the fight starts. A new fight keeps intruders already aboard.
     crystalBoarders(g, 1, 2);
@@ -1410,11 +1420,11 @@ function crystallineRebelPlans(ctx: CitedChoice, id: string): boolean | null {
   }
   if (id === `${CRYSTAL_PLANS}:2`) {
     if (!g.augments.includes("FLEET_DISTRACTION")) return false;
-    citedResult(g, CRYSTAL_BUOY, [highScrapNote(ctx), delayedPursuit(ctx)]);
+    citedResult(g, eventText(CRYSTAL_BUOY), [highScrapNote(ctx), delayedPursuit(ctx)]);
     return true;
   }
   if (id === `${CRYSTAL_PLANS}:3`) {
-    citedResult(g, CRYSTAL_REFUSE, ["Nothing happens."]);
+    citedResult(g, eventText(CRYSTAL_REFUSE), []);
     return true;
   }
   return null;
@@ -1462,6 +1472,24 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   const choice = findChoice(id);
   if (!choice) return false;
   const g = ctx.g;
+  // A hidden result that stores its own ship, text list, or grant. An unmet req does nothing.
+  if (
+    (choice.textLoad || choice.grants?.length || (choice.ship?.hostile && !choice.ship.load)) &&
+    ownedLock(g, id, choice.owner ? locksOwned(choice.owner) : {})
+  )
+    return false;
+  if (choice.ship?.hostile && !choice.ship.load) {
+    const load = pageOwningChoice(id)?.ship?.load;
+    if (!load) return false;
+    const slug = /^c:([^:]+):/.exec(id)?.[1] ?? load;
+    pageFight(
+      g,
+      textListLine(choice.textLoad, (n) => ctx.irand(n)),
+      load,
+      slug,
+    );
+    return true;
+  }
   // Letting a ship live ends the fight only while that ship is still there.
   if (choice.fx.some((fx) => fx.k === "close") && !g.enemy) return true;
   // Remote settlement. Fire Beam and Fire Bomb. citedChoose does not read citedChoiceDisabled.
@@ -1523,55 +1551,43 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     return true;
   }
   // Rebel transport ship. "Demand the surrender of their goods." One printed lead-in, then the running Rebel fight.
-  if (id === "c:rebel-transport-ship:0") ctx.note("You prepare to secure their cargo by force.");
+  if (id === "c:rebel-transport-ship:0") ctx.note(eventText("event_REBEL_TRANSPORT_c1_text"));
   // Lanius ship absorbing automated scout. "Fight the ship." One printed lead-in, then a Lanius ship fight.
   if (id === "c:lanius-ship-absorbing-automated-scout:0")
-    ctx.note("You power up your weapons, which quickly gets the attention of the ship.");
+    ctx.note(eventText("event_LANIUS_AUTO_REBEL_c1_text"));
   // Mantis ship attacking Crystal. "Attack the Mantis." One printed lead-in, then a Mantis ship fight.
   if (id === "c:mantis-ship-attacking-crystal:0")
-    ctx.note(
-      "You activate your impulse engines and fly between the Mantis and their prey, weapons charging. You appear to have their full attention.",
-    );
+    ctx.note(eventText("event_CRYSTAL_MANTIS_CRYSTAL_c1_text"));
   // Mantis ship with Rock body parts. "Attack!" One printed lead-in, then a Mantis ship fight.
   if (id === "c:mantis-ship-with-rock-body-parts:0") {
     // Wiki citations:
     // > "No species deserves a Mantis hunter on their back - time to make the galaxy a little safer. Engage!" — [[Mantis ship with Rock body parts]]
     // > "Fight the Mantis ship (default rewards)." — [[Mantis ship with Rock body parts]]
-    ctx.note(
-      "No species deserves a Mantis hunter on their back - time to make the galaxy a little safer. Engage!",
-    );
+    ctx.note(eventText("event_ROCK_MANTIS_HUNTER_c1_text"));
   }
   // Lanius lone ship. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
-  if (id === "c:lanius-lone-ship:0")
-    ctx.note(
-      "The civilian ship hastily retreats while you intercept the path of the ship and lock on weapons. It turns and prepares for a fight.",
-    );
+  if (id === "c:lanius-lone-ship:0") ctx.note(eventText("event_LANIUS_SCARED_CIVILIAN_c1_text"));
   // Auto-ship near radar station. "Approach the station." One printed lead-in, then an Auto-ship fight.
-  if (id === "c:auto-ship-near-radar-station:0") ctx.note("The ship powers up and targets you.");
+  if (id === "c:auto-ship-near-radar-station:0")
+    ctx.note(eventText("event_AUTO_DEFENSE_RADAR_c1_text"));
   // Crystal fight choice. "Engage the Rebel ship." One printed lead-in, then a Crystal ship fight.
   if (id === "c:crystal-fight-choice:0") {
     // Wiki citations:
     // > "Engage the Rebel ship." — [[Crystal fight choice]]
     // > "Before you can engage, the Crystalline ship scores a direct hit and obliterates the Rebel ship! They hail: \"You, you are like these other aliens! You brought them here!\" With that they turn their cannons on you!" — [[Crystal fight choice]]
     // > "Fight a Crystal ship (default rewards)." — [[Crystal fight choice]]
-    ctx.note(
-      'Before you can engage, the Crystalline ship scores a direct hit and obliterates the Rebel ship! They hail: "You, you are like these other aliens! You brought them here!" With that they turn their cannons on you!',
-    );
+    ctx.note(eventText("event_CRYSTAL_REBEL_CRYSTAL2_c1_text"));
   }
   // Lanius powered-down ship. "Scan the ship for lifeforms." One printed lead-in, then a Lanius ship fight.
   if (id === "c:lanius-powered-down-ship:0")
-    ctx.note(
-      "As you scan the vessel, the scan frequencies awaken the Lanius from hibernation - and they're hungry for raw materials!",
-    );
+    ctx.note(eventText("event_LANIUS_DORMANT_EVENT_c1_text"));
   // Pirate ship attacking Crystal. "Attack the pirate." One printed lead-in, then a Pirate ship fight.
   if (id === "c:pirate-ship-attacking-crystal:0") {
     // Wiki citations:
     // > "Attack the pirate." — [[Pirate ship attacking Crystal]]
     // > "You chase down the pirate before it has a chance to engage the civilian ship. When it detects the real threat, it turns to face you." — [[Pirate ship attacking Crystal]]
     // > "Fight a Pirate ship." — [[Pirate ship attacking Crystal]]
-    ctx.note(
-      "You chase down the pirate before it has a chance to engage the civilian ship. When it detects the real threat, it turns to face you.",
-    );
+    ctx.note(eventText("event_CRYSTAL_PIRATE_CRYSTAL_c1_text"));
   }
   // Remote settlement. "Attack the pirate." One printed lead-in, then a Pirate ship fight.
   if (id === "c:remote-settlement:0")
@@ -1579,61 +1595,43 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // > "Attack the pirate." — [[Remote settlement]]
     // > "\"You asked for it!\" They pull away from the planet and move in to engage." — [[Remote settlement]]
     // > "Fight the pirate ship." — [[Remote settlement]]
-    ctx.note('"You asked for it!" They pull away from the planet and move in to engage.');
+    ctx.note(eventText("event_PIRATE_STATION_CROPS_c1_text"));
   // Pirate smuggler. "Attack the pirate." One printed lead-in, then a Pirate ship fight.
   // Wiki citations:
   // > "Attack the pirate." — [[Pirate smuggler]]
   // > "You power up your weapons and move in to engage." — [[Pirate smuggler]]
   // > "Fight the pirate ship." — [[Pirate smuggler]]
-  if (id === "c:pirate-smuggler:0") ctx.note("You power up your weapons and move in to engage.");
+  if (id === "c:pirate-smuggler:0") ctx.note(eventText("event_NEBULA_PIRATE_SMUGGLE_c1_text"));
   // Refueling platform garbled broadcast. "Hail the platform and attempt to communicate." One printed lead-in, then a Lanius ship fight.
   if (id === "c:refueling-platform-garbled-broadcast:0")
     // Wiki citations:
     // > "Hail the platform and attempt to communicate." — [[Refueling platform garbled broadcast]]
     // > "There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!" — [[Refueling platform garbled broadcast]]
     // > "Fight a Lanius ship." — [[Refueling platform garbled broadcast]]
-    ctx.note(
-      "There is a screech from your comm system, and the broadcast suddenly cuts off. The platform suddenly begins to move, revealing itself to be a Lanius ship!",
-    );
+    ctx.note(eventText("event_LANIUS_FUELING_STATION_c1_text"));
   // Slug drink. "Refuse." One printed lead-in, then a Slug ship fight.
-  if (id === "c:slug-drink:0")
-    ctx.note(
-      "The Slug feigns offense at your refusal, but you sense that he respects your caution. This does not, however, prevent him from returning to his ship and opening fire.",
-    );
+  if (id === "c:slug-drink:0") ctx.note(eventText("event_SLUG_DRINK_c2_text"));
   // Zoltan quest primitives. "Interfere - make first contact with the primitive aliens." One printed lead-in, then a Zoltan ship fight.
   if (id === "c:zoltan-quest-primitives:0")
-    ctx.note(
-      "The local people - furry, one-eyed tree lizard things - begin chanting when they see you. Suddenly the sky is lit by laser fire - the Zoltan opened fire on your ship! You dash back to the shuttle and join the fight.",
-    );
+    ctx.note(eventText("event_ZOLTAN_QUEST_PRIMITIVES_c1_c1_text"));
   // Zoltan quest primitives. "Protect the aliens' way of life - Attack the Rebel ship." One printed lead-in, then a Rebel ship fight.
   if (id === "c:zoltan-quest-primitives:1")
-    ctx.note(
-      "These creatures should be left to develop at their own pace. You direct all weapons on the Rebel ship and begin the firing sequence.",
-    );
+    ctx.note(eventText("event_ZOLTAN_QUEST_PRIMITIVES_c1_c2_text"));
   // Rebel ship attacking Crystal ship. "Attack the Rebel." One printed lead-in, then a Rebel ship fight.
   if (id === "c:rebel-ship-attacking-crystal-ship:0")
-    ctx.note(
-      "You message the Crystalline ship your intentions and move in to intercept the Rebel ship.",
-    );
+    ctx.note(eventText("event_CRYSTAL_REBEL_CRYSTAL_c1_text"));
   // Rebel ship attacking Crystal ship. "Attack the Crystalline ship." One printed lead-in, then a Crystal ship fight.
   if (id === "c:rebel-ship-attacking-crystal-ship:1")
-    ctx.note(
-      "You move in to intercept the Crystalline ship. As soon as the Rebel scans your ship it takes the opportunity to jump. You have the sneaking suspicion they will inform the fleet of your position, but that's the least of your current concerns.",
-    );
+    ctx.note(eventText("event_CRYSTAL_REBEL_CRYSTAL_c2_text"));
   // Auto-ship carrying shield virus. "Counter the remote hacking." Without Hacking the arrival card stays open.
   // citedChoose does not read citedChoiceDisabled, so this returns before the fight note and the fight.
   if (id === "c:auto-ship-carrying-shield-virus:1" && (g.player.kits.hacking?.level ?? 0) <= 0)
     return true;
   // Auto-ship carrying shield virus. "Counter the remote hacking." One printed lead-in, then an Auto-ship fight.
   if (id === "c:auto-ship-carrying-shield-virus:1")
-    ctx.note(
-      "Your hacking system automatically counters the digital assault and you move in to fight the ship.",
-    );
+    ctx.note(eventText("event_AUTO_HACKER_c2_text"));
   // Rebel shipyard. "Look around." One printed warning, then the same second Flagship fight. No salvage is granted here.
-  if (id === "c:rebel-shipyard:0")
-    ctx.note(
-      "Warning lights flash as scans identify the gigantic ship under construction - it's a second Rebel Flagship! This must be the secret shipyards where the first one was built, and you've accidentally stumbled across it! Even in its weakened state, the Rebel ship powers up... get ready, you've got a hell of a fight on your hands!",
-    );
+  if (id === "c:rebel-shipyard:0") ctx.note(eventText("event_FLAGSHIP_CONSTRUCTION_c1_text"));
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined, undefined, fight.autoBlueprint);
@@ -1697,28 +1695,22 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // > "Pay their toll. [ Scrap lost: 15-25 ]" — [[Pirate toll]]
     // > "\"You made the right decision, friend.\"" — [[Pirate toll]]
     // > "You avoid the fight." — [[Pirate toll]]
-    citedResult(g, '"You made the right decision, friend."', ["You avoid the fight."]);
+    citedResult(g, eventText("event_PIRATE_CHOICE_c1_text"), []);
     return true;
   }
   // The mercenary. "Hire the mercenary to delay the Rebels." One printed result. Scrap and the 2-turn delay are already applied.
   if (id === "c:the-mercenary:0") {
     const last = g.sector === 8 || g.sectorId === "FINAL";
-    citedResult(
-      g,
-      "The mercenary ship masks its jump signature to mimic your own and then jumps off in the opposite direction. This should keep the Rebels guessing.",
-      [last ? "No effect in The Last Stand." : "Rebel Fleet is delayed for 2 turns."],
-    );
+    citedResult(g, eventText("event_MERCENARY_c1_text"), [
+      last ? "No effect in The Last Stand." : "Rebel Fleet is delayed for 2 turns.",
+    ]);
     return true;
   }
   // Federation deserters. "Offer supplies." 15-25 scrap and 1-3 fuel are already spent.
   // "The current sector map is revealed." This beacon chart has no hidden nodes, so that line uncovers none.
   // sectorMap is the between-sector chart and stays untouched.
   if (id === "c:federation-deserters:2") {
-    citedResult(
-      g,
-      'You send over some supplies to help them on their way and in return they upload their flight plan to your computer, allowing you to map the sector! "The Federation fleet\'s still standing - get there while you can!"',
-      ["The current sector map is revealed."],
-    );
+    citedResult(g, eventText("event_CRYSTAL_FED_DESERTER_c1_text"), []);
     return true;
   }
   // Remote settlement. Fire Beam and Fire Bomb. High scrap is already applied above.
@@ -1734,10 +1726,12 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     ctx.note(item);
     citedResult(
       g,
-      id === "c:remote-settlement:2"
-        ? "The pirate watches as you start to light the meager crops on fire. In a few moments the settlement surrenders, offering tribute to leave them alone. The pirate seems impressed."
-        : "The pirate watches as you teleport an incendiary explosive into their settlement. As the settlers scramble to put out the fires, their rudimentary planetary defenses power down. Forcing their surrender was almost laughably easy, but the pirate seems impressed with your tactics and agrees to share the settlement's 'tribute'.",
-      ["You receive a drone schematic with high scrap.", item],
+      eventText(
+        id === "c:remote-settlement:2"
+          ? "event_PIRATE_STATION_CROPS_c3_text"
+          : "event_PIRATE_STATION_CROPS_c4_text",
+      ),
+      [item],
     );
     return true;
   }
@@ -1757,11 +1751,7 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     const got = `Fuel: ${fuel}.`;
     ctx.note(spent);
     ctx.note(got);
-    citedResult(
-      g,
-      "They happily accept your offer for help. Once the drone does its work they transfer over some fuel for your trouble.",
-      [got, spent],
-    );
+    citedResult(g, eventText("event_FUEL_OFF_ENGI_DUBIOUS_c3_text"), [got, spent]);
     return true;
   }
   const questFx = choice.fx.find((fx) => fx.k === "quest");
@@ -1814,6 +1804,14 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (fightPageShip(ctx, id)) return true;
   ctx.resolve();
   return true;
+}
+
+/** One line of a textList. A missing list is a blank sentence. */
+function textListLine(id: string | undefined, roll: (count: number) => number): string {
+  const lines = (id ? textList(id)?.lines : undefined) ?? [];
+  const texts = lines.flatMap((line) => ("text" in line && line.text ? [line.text] : []));
+  if (texts.length === 0) return "";
+  return texts[Math.min(texts.length - 1, Math.max(0, roll(texts.length)))] ?? "";
 }
 
 /** The page's hostile `<ship load>`, when this choice did not load one of its own. */

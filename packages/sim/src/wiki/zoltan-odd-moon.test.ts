@@ -6,6 +6,7 @@ import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 import { cargoOf } from "../rules/make-room.ts";
 import { joinCrew } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 function beacon(): Beacon {
   return {
@@ -80,7 +81,7 @@ describe("Zoltan odd moon", () => {
     // > "(Boarding Drone)" — [[Zoltan odd moon]]
     // > "Drone parts lost: 1" — [[Zoltan odd moon]]
     const g = open(1);
-    assert.match(g.event?.body ?? "", /odd about a moon/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_ZOLTAN_ODD_MOON_text")));
     assert.deepEqual(
       g.event?.choices.map((c) => c.id),
       ["c:zoltan-odd-moon:look", "c:zoltan-odd-moon:leave", "c:zoltan-odd-moon:drone"],
@@ -99,7 +100,7 @@ describe("Zoltan odd moon", () => {
     const scrap = g.scrap;
     choose(g, "c:zoltan-odd-moon:leave");
     assert.equal(g.scrap, scrap);
-    assert.match(g.event?.body ?? "", /aft scanner/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_ZOLTAN_ODD_MOON_c2_text")));
     assert.match(g.event?.body ?? "", /Nothing happens/);
   });
 
@@ -121,8 +122,8 @@ describe("Zoltan odd moon", () => {
       const parts = g.player.parts;
       look(g);
       const body = g.event?.body ?? "";
-      if (body.includes("hidden cavern")) seen.add("cave");
-      else if (body.includes("still-functioning weapon")) {
+      if (body.includes(eventText("event_ZOLTAN_ODD_MOON_CHECK_4_text"))) seen.add("cave");
+      else if (body.includes(eventText("event_ZOLTAN_ODD_MOON_CHECK_2_text"))) {
         seen.add("shuttle");
         // Rewards, "Weapon": "A random weapon & T scrap."
         assert.equal(heldWeapons(g), weapons + 1);
@@ -134,7 +135,7 @@ describe("Zoltan odd moon", () => {
         assert.equal(g.fuel, fuel);
         assert.equal(g.missiles, missiles);
         assert.equal(g.player.parts, parts);
-      } else if (body.includes("scrap heap")) {
+      } else if (body.includes(eventText("event_ZOLTAN_ODD_MOON_CHECK_3_text"))) {
         seen.add("medium");
         const paid = body.match(/Medium scrap: (\d+)/);
         assert.ok(paid);
@@ -144,7 +145,7 @@ describe("Zoltan odd moon", () => {
         assert.equal(g.fuel, fuel);
         assert.equal(g.missiles, missiles);
         assert.equal(g.player.parts, parts);
-      } else if (body.includes("signs of habitation")) {
+      } else if (body.includes(eventText("event_ZOLTAN_ODD_MOON_CHECK_1_text"))) {
         seen.add("quiet");
         assert.match(body, /Nothing happens/);
       } else {
@@ -164,24 +165,28 @@ describe("Zoltan odd moon", () => {
     for (let seed = 1; seed <= 40 && (!spare || !dry); seed++) {
       const g = open(seed);
       look(g);
-      if (!g.event?.body.includes("hidden cavern")) continue;
+      if (!g.event?.body.includes(eventText("event_ZOLTAN_ODD_MOON_CHECK_4_text"))) continue;
       if (!spare) {
         const missiles = g.missiles;
         choose(g, "c:zoltan-odd-moon:spare");
         assert.equal(g.missiles, missiles);
-        assert.match(g.event?.body ?? "", /Nothing happens/);
+        // ftl.dat's choice writes no text: the page closes and the beacon is spent.
+        assert.equal(g.event, null);
+        assert.equal(g.beacons.find((b) => b.id === g.here)?.resolved, true);
         spare = true;
       }
       if (!dry) {
         const again = open(seed);
         look(again);
-        if (!again.event?.body.includes("hidden cavern")) continue;
+        if (!again.event?.body.includes(eventText("event_ZOLTAN_ODD_MOON_CHECK_4_text"))) continue;
         again.missiles = 0;
         const scrap = again.scrap;
         choose(again, "c:zoltan-odd-moon:boom");
         assert.equal(again.missiles, 0);
         assert.equal(again.scrap, scrap);
-        assert.match(again.event?.body ?? "", /hidden cavern/);
+        assert.ok(
+          (again.event?.body ?? "").includes(eventText("event_ZOLTAN_ODD_MOON_CHECK_4_text")),
+        );
         dry = true;
       }
     }
@@ -201,25 +206,25 @@ describe("Zoltan odd moon", () => {
     for (let seed = 1; seed <= 120; seed++) {
       const g = open(seed);
       look(g);
-      if (!g.event?.body.includes("hidden cavern")) continue;
+      if (!g.event?.body.includes(eventText("event_ZOLTAN_ODD_MOON_CHECK_4_text"))) continue;
       const weapons = heldWeapons(g);
       const scrap = g.scrap;
       g.missiles = 4;
       choose(g, "c:zoltan-odd-moon:boom");
       assert.equal(g.missiles, 3);
       const body = g.event?.body ?? "";
-      if (body.includes("secret base")) {
+      if (body.includes(eventText("event_ZOLTAN_ODD_MOON_EXPLOSION_3_text"))) {
         // "You receive a weapon with a random amount of scrap."
         assert.ok(g.scrap > scrap);
         assert.match(body, /(Low|Medium|High) scrap: \d+\./);
         assert.equal(heldWeapons(g), weapons + 1);
         assert.match(body, /(mounted|stowed in cargo)\./);
         seen.add("base");
-      } else if (body.includes("subterranean base")) {
+      } else if (body.includes(eventText("event_ZOLTAN_ODD_MOON_EXPLOSION_1_text"))) {
         assert.ok(g.scrap > scrap);
         assert.equal(heldWeapons(g), weapons);
         seen.add("remains");
-      } else if (body.includes("What a waste")) {
+      } else if (body.includes(eventText("event_ZOLTAN_ODD_MOON_EXPLOSION_2_text"))) {
         assert.equal(g.scrap, scrap);
         assert.equal(heldWeapons(g), weapons);
         seen.add("waste");
@@ -244,7 +249,7 @@ describe("Zoltan odd moon", () => {
     assert.equal(g.crew.filter((c) => c.side === "player").length, before + 1);
     assert.equal(g.crew.filter((c) => c.kin === "energy").length, sparks + 1);
     assert.match(g.event?.body ?? "", /You receive a Zoltan crewmember/);
-    assert.match(g.event?.body ?? "", /boarding drone/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_ZOLTAN_ODD_MOON_c3_text")));
   });
 
   it("a ninth crewmember asks who is relieved", () => {

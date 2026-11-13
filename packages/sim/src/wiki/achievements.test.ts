@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { allAchievements, onPackWarning } from "@stl/pack";
 import { createGame } from "../sim.ts";
-import { conditionMet } from "./achievement-track.ts";
+import { conditionMet } from "../rules/achievement-track.ts";
 
 describe("achievement conditions", () => {
   it("gives every achievement a condition and reads only known values", () => {

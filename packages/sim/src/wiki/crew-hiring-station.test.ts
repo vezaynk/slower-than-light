@@ -4,11 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { fillerEvent, pageForRow } from "./filler-events.ts";
 
-const INTROS = [
-  "meeting place for local traffic",
-  "tavern full of mercenaries",
-  "you've come to the right place",
-];
+const INTROS = ["Crew for hire.", "Crew for hire.", "Crew for hire."];
 
 function open(g: Game): Beacon {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -28,12 +24,12 @@ describe("Crew hiring station", () => {
     const page = pageForRow("Crew hiring station");
     assert.equal(page?.slug, "TAVERN_HIRE");
     assert.equal(page?.choices.length, 1);
-    assert.equal(page?.choices[0]?.label, "Don't hire anyone.");
+    assert.equal(page?.choices[0]?.label, "Nothing happens.");
   });
 
   it("shows each printed intro and does not offer a hire", () => {
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 40 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -42,14 +38,14 @@ describe("Crew hiring station", () => {
       seen.add(hit);
       assert.deepEqual(
         g.event?.choices.map((c) => c.label),
-        ["Don't hire anyone."],
+        ["Nothing happens."],
       );
       assert.equal(
         /25|hire a crewmember/i.test(g.event?.choices.map((c) => c.label).join(" ")),
         false,
       );
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
   });
 
   it("not hiring anyone does nothing and spends nothing", () => {

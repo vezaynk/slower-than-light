@@ -4,9 +4,9 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
 
-const LEAD =
-  "The local people - furry, one-eyed tree lizard things - begin chanting when they see you. Suddenly the sky is lit by laser fire - the Zoltan opened fire on your ship! You dash back to the shuttle and join the fight.";
+const LEAD = eventText("event_ZOLTAN_QUEST_PRIMITIVES_c1_c1_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -52,7 +52,7 @@ describe("Zoltan quest primitives interfere", () => {
       assert.equal(pageWin(g, "zoltan-quest-primitives-interfere", deadCrew), true);
       assert.equal(g.pursuitDouble, true);
       const body = g.event?.body ?? "";
-      assert.ok(body.startsWith("The Rebel contacts you."));
+      assert.ok(body.startsWith(eventText("ship_ZOLTAN_PRIMITIVES_ZOLTAN_destroyed_text")), body);
       assert.match(body, /Rebel Fleet pursuit is doubled for 1 jump/);
       const paid = Number(body.match(/Scrap: (\d+)/)?.[1]);
       if (deadCrew) assert.ok(paid >= 7 && paid <= 23, body);

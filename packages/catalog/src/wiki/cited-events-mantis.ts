@@ -35,13 +35,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:mantis-fight-near-sun",
     aliases: ["Mantis fight near sun"],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    body: "Who knows why the Mantis would venture so close to a sun. Perhaps it makes for more of a challenge?",
+    body: "Hostile Mantis ship. Sun: fires break out.",
     choices: [
       {
         id: "c:mantis-fight-near-sun:0",
         // Wiki citations:
         // > "Fight a Mantis ship (default rewards)." — [[Mantis fight near sun]]
-        label: "Fight a Mantis ship (default rewards)",
+        label: "Fight the Mantis ship.",
         fx: [{ k: "fight", tier: "Mantis ship" }],
       },
     ],
@@ -57,13 +57,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:mantis-ship-collectors",
     aliases: ["Mantis ship-collectors"],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    body: 'You are immediately hailed by an impressive-looking Mantis ship, "Your ship would make a mighty fine prize. Prepare for battle!"',
+    body: "Hostile Mantis ship.",
     choices: [
       {
         id: "c:mantis-ship-collectors:0",
         // Wiki citations:
         // > "Fight a Mantis Fighter with crew entirely composed of Mantis." — [[Mantis ship-collectors]]
-        label: "Fight a Mantis Fighter",
+        label: "Fight the Mantis ship.",
         fx: [{ k: "fight", tier: "Mantis Fighter" }],
       },
     ],
@@ -86,13 +86,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Rebel Controlled Sector",
       "Rebel Stronghold",
     ],
-    body: "You arrive to find yourself extremely close to a star. You receive a message from a pirate ship, \"I'm glad you arrived; our ship is damaged and we were getting desperate... I hope you don't mind if we take yours.\" Hostiles detected on board our ship!",
+    body: "Sun: fires break out. 2-4 Human boarders.",
     choices: [
       {
         id: "c:boarders-humans-near-sun:0",
         // Wiki citations:
         // > "2-4 human boarders beam aboard your ship." — [[Boarders: Humans near sun]]
-        label: "2-4 human boarders beam aboard your ship.",
+        label: "2-4 Human boarders.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -109,13 +109,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:boarders-mantis",
     aliases: ["Boarders: Mantis"],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    body: "A derelict and still smoking Mantis vessel floats by. The battle must have been recent; its surviving crew beam aboard. Prepare for a fight!",
+    body: "2-4 Mantis boarders.",
     choices: [
       {
         id: "c:boarders-mantis:0",
         // Wiki citations:
         // > "2-4 mantis boarders beam aboard your ship." — [[Boarders: Mantis]]
-        label: "2-4 mantis boarders beam aboard your ship.",
+        label: "2-4 Mantis boarders.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -132,7 +132,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:escape-pod",
     aliases: ["Escape pod"],
     sectors: ["Mantis Controlled Sector", "Mantis Homeworlds"],
-    body: "You detect and retrieve an escape pod floating nearby. You consider returning it to space when you learn it's Mantis.",
+    body: "Escape pod.",
     choices: [
       {
         id: "c:escape-pod:0",
@@ -140,7 +140,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "Jettison the pod." — [[Escape pod]]
         // > "You send the pod back out the airlock. You're not stupid." — [[Escape pod]]
         // > "Nothing happens." — [[Escape pod]]
-        label: "Jettison the pod.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
       {
@@ -152,8 +152,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "The lost crewmember is revived." — [[Escape pod]]
         // > "The Mantis inside considers you a messenger from the god of mercy and demands to join your crew." — [[Escape pod]]
         // > "A man bursts out of the life-pod screaming and claws his way into a corner. A rare survivor of Mantis captivity. Once calm, the survivor offers to join your crew for a time." — [[Escape pod]]
-        label: "Pry it open.",
-        fx: [{ k: "note", text: "A Mantis boarder and a lost crewmember, or nothing." }],
+        label:
+          "1 in 3: 1 Mantis boarder, lose 1 crew. 1 in 3: gain 1 Mantis crew. 1 in 3: gain 1 Human crew.",
+        fx: [
+          {
+            k: "note",
+            text: "1 in 3: 1 Mantis boarder, lose 1 crew. 1 in 3: gain 1 Mantis crew. 1 in 3: gain 1 Human crew.",
+          },
+        ],
       },
     ],
   },

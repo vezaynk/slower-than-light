@@ -3,11 +3,11 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const ID = "c:refueling-platform:1";
-const LABEL = "Ignore the refueling platform.";
-const BAIT =
-  "As you prepare to leave the system, a Pirate ship suddenly appears on scanners - it looks like it was attempting to use the platform as bait!";
+const LABEL = "Fight the pirate ship.";
+const BAIT = eventText("event_FUELING_STATION_IGNORE_1_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

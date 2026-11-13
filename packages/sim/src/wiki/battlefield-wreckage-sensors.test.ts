@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerEvent } from "./filler-events.ts";
 
-const LEAD =
-  "You scan the battlefield, and with the aid of your Sensors, you are able to salvage a moderate amount of material from the wreckage. You prepare to jump.";
+const LEAD = eventText("event_WRECKAGE_EVENT_c1_text");
 const SCAN = "c:battlefield-wreckage:2";
 
 function open(g: Game) {
@@ -35,7 +35,7 @@ describe("Battlefield wreckage Improved Sensors", () => {
     const parts = g.player.parts;
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === SCAN && c.label === "Use your Sensors to scan the wreckage.",
+        (c) => c.id === SCAN && c.label === "Gain medium resources and some scrap.",
       ),
     );
     // INFERRED: the refusal line. The page names Sensors level 2 and prints no sentence.

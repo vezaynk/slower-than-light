@@ -5,9 +5,10 @@ import { choiceDisabled, choose, commitJump, createGame, step } from "../sim.ts"
 import type { Beacon, Game, Kit, KitId } from "../types.ts";
 import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
-import { QUEST_ADDED } from "./quests.ts";
+import { questAdded } from "./quests.ts";
 import { PART_B } from "./quests-b.ts";
 import { placeIn } from "../fixtures.ts";
+import { eventText } from "../event-text.ts";
 
 function here(g: Game): Beacon {
   return g.beacons.find((b) => b.id === g.here)!;
@@ -123,17 +124,17 @@ describe("Asteroid belt distress", () => {
       const fuel = g.fuel;
       choose(g, "q:asteroid:shield");
       const body = g.event!.body;
-      if (body.startsWith("You succeed")) {
+      if (body.startsWith(eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST1_1_text"))) {
         assert.equal(g.player.hull, hull - 1);
         assert.ok(g.fuel >= fuel + 3 && g.fuel <= fuel + 6);
         assert.ok(g.player.rooms.some((r) => r.fire > 0));
         return "saved";
       }
-      if (body.startsWith("Despite")) {
+      if (body.startsWith(eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST1_3_text"))) {
         assert.equal(g.player.hull, hull - 4);
         return "lost";
       }
-      assert.ok(body.startsWith("You try your best"));
+      assert.ok(body.startsWith(eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST1_2_text")));
       return "rock";
     });
     reach(["double", "none"], (seed) => {
@@ -160,7 +161,9 @@ describe("Asteroid belt distress", () => {
       choose(g, "q:asteroid:defense");
       assert.equal(g.player.parts, 1);
       if (questBeacons(g, "fed-base").length) return "marker";
-      assert.ok(g.event!.body.startsWith("Your drone succeeds"));
+      assert.ok(
+        g.event!.body.startsWith(eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST2_1_text")),
+      );
       return "damage";
     });
     const g = atCited(createGame(3), "Civilian Sector", "Asteroid belt distress");
@@ -178,9 +181,9 @@ describe("Asteroid belt distress", () => {
       assert.deepEqual(ids(g2), ["q:asteroid:home"]);
       choose(g2, "q:asteroid:home");
       const body = g2.event!.body;
-      return body.includes("substantial reward")
+      return body.includes(eventText("event_FAMILY_RETURN_1_text"))
         ? "high"
-        : body.includes("modest means")
+        : body.includes(eventText("event_FAMILY_RETURN_2_text"))
           ? "medium"
           : "repair";
     });
@@ -192,7 +195,8 @@ describe("Asteroid belt distress", () => {
       const g = atCited(createGame(seed), "Civilian Sector", "Asteroid belt distress");
       choose(g, "c:asteroid-belt-distress:0");
       choose(g, "q:asteroid:shield");
-      if (!g.event!.body.startsWith("You succeed")) continue;
+      if (!g.event!.body.startsWith(eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST1_1_text")))
+        continue;
       const n = Math.max(...g.player.rooms.map((r) => r.fire));
       assert.ok(n === 1 || n === 2, String(n));
       fires.add(n);
@@ -220,20 +224,16 @@ describe("Capture the ship", () => {
     choose(g, "c:capture-the-ship:2");
     assert.deepEqual(ids(g), ["q:capture:agree", "q:capture:decline"]);
     choose(g, "q:capture:agree");
-    assert.ok(g.event!.body.includes(QUEST_ADDED));
+    assert.ok(g.event!.body.includes(questAdded()));
     choose(g, "ack");
-    assert.ok(arrive(g, "capture-ship").includes("WITHOUT destroying the ship"));
+    assert.ok(arrive(g, "capture-ship").includes("do not destroy the ship"));
     // Capture the ship, Quest Marker: "Fight a Pirate ship."
     assert.equal(
       g.event!.choices.find((c) => c.id === "q:capture:fight")?.label,
-      "Fight a Pirate ship.",
+      "Fight the pirate ship.",
     );
+    // The marker fight has no archive lead-in, so it starts at once.
     choose(g, "q:capture:fight");
-    assert.equal(g.phase, "event");
-    assert.equal(g.event?.choices[0]?.id, "ship-resume");
-    assert.equal(g.event?.body, "The pirate ship moves to engage.");
-    assert.equal(g.log.includes("The pirate ship moves to engage."), false);
-    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "quest-capture-ship");
     assert.equal(g.enemy!.pirate, true);
@@ -260,7 +260,7 @@ describe("Capture the ship", () => {
     const scrap = a.scrap;
     winByCrew(a);
     assert.equal(a.phase, "event");
-    assert.ok(a.event!.body.startsWith("You secure the ship"));
+    assert.ok(a.event!.body.startsWith(eventText("ship_PIRATE_QUEST_CREWDEAD_deadCrew_text")));
     assert.ok(a.scrap > scrap);
     // Rewards, "Weapon": "A random weapon & T scrap."
     assert.match(a.event!.body, /mounted\.|stowed in cargo\./);
@@ -290,8 +290,7 @@ describe("Encrypted federation signal", () => {
       choose(g, "c:encrypted-federation-signal:0");
       const trap = g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
       if (trap) {
-        const lead =
-          'As you approach the signal you receive a message on a Rebel channel, "I knew we\'d catch some Federation fish with this signal. Prepare to be boarded, scum!"';
+        const lead = eventText("event_FEDERATION_PLANET_SIGNAL_LIST_5_text");
         assert.equal(g.event?.body, lead);
         assert.equal(g.log.includes(lead), false);
         choose(g, "ship-resume");
@@ -312,40 +311,38 @@ describe("Encrypted federation signal", () => {
         choose(g, "ack");
         const body = arrive(g, "fed-assist");
         const id = g.event!.choices[0]!.id;
-        let fightEvent: string;
-        let asb: boolean;
-        let lead: string;
-        if (body.includes("bombarded by an automated drone")) {
-          assert.ok(id === "q:fed-base:assist" || id === "q:fed-base:assist-repair");
-          fightEvent =
-            id === "q:fed-base:assist-repair" ? "quest-fed-assist-repair" : "quest-fed-assist";
-          asb = false;
-          lead = "The automated drone turns on you.";
-        } else if (body.includes("using their Anti-Ship Battery")) {
-          assert.equal(id, "q:fed-base:assist-asb");
-          fightEvent = "quest-fed-assist-asb";
-          asb = true;
-          lead = "You move in to assist.";
-        } else {
-          assert.ok(body.includes("taking down the wing leader"));
-          assert.equal(id, "q:fed-base:assist-wing");
-          fightEvent = "quest-fed-assist-wing";
-          asb = true;
-          lead = "You swoop in to assist, taking down the wing leader.";
-        }
+        // The arrival card is classified by its fight id: two arrivals share one line.
+        const fights: Record<string, [string, boolean, string]> = {
+          "q:fed-base:assist": ["quest-fed-assist", false, "event_FEDERATION_BASE_ASSIST_1_text"],
+          "q:fed-base:assist-repair": [
+            "quest-fed-assist-repair",
+            false,
+            "event_FEDERATION_BASE_ASSIST_1_text",
+          ],
+          "q:fed-base:assist-asb": [
+            "quest-fed-assist-asb",
+            true,
+            "event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text",
+          ],
+          "q:fed-base:assist-wing": [
+            "quest-fed-assist-wing",
+            true,
+            "event_OVERRIDE_FEDERATION_BASE_ASSIST_3_text",
+          ],
+        };
+        const row = fights[id];
+        assert.ok(row, id);
+        const [fightEvent, asb, text] = row;
+        assert.ok(body.startsWith(eventText(text)), body);
+        // The contact fight has no archive lead-in, so it starts at once.
         choose(g, id);
-        assert.equal(g.phase, "event");
-        assert.equal(g.event?.choices[0]?.id, "ship-resume");
-        assert.equal(g.event?.body, lead);
-        assert.equal(g.log.includes(lead), false);
-        choose(g, "ship-resume");
         assert.equal(g.fightEvent, fightEvent);
         assert.equal(g.asb, asb);
         assert.equal(g.phase, "combat");
         return "assist";
       }
-      if (body.startsWith("You find a small cache")) return "cache";
-      assert.ok(body.includes("bloodstains"));
+      if (body.startsWith(eventText("event_FEDERATION_PLANET_SIGNAL_LIST_4_text"))) return "cache";
+      assert.ok(body.includes(eventText("event_FEDERATION_PLANET_SIGNAL_LIST_3_text")));
       return "empty";
     });
   });
@@ -365,10 +362,8 @@ describe("Engi ship attacked by Mantis ship", () => {
         "Engi ship attacked by Mantis ship",
       );
       choose(g, "c:engi-ship-attacked-by-mantis-ship:0");
-      const mantisLead =
-        "You approach to find a Mantis ship assaulting a small Engi space station. You prepare for a fight!";
-      const engiLead =
-        'You receive another message from the ship, this time with a Mantis at the comm-log. "Foolish meatsacks," he yells. Sensors indicate the ship is moving in to attack and boarders teleport from the station.';
+      const mantisLead = eventText("event_ENGI_STATION_DISTRESS_LIST_2_text");
+      const engiLead = eventText("event_ENGI_STATION_DISTRESS_LIST_1_text");
       const lead = g.enemy!.faction === "engi" ? engiLead : mantisLead;
       assert.equal(g.phase, "event");
       assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -385,7 +380,7 @@ describe("Engi ship attacked by Mantis ship", () => {
       }
       assert.equal(g.enemy!.faction, "mantis");
       winByHull(g);
-      assert.ok(g.event!.body.startsWith("The Mantis ship breaks apart."));
+      assert.ok(g.event!.body.startsWith(eventText("ship_MANTIS_ENGI_STATION_destroyed_text")));
       assert.deepEqual(ids(g), ["q:engi-station:contact"]);
       return "mantis";
     });
@@ -403,7 +398,7 @@ describe("Engi ship attacked by Mantis ship", () => {
       );
       choose(g, "q:engi-station:contact");
       const body = g.event!.body;
-      if (body.includes("Request suitable reward")) {
+      if (body.includes(eventText("event_SAVE_ENGI_STATION_3_text"))) {
         assert.deepEqual(ids(g).slice(0, 3), [
           "q:engi-station:fuel",
           "q:engi-station:weapon",
@@ -411,9 +406,9 @@ describe("Engi ship attacked by Mantis ship", () => {
         ]);
         return "request";
       }
-      return body.includes("welcome him aboard")
+      return body.includes(eventText("event_SAVE_ENGI_STATION_4_text"))
         ? "crew"
-        : body.includes("some fuel")
+        : body.includes(eventText("event_SAVE_ENGI_STATION_2_text"))
           ? "fuel"
           : "empty";
     });
@@ -457,7 +452,7 @@ describe("Merchant's request", () => {
       assert.equal(g.player.parts, parts + 5);
       choose(g, "ack");
       const body = arrive(g, "merchant-delivery");
-      if (body.includes("no response to your hails")) {
+      if (body.includes(eventText("event_MERCHANT_DELIVER_LIST_1_text"))) {
         assert.deepEqual(ids(g), ["q:research:dock", "q:research:leave", "q:research:drone"]);
         assert.equal(choiceDisabled(g, "q:research:drone"), "Needs an Anti-Personnel Drone");
         g.player.kits.drones = kit("drones", "BATTLE");
@@ -496,17 +491,13 @@ describe("Merchant's request", () => {
           g.event!.choices.find((c) => c.id === "q:merchant:pirate")?.label,
           "Fight a Pirate ship.",
         );
+        // The investigation fight has no archive lead-in, so it starts at once.
         choose(g, "q:merchant:pirate");
-        assert.equal(g.phase, "event");
-        assert.equal(g.event?.choices[0]?.id, "ship-resume");
-        assert.equal(g.event?.body, "The pirate turns on you.");
-        assert.equal(g.log.includes("The pirate turns on you."), false);
-        choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
         assert.equal(g.enemySurrender!.chance, 0);
         assert.equal(g.fightEvent, "quest-merchant-pirate");
         winByHull(g);
-        assert.ok(g.event!.body.startsWith("You contact the delivery ship"));
+        assert.ok(g.event!.body.startsWith(eventText("ship_JELLY_PIRATE_MERCHANT_destroyed_text")));
         return "pirate";
       }
       if (ids(g)[0] === "q:merchant:cargo-deliver") {
@@ -519,7 +510,7 @@ describe("Merchant's request", () => {
         }
         const scrap = g.scrap;
         const paid = arrive(g, "merchant-station");
-        assert.ok(paid.includes("days late"));
+        assert.ok(paid.includes(eventText("event_MERCHANT_INVESTIGATE_DELIVER_text")));
         assert.ok(g.scrap > scrap);
         // Rewards, "Drone": "A random drone schematic & T scrap."
         assert.match(paid, /schematic (fitted|stowed in cargo)\./);
@@ -569,9 +560,12 @@ describe("Nebula wreckage", () => {
       choose(g, "c:nebula-wreckage:0");
       choose(g, "q:nebula:assist");
       choose(g, "q:nebula:comfort");
-      assert.ok(g.event!.body.includes("ABADOTH"));
+      assert.ok(
+        questBeacons(g, "abadoth").length === 1 || (g.questsNext ?? []).includes("abadoth"),
+        g.event!.body,
+      );
       choose(g, "ack");
-      assert.ok(arrive(g, "abadoth").includes("dead crewman"));
+      assert.ok(arrive(g, "abadoth").includes(eventText("event_SECRET_WORD_ABADOTH_text")));
       assert.deepEqual(ids(g), ["q:abadoth:slug", "q:abadoth:scan"]);
       return g;
     };
@@ -585,8 +579,7 @@ describe("Nebula wreckage", () => {
     const b = setup(4);
     choose(b, "q:abadoth:slug");
     choose(b, "q:abadoth:anodyne");
-    const zoltanLead =
-      "There is a moment of silence, and suddenly the Zoltan ship cloaks - must have been the wrong word to use... now you've got a fight on your hands!";
+    const zoltanLead = eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c1_text");
     assert.equal(b.phase, "event");
     assert.equal(b.event?.choices[0]?.id, "ship-resume");
     assert.equal(b.event?.body, zoltanLead);

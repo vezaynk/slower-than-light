@@ -15,9 +15,8 @@ export const MANTIS_HULLS: HullSpec[] = [
     cruiser: "Mantis Cruiser",
     layout: "A",
     name: "The Gila Monster",
-    quote: "This warship is designed to enhance its crew for close combat missions.",
     unlock:
-      "See Legendary Thief KazaaakplethKilik random event.\nAlternatively, defeat The Rebel Flagship with the Zoltan Cruiser.",
+      "Beat the flagship with the Zoltan Cruiser.\nOr win the unlock from a Mantis sector event.",
     weaponSlots: 3,
     droneSlots: 2,
     health: 30,
@@ -59,8 +58,7 @@ export const MANTIS_HULLS: HullSpec[] = [
     cruiser: "Mantis Cruiser",
     layout: "B",
     name: "The Basilisk",
-    quote: "This warship encourages sending massive boarding parties and keeping strong defense.",
-    unlock: "Earning two of the three Mantis Cruiser achievements will unlock Layout B.",
+    unlock: "Earn 2 of the 3 Mantis Cruiser achievements.",
     weaponSlots: 3,
     droneSlots: 2,
     health: 30,
@@ -108,10 +106,7 @@ export const MANTIS_HULLS: HullSpec[] = [
     cruiser: "Mantis Cruiser",
     layout: "C",
     name: "The Theseus",
-    quote:
-      "With a large teleporter and weapons designed to impede enemy crew, this ship is deadly in the hands of a capable boarding party.",
-    unlock:
-      "Reaching Sector 8 with the Mantis Cruiser B and Advanced Edition Content enabled will unlock layout C.",
+    unlock: "Reach sector 8 with the Mantis Cruiser layout B.",
     weaponSlots: 3,
     droneSlots: 2,
     health: 30,

@@ -23,6 +23,7 @@ import {
   rollSurrenderOffer,
   surrenderOfferView,
 } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 function run(g: Game, seconds: number) {
   for (let i = 0; i < Math.round(seconds * 30) && g.phase === "combat"; i++) step(g, 1 / 30);
@@ -260,8 +261,8 @@ describe("surrender in a fight", () => {
     choose(g, REFUSE_ID);
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
-    assert.equal(g.event?.body, "Offer refused. They brace for more.");
-    assert.equal(g.log.includes("Offer refused. They brace for more."), false);
+    assert.equal(g.event?.body, "Offer refused. The fight continues.");
+    assert.equal(g.log.includes("Offer refused. The fight continues."), false);
     assert.ok(g.enemy);
     choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
@@ -453,7 +454,7 @@ describe("scripted surrenders (event pages)", () => {
     const crew = before.length;
     const plain = before.filter((c) => c.kin === "human").length;
     offer(g);
-    assert.equal(g.event?.choices[0].label, "Accept their surrender.");
+    assert.equal(g.event?.choices[0].label, "Gain 1 Human crew. End the fight.");
     assert.equal(surrenderOfferView(g)?.crew, "Human");
     const kills = g.kills;
     choose(g, ACCEPT_ID);
@@ -464,11 +465,7 @@ describe("scripted surrenders (event pages)", () => {
     assert.equal(mine.length, crew + 1);
     assert.equal(mine.filter((c) => c.kin === "human").length, plain + 1);
     assert.equal(mine[mine.length - 1].kin, "human");
-    assert.ok(
-      g.log.includes(
-        "They send one of their prisoners over to your ship. They're a bit shaken up and you suspect that they were once a rebel, but they seem to be very glad to be free.",
-      ),
-    );
+    assert.ok(g.log.includes(eventText("ship_CRYSTAL_HUNTER_surrender_c1_text")));
     assert.ok(g.log.includes("You receive a Human crewmember and the fight continues."));
     g.enemy!.hull -= 1;
     run(g, 0.5);
@@ -479,7 +476,7 @@ describe("scripted surrenders (event pages)", () => {
     const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-human-crew");
     offer(g);
     const crew = g.crew.filter((c) => c.side === "player").length;
-    const line = "Who knows how many humans will be saved if you kill them now.";
+    const line = eventText("ship_CRYSTAL_HUNTER_surrender_c2_text");
     choose(g, REFUSE_ID);
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -522,17 +519,13 @@ describe("scripted surrenders (event pages)", () => {
     assert.equal(g.player.hull, g.player.hullMax - 4);
     assert.equal(g.fuel, fuel + o.fuel);
     const note = g.reward?.note ?? "";
-    assert.ok(
-      note.includes(
-        "They accept your explanation and allow you to approach the fleet. It appears they are miners and colonists from a fringe settlement who are fleeing to more protected space after hearing reports of pirate and rebel attacks.\n\nThey apologize for their hasty response to your presence and spend some time refueling and repairing both ships.",
-      ),
-    );
+    assert.ok(note.includes("Gain fuel. Repair 8 hull."));
   });
 
   it("hull repairs: refusing shows their line on the card and the fight continues", () => {
     const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-hull-repairs");
     offer(g);
-    const line = "They wanted to pick a fight with you so that's what they'll get.";
+    const line = eventText("ship_CRYSTAL_CONVOY_surrender_c2_text");
     choose(g, REFUSE_ID);
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -554,7 +547,7 @@ describe("scripted surrenders (event pages)", () => {
       assert.equal([o.fuel, o.missiles, o.parts].filter((n) => n > 0).length, 2);
       if (o.fuel) assert.ok(o.fuel >= 3 && o.fuel <= 6);
       if (o.missiles) assert.ok(o.missiles >= 4 && o.missiles <= 8);
-      assert.equal(g.event?.choices[0].label, "Accept the more generous bribe and leave.");
+      assert.equal(g.event?.choices[0].label, "Gain high resources. End the fight.");
     }
   });
 
@@ -588,11 +581,7 @@ describe("scripted surrenders (event pages)", () => {
     choose(g, ACCEPT_ID);
     assert.equal(g.phase, "reward");
     const note = g.reward?.note ?? "";
-    assert.ok(
-      note.includes(
-        "This odd beam weapon does no damage to ships but instead greatly hurts the crew! Diabolical!",
-      ),
-    );
+    assert.ok(note.includes("Gain a weapon."));
     assert.ok(g.player.weapons.some((w) => w.defId === "BEAM_BIO"));
   });
 

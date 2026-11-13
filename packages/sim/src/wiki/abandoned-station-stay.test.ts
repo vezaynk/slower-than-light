@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
@@ -41,10 +42,7 @@ describe("Abandoned station", () => {
     const fuel = g.fuel;
     const crew = g.crew.filter((c) => c.side === "player").length;
     choose(g, "c:abandoned-station:1");
-    assert.equal(
-      g.event?.body,
-      "You decide it's not worth the time to examine.\n\nNothing happens.",
-    );
+    assert.equal(g.event?.body, eventText("event_EMPTY_STATION2_c2_text"));
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.fuel, fuel);

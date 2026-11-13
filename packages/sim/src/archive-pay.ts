@@ -165,7 +165,9 @@ export function showArchivePage(
   delete g.eventStorm;
   delete g.eventNebula;
   syncIonStorm(g);
-  applyGrants(g, page.grants);
+  const toldGrants = lines.length;
+  applyGrants(g, page.grants, lines);
+  if (notes) notes.push(...lines.slice(toldGrants));
   if (page.reward) lines.push(...payAutoReward(g, page.reward));
   if (page.ship?.hostile && page.ship.load) {
     const told = g.event?.body ?? "";
@@ -309,7 +311,7 @@ export function applyChoiceArchive(g: Game, id: string, before: ArchiveSnap): vo
   const enemyPresent = g.enemy != null;
   if (enemyPresent) applyArchiveAlters(g, choice.alters, "enemy", lines);
   if (choice.ship && !choice.ship.hostile && !choice.ship.load && g.enemy) closeFight(g);
-  applyGrants(g, choice.grants);
+  applyGrants(g, choice.grants, lines);
   const rewarded = choice.reward ? payAutoReward(g, choice.reward) : [];
   const fought = g.enemy != null || g.phase === "combat";
   if (!fought && choice.ship?.hostile && choice.ship.load) {
@@ -751,8 +753,8 @@ function findNested(choices: EventChoice[], id: string): EventChoice | undefined
   return undefined;
 }
 
-function applyGrants(g: Game, grants: ArchiveGrant[] | undefined): void {
-  for (const grant of grants ?? []) giveGrant(g, grant);
+function applyGrants(g: Game, grants: ArchiveGrant[] | undefined, lines: string[]): void {
+  for (const note of (grants ?? []).flatMap((grant) => giveGrant(g, grant))) lines.push(note);
 }
 
 /**
@@ -770,34 +772,41 @@ function trainGranted(g: Game, skills: ArchiveGrant["skills"]): void {
   c.skills = trained;
 }
 
-function giveGrant(g: Game, grant: ArchiveGrant): void {
+function giveGrant(g: Game, grant: ArchiveGrant): string[] {
   const count = grant.amount ?? 1;
-  if (count <= 0) return;
+  if (count <= 0) return [];
   if (grant.kind === "crew") {
-    if (boardDroneCrew(g, grant.id, count) > 0) return;
+    if (boardDroneCrew(g, grant.id, count) > 0) return [];
     const race =
       grant.id === RANDOM_CREW
         ? randomRace(g)
         : (crewName(grant.id) ?? (grant.name ? "Human" : undefined));
     if (race) {
+      const notes: string[] = [];
       for (let i = 0; i < count; i++) {
-        if (joinCrew(g, race, grant.name)) trainGranted(g, grant.skills);
+        if (!joinCrew(g, race, grant.name)) {
+          notes.push("There is no room aboard for the new crewmember.");
+          continue;
+        }
+        trainGranted(g, grant.skills);
+        notes.push(`A ${race} crewmember joins you.`);
       }
-      return;
+      return notes;
     }
     warnPack(`A grant names "${grant.id}", which is not a crew race; it is skipped.`);
-    return;
+    return [];
   }
   const id = resolvedGrant(g, grant.kind, grant.id);
   if (!id) {
     warnPack(`A grant names "${grant.id}", which is not a ${grant.kind}; it is skipped.`);
-    return;
+    return [];
   }
   for (let i = 0; i < count; i++) {
     if (grant.kind === "weapon") receiveWeapon(g, id);
     else if (grant.kind === "drone") receiveDrone(g, id);
     else receiveAugment(g, id);
   }
+  return [];
 }
 
 /** A list grant draws one loaded blueprint. Advanced Edition uses the override list when it exists. */

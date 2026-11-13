@@ -5,9 +5,9 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "As a naturally warlike species with few inter-galactic diplomatic ties, the Rock people have garnered quite a reputation as fearsome pirates. You stumble across one of their ships and they promptly live up to type.",
-  "A Rock ship flies past your windows and you recognize outcast decorations on the hull. These must be pirates!",
-  "A motley collection of Rock ships are stationed around this beacon - they look to have resorted to a pirate's life. Defensive maneuvers!",
+  "Hostile Rock pirate ship.",
+  "Hostile Rock pirate ship.",
+  "Hostile Rock pirate ship.",
 ];
 
 function open(g: Game) {
@@ -30,7 +30,7 @@ describe("Rock pirates fight", () => {
     // > "A motley collection of Rock ships are stationed around this beacon - they look to have resorted to a pirate's life. Defensive maneuvers!" — [[Rock pirates fight]]
     // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 40 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -38,7 +38,7 @@ describe("Rock pirates fight", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:rock-pirates-fight:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);

@@ -5,14 +5,12 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { heldSchematics } from "../rules/make-room.ts";
 import { scrapBand } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
-const CROP =
-  "The pirate watches as you start to light the meager crops on fire. In a few moments the settlement surrenders, offering tribute to leave them alone. The pirate seems impressed.";
-const DWELLING =
-  "The pirate watches as you teleport an incendiary explosive into their settlement. As the settlers scramble to put out the fires, their rudimentary planetary defenses power down. Forcing their surrender was almost laughably easy, but the pirate seems impressed with your tactics and agrees to share the settlement's 'tribute'.";
-const SCHEMATIC = "You receive a drone schematic with high scrap.";
+const CROP = eventText("event_PIRATE_STATION_CROPS_c3_text");
+const DWELLING = eventText("event_PIRATE_STATION_CROPS_c4_text");
 
-const BODY = `Scans show a remote settlement being blockaded by a pirate ship. The ship hastily messages you, "Stay out of this, or you'll be next!...Concentrate fire on..."`;
+const BODY = "Pirate ship blockading a settlement.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -54,11 +52,11 @@ describe("Remote settlement", () => {
     );
     assert.equal(
       g.event?.choices.find((c) => c.id === "c:remote-settlement:2")?.label,
-      "Show the pirate how to intimidate settlers: burn their crops!",
+      "Gain a drone schematic and high scrap.",
     );
     assert.equal(
       g.event?.choices.find((c) => c.id === "c:remote-settlement:3")?.label,
-      "Show the pirate how to intimidate settlers: start fires in their crude dwellings.",
+      "Lose 1 missile. Gain a drone schematic and high scrap.",
     );
   });
 
@@ -70,7 +68,7 @@ describe("Remote settlement", () => {
     open(g);
     const crew = g.crew.filter((c) => c.side === "player").length;
     choose(g, "c:remote-settlement:0");
-    const lead = '"You asked for it!" They pull away from the planet and move in to engage.';
+    const lead = eventText("event_PIRATE_STATION_CROPS_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);
@@ -96,7 +94,7 @@ describe("Remote settlement", () => {
     choose(g, "c:remote-settlement:1");
     assert.equal(
       g.event?.body,
-      "It's just not possible to save every civilian affected by this war. You prepare to jump.\n\nNothing happens.",
+      [eventText("event_PIRATE_STATION_CROPS_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
@@ -143,7 +141,7 @@ describe("Remote settlement", () => {
     assert.equal(choiceDisabled(g, "c:remote-settlement:2"), null);
     choose(g, "c:remote-settlement:2");
     // Rewards, "Drone": "A random drone schematic & T scrap."
-    assert.ok(g.event?.body.startsWith(`${CROP}\n\n${SCHEMATIC} `));
+    assert.ok(g.event?.body.startsWith(`${CROP}\n\n`));
     assert.match(g.event?.body ?? "", / schematic (fitted|stowed in cargo)\./);
     assert.match(g.event?.body ?? "", /High scrap: \d+\./);
     assert.equal(
@@ -192,7 +190,7 @@ describe("Remote settlement", () => {
     assert.equal(choiceDisabled(g, "c:remote-settlement:3"), null);
     choose(g, "c:remote-settlement:3");
     // Rewards, "Drone": "A random drone schematic & T scrap."
-    assert.ok(g.event?.body.startsWith(`${DWELLING}\n\n${SCHEMATIC} `));
+    assert.ok(g.event?.body.startsWith(`${DWELLING}\n\n`));
     assert.match(g.event?.body ?? "", / schematic (fitted|stowed in cargo)\./);
     assert.match(g.event?.body ?? "", /High scrap: \d+\./);
     assert.equal(
@@ -204,7 +202,7 @@ describe("Remote settlement", () => {
       false,
     );
     assert.equal(heldSchematics(g).length, schematics + 1);
-    assert.ok(g.event?.body.includes("'tribute'"));
+    assert.ok(g.event?.body.includes(eventText("event_PIRATE_STATION_CROPS_c4_text")));
     assert.equal(g.missiles, 0);
     assert.equal(g.phase, "event");
     assert.equal(g.enemy, null);

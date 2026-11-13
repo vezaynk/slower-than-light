@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choose, createGame, weaponSlotCap } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -36,7 +37,7 @@ describe("Zoltan Great Eye", () => {
     const crew = players(g).length;
     open(g);
     fillerChoose(g, "c:zoltan-great-eye:1");
-    assert.match(g.event?.body ?? "", /save the Federation/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_NEBULA_ZOLTAN_EYE_c2_text")));
     assert.match(g.event?.body ?? "", /Nothing happens/);
     assert.equal(g.scrap, 10);
     assert.equal(players(g).length, crew);
@@ -68,18 +69,21 @@ describe("Zoltan Great Eye", () => {
         g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
       if (fighting) {
         fight = true;
-        assert.match(body, /monolith speaks/);
-        assert.equal(/monolith speaks/.test(g.log.join(" ")), false);
+        assert.ok(body.includes(eventText("event_NEBULA_ZOLTAN_EYE_LIST_2_text")));
+        assert.equal(
+          g.log.join(" ").includes(eventText("event_NEBULA_ZOLTAN_EYE_LIST_2_text")),
+          false,
+        );
         choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
         assert.equal(g.scrap, 10);
         assert.equal(players(g).length, crew);
-      } else if (/kaleidoscope/.test(body)) {
+      } else if (body.includes(eventText("event_NEBULA_ZOLTAN_EYE_LIST_4_text"))) {
         lose = true;
         assert.equal(players(g).length, crew - 1);
-        assert.match(body, /is lost/);
+        assert.match(body, /Crew lost: /);
         assert.equal(g.scrap, 10);
-      } else if (/enough scrap/.test(body)) {
+      } else if (body.includes(eventText("event_NEBULA_ZOLTAN_EYE_LIST_3_text"))) {
         scrap = true;
         const got = reward(body);
         assert.ok(got.scrap >= 19 && got.scrap <= 23, body);
@@ -121,10 +125,13 @@ describe("Zoltan Great Eye", () => {
       const crew = players(g).length;
       open(g);
       fillerChoose(g, "c:zoltan-great-eye:0");
-      if (!/kaleidoscope/.test(g.event?.body ?? "")) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_NEBULA_ZOLTAN_EYE_LIST_4_text")))
+        continue;
       seen = true;
       assert.equal(players(g).length, crew - 1);
-      assert.match(g.event?.body ?? "", /lies dormant/);
+      assert.ok(
+        (g.event?.body ?? "").includes(eventText("event_NEBULA_ZOLTAN_EYE_LIST_4_c0_clone")),
+      );
       assert.equal(/revived/.test(g.event?.body ?? ""), false);
     }
     assert.equal(seen, true);
@@ -147,7 +154,8 @@ describe("Zoltan Great Eye", () => {
       const guns = g.player.weapons.length;
       open(g);
       fillerChoose(g, "c:zoltan-great-eye:0");
-      if (!/medical equipment/.test(g.event?.body ?? "")) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_NEBULA_ZOLTAN_EYE_LIST_1_text")))
+        continue;
       seen = true;
       assert.equal(g.player.weapons.length, guns);
       assert.equal(

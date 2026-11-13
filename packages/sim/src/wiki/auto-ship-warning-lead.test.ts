@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -19,8 +20,7 @@ describe("Auto-ship warning lead-in", () => {
   it("shows the printed FTL sentence on the card and still runs on the 40 second pursuit", () => {
     const g = createGame(1);
     open(g);
-    const lead =
-      "The ship starts to power up its FTL Drive. If it gets away, it will no doubt warn the fleet of your position!";
+    const lead = eventText("ship_REBEL_AUTO_WARNING_escape_text");
     choose(g, "c:auto-ship-warning:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

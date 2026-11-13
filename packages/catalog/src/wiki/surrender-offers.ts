@@ -21,11 +21,11 @@ const CRYSTAL_FIGHT_HAILS = [
   // > "They appear to be transmitting the universal signals for surrender. Will you let them go?" — [[Crystal fight#The ship surrenders]]
   // > "They message you, \"I see now there was a misunderstanding and there is no need for more bloodshed. Will you forgive our lack of discretion?\"" — [[Crystal fight#The ship surrenders]]
   // > "\"We cannot beat you, we surrender. Surely there is mercy wherever you come from.\"" — [[Crystal fight#The ship surrenders]]
-  '"We yield, aliens. We have no wish to die fighting you."',
-  '"You have bested us! I will no longer underestimate you Outsiders. Please, let us leave in peace."',
-  "They appear to be transmitting the universal signals for surrender. Will you let them go?",
-  'They message you, "I see now there was a misunderstanding and there is no need for more bloodshed. Will you forgive our lack of discretion?"',
-  '"We cannot beat you, we surrender. Surely there is mercy wherever you come from."',
+  "Surrender offer.",
+  "Surrender offer.",
+  "Surrender offer.",
+  "Surrender offer.",
+  "Surrender offer.",
 ];
 
 /**
@@ -48,8 +48,8 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     reward: { k: "none" },
     hails: CRYSTAL_FIGHT_HAILS,
     hail: CRYSTAL_FIGHT_HAILS[0],
-    accept: "Accept their surrender.",
-    refuse: "Ignore them.",
+    accept: "End the fight.",
+    refuse: "Keep fighting.",
   },
   // "Crystal fight with surrender offer (Human crew)": CRYSTAL_HUNTER, {{SurrenderEscape(alt)|surrenderofferchance*|...|50|30-40}}.
   // "Accept their surrender." -> "You receive a Human crewmember and the fight continues." (ref: "The surrender is
@@ -61,9 +61,9 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     high: 40,
     reward: { k: "crew", race: "Human" },
     continues: true,
-    hail: 'The hunters message you, "We surrender. Take one of these squishy meat sacks that we\'ve captured." He must be referring to the human captives.',
-    accept: "Accept their surrender.",
-    refuse: "Finish them off.",
+    hail: "Surrender offer: 1 Human crew.",
+    accept: "Gain 1 Human crew. End the fight.",
+    refuse: "Keep fighting.",
   },
   // "Crystal fight with surrender offer (hull repairs)": CRYSTAL_CONVOY, "surrenderofferchance100", 30-40.
   // "Stop the fight." -> "You receive low (1-3 fuel) fuel and scrap, and your ship receives 8 repairs."
@@ -74,12 +74,10 @@ export const SCRIPTED_SURRENDERS: Record<string, ScriptedSurrender> = {
     low: 30,
     high: 40,
     reward: { k: "fuel-repairs", repairs: 8 },
-    hail: "Their ship seems severely damaged and they look to be reconsidering the fight. Should you power down your weapons and explain that you mean no threat?",
-    accept: "Stop the fight.",
-    refuse: "Finish them off.",
-    result: `They accept your explanation and allow you to approach the fleet. It appears they are miners and colonists from a fringe settlement who are fleeing to more protected space after hearing reports of pirate and rebel attacks.
-
-They apologize for their hasty response to your presence and spend some time refueling and repairing both ships.`,
+    hail: "Surrender offer: end the fight.",
+    accept: "End the fight. Gain fuel and hull repairs.",
+    refuse: "Keep fighting.",
+    result: "Gain fuel. Repair 8 hull.",
   },
   // "Pirate briber": "(has 70% chance to surrender at 30-40% hull)". "Accept the more generous bribe and leave." ->
   // "You receive high (fuel: 3-6 ; missiles: 4-8 ; drone parts: 1-2) resources with some scrap" (Rewards#Stuff).
@@ -89,9 +87,9 @@ They apologize for their hasty response to your presence and spend some time ref
     low: 30,
     high: 40,
     reward: { k: "stuff", tier: "high" },
-    hail: '"Fine! Our previous offer was not generous enough, let\'s improve it."',
-    accept: "Accept the more generous bribe and leave.",
-    refuse: "Reject the offer and continue your assault.",
+    hail: "Surrender offer: high resources.",
+    accept: "Gain high resources. End the fight.",
+    refuse: "Keep fighting.",
   },
   // "Pirate smuggler", Fight the Pirate ship: "(enemy ship has 50% chance to surrender at 20-40% hull)".
   // "Accept their offer." -> "You receive a random amount of resources with some scrap" (Rewards#Stuff, random tier).
@@ -101,9 +99,9 @@ They apologize for their hasty response to your presence and spend some time ref
     low: 20,
     high: 40,
     reward: { k: "stuff" },
-    hail: 'They hail you, "We realize our ship is no match for yours. If you let us go we can make it worth your while."',
-    accept: "Accept their offer.",
-    refuse: "Ignore their pleas and attack.",
+    hail: "Surrender offer: resources.",
+    accept: "Gain resources. End the fight.",
+    refuse: "Keep fighting.",
   },
   // "Remote settlement", Fight the pirate ship: "(50% chance for surrender offer at 20-40% hull)". "Let them go." ->
   // "You receive medium (fuel: 2-4 ; missiles: 2-4 ; drone parts: 1) resources with some scrap" (Rewards#Stuff).
@@ -113,9 +111,9 @@ They apologize for their hasty response to your presence and spend some time ref
     low: 20,
     high: 40,
     reward: { k: "stuff", tier: "medium" },
-    hail: '"Alright! We give up! We\'re terrible at this pirating thing anyway..."',
-    accept: "Let them go.",
-    refuse: "Piracy cannot be forgiven. Attack!",
+    hail: "Surrender offer: medium resources.",
+    accept: "Gain medium resources. End the fight.",
+    refuse: "Keep fighting.",
   },
   // Template:Slaver Fight (used by "Slaver (hostile)" and "Slaver (friendly)"): "(enemy ship has 80% chance to surrender
   // at 20-40% hull)". "Accept their offer." -> "You receive a crewmember." The race is not named.
@@ -128,9 +126,9 @@ They apologize for their hasty response to your presence and spend some time ref
     low: 20,
     high: 40,
     reward: { k: "crew" },
-    hail: "We surrender! Take one of our slaves as tribute; if you destroy us they'll all die anyway!",
-    accept: "Accept their offer.",
-    refuse: "Surrender is not an option.",
+    hail: "Surrender offer: 1 crew.",
+    accept: "Gain 1 crew. End the fight.",
+    refuse: "Keep fighting.",
   },
   "slaver-friendly": {
     page: "Slaver (friendly)",
@@ -138,9 +136,9 @@ They apologize for their hasty response to your presence and spend some time ref
     low: 20,
     high: 40,
     reward: { k: "crew" },
-    hail: "We surrender! Take one of our slaves as tribute; if you destroy us they'll all die anyway!",
-    accept: "Accept their offer.",
-    refuse: "Surrender is not an option.",
+    hail: "Surrender offer: 1 crew.",
+    accept: "Gain 1 crew. End the fight.",
+    refuse: "Keep fighting.",
   },
   // "Slug Home Nebula surrender": "surrender offer: 100% chance at 30-40% hull". "Let them live." -> "Accept the
   // prototype weapon." -> "You receive Anti-Bio Beam." The italic under that grant is `result` (surrenderChoose appends
@@ -164,14 +162,13 @@ They apologize for their hasty response to your presence and spend some time ref
     low: 30,
     high: 40,
     reward: { k: "weapon", name: "Anti-Bio Beam" },
-    hail: '"You have besssted us! Will you accept what is in our storeesss in exchange for our livess?" "Take thisss newly developed weapon we\'re transporting..."',
-    accept: "Let them live. Accept the prototype weapon.",
-    refuse: "We will not accept surrender!",
-    result:
-      "This odd beam weapon does no damage to ships but instead greatly hurts the crew! Diabolical!",
+    hail: "Surrender offer: a weapon.",
+    accept: "Gain a weapon. End the fight.",
+    refuse: "Keep fighting.",
+    result: "Gain a weapon.",
     extra: {
       id: "s:slug-home-nebula-surrender:info",
-      label: "Let them live. We don't want the weapon, we want information.",
+      label: "Quest beacon added. End the fight.",
     },
   },
   // ---- @agent:surrender (pages wired by cited-events-surrender.ts; their fights start in PAGE_CHOICES below) ----
@@ -185,9 +182,9 @@ They apologize for their hasty response to your presence and spend some time ref
     low: 0,
     high: 50,
     reward: { k: "stuff" },
-    hail: 'The pirates hail you: "Enough! Take what\'s left of the cargo and let us go."',
-    accept: "Accept their surrender.",
-    refuse: "Refuse. Keep firing.",
+    hail: "Surrender offer: resources.",
+    accept: "Gain resources. End the fight.",
+    refuse: "Keep fighting.",
   },
   // "Settlement mercenary work", Accept: SQUAT_PIRATE_MERCENARY "(surrenders at 30-40% hull)"; the Category page:
   // "only the fight with a Pirate ship ... has a guaranteed surrender offer". "Let them live and then return to the
@@ -206,11 +203,10 @@ They apologize for their hasty response to your presence and spend some time ref
     low: 30,
     high: 40,
     reward: { k: "scrap", tier: "medium", unnamed: "weapon" },
-    hail: 'They hail your ship saying, "You win! We\'re not cut out for this!"',
-    accept: "Let them live and then return to the settlement.",
-    refuse: "Forget your promise, they die!",
-    result:
-      "With the pirates dissuaded from their career path, you return to the settlement. \"Thank you, they returned to us before you did. I don't think we'll need this anymore.\"",
+    hail: "Surrender offer: medium scrap and a weapon.",
+    accept: "End the fight. Gain medium scrap and a weapon.",
+    refuse: "Keep fighting.",
+    result: "Gain medium scrap and a weapon.",
   },
   // "The Black Raven", Trivia: "proposes a surrender offer when its hull integrity falls down to 30-40%". The page
   // gives no percent chance; INFERRED 100% (a scripted surrender, listed in Category:Ship surrender Events).
@@ -228,10 +224,10 @@ They apologize for their hasty response to your presence and spend some time ref
     low: 30,
     high: 40,
     reward: { k: "scrap", tier: "high", unnamed: "weapon" },
-    hail: '"I see the rumorsss are true. I yield, we are no match for you. Take this and let us leave in ssshame."',
-    accept: "Accept his surrender.",
-    refuse: "Ignore him and attack.",
-    result: "He transfers over the goods and starts to repair his ship.",
+    hail: "Surrender offer: high scrap and a weapon.",
+    accept: "Gain high scrap and a weapon. End the fight.",
+    refuse: "Keep fighting.",
+    result: "Gain high scrap and a weapon.",
   },
   // "Zoltan ship asks to dock" (old title "Zoltan science ship"), ZOLTAN_SCIENCE_DOCK: "Enemy ship has 50% chance to
   // surrender at 30-40% hull". -> "You receive a Zoltan crewmember and low scrap with resources." Trivia: "there is
@@ -247,8 +243,8 @@ They apologize for their hasty response to your presence and spend some time ref
     high: 40,
     reward: { k: "standard", tier: "low", race: "Zoltan" },
     forced: true,
-    hail: 'The Zoltan captain sends an urgent hail: "Wait, this was all a test! A test that you passed! A diverse crew, working together, surely a sight to warm the heart of any dispassionate observer. Come, I shall join your crew!"',
-    accept: "Welcome the captain aboard.",
+    hail: "Surrender offer: 1 Zoltan crew.",
+    accept: "Gain 1 Zoltan crew and low scrap and resources. End the fight.",
     refuse: "",
   },
   // ---- @agent:quests. Fights at quest-marker beacons (wiki/quests.ts starts them with these slugs) ----
@@ -268,11 +264,10 @@ They apologize for their hasty response to your presence and spend some time ref
     low: 30,
     high: 40,
     reward: { k: "scrap", tier: "high" },
-    hail: "When the pirate ship looks ready to break apart you notice the Slug ship has secured the loot and is preparing to jump away!",
-    accept: "Let the pirate escape and go after the Slugman ship.",
-    refuse: "Continue fighting the pirate.",
-    result:
-      'The pirate\'s too badly damaged to pursue you, and you catch up to the Slugs before they jump. "Ah, of courssse, we would never leave without providing the agreed upon ssspoils." They transfer over a decent chunk of the profits and set off.',
+    hail: "Surrender offer: let the pirate ship go.",
+    accept: "End the fight. Gain high scrap.",
+    refuse: "Keep fighting.",
+    result: "Gain high scrap.",
   },
   // "Engi fleet discussion", First Quest Marker (Real): REBEL_ENGI_UNLOCK_2REAL "surrenders at 50% hull". No percent
   // chance printed: INFERRED 100%. The page prints one answer, "Demand information on the stolen technology." -> "A final
@@ -291,11 +286,10 @@ They apologize for their hasty response to your presence and spend some time ref
     reward: { k: "none" },
     forced: true,
     quest: "engi-final",
-    hail: '"Stop!  This isn\'t worth dying for..."',
-    accept: "Demand information on the stolen technology.",
+    hail: "Surrender offer: quest beacon.",
+    accept: "End the fight. Quest beacon added.",
     refuse: "",
-    result:
-      "\"Of course, that's why you're here. Yes, they passed by here but I had nothing to do with it, I don't know what they were carrying. I'll transmit coordinates. Now just let us go...\" You prepare an FTL message containing the coordinates to send to the Engies and get ready to jump.",
+    result: "Quest beacon added.",
   },
   // "Engi fleet discussion", Second Quest Marker (Fake): REBEL_ENGI_UNLOCK_2FAKE "surrenders at 40% hull" (INFERRED 100%).
   // "Demand information on the stolen technology." opens the page's follow-up: "Let them go." ("The ship turns neutral.")
@@ -313,14 +307,14 @@ They apologize for their hasty response to your presence and spend some time ref
     high: 40,
     reward: { k: "none" },
     forced: true,
-    hail: '"Stop! I don\'t want to die here."',
-    accept: "Demand information on the stolen technology.",
+    hail: "Surrender offer.",
+    accept: "End the fight. More options.",
     refuse: "",
     card: {
-      body: "\"Ah, so that's what you're after. Too bad, you followed the wrong ship. The envoy that passed through here was a fake, to trick fools like you. Now let us go!\"",
+      body: "No quest beacon.",
       choices: [
-        { id: "q:engi-fake:go", label: "Let them go." },
-        { id: "q:engi-fake:attack", label: "Ignore him and attack." },
+        { id: "q:engi-fake:go", label: "End the fight." },
+        { id: "q:engi-fake:attack", label: "Keep fighting." },
       ],
     },
   },
@@ -338,11 +332,10 @@ They apologize for their hasty response to your presence and spend some time ref
     low: 20,
     high: 20,
     reward: { k: "scrap", tier: "high", unnamed: "weapon" },
-    hail: '"Look, you proved your point. We don\'t want to die... Take this and let us go. Please?"',
-    accept: "Let them live.",
-    refuse: "Finish them off.",
-    result:
-      '"Thank you. But do you have any idea how much repairing TWO ships will set us back?..." What an odd Mantis. You prepare to leave.',
+    hail: "Surrender offer: high scrap and a weapon.",
+    accept: "Gain high scrap and a weapon. End the fight.",
+    refuse: "Keep fighting.",
+    result: "Gain high scrap and a weapon.",
   },
 };
 

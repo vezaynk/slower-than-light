@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -21,7 +22,7 @@ describe("Rebel shipyard leave", () => {
     choose(g, "c:rebel-shipyard:1");
     assert.equal(
       g.event?.body,
-      "You feel the mission is the highest priority and it's too risky to stay in such a dangerous location.\n\nNothing happens.",
+      [eventText("event_FLAGSHIP_CONSTRUCTION_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

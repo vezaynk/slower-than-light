@@ -39,18 +39,18 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:engi-cache",
     aliases: ["Engi cache"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
-    body: "You notice an Engi colony hiding on the other side of a nearby moon. It turns out they're excavating an equipment cache from the Federation-Mantis War, and they suggest it might be used to lure the pursuing rebel fleet.",
+    body: "Cache. Use it to delay the fleet, or take it.",
     choices: [
       {
         id: "c:engi-cache:0",
         // Wiki citations:
         // > "Booby trap the cache. &nbsp;[ {{Transaction|2|subtract_missiles}} ]" — [[Engi cache]]
         // > "Rebel Fleet is delayed for 2 turns." — [[Engi cache]]
-        label: "Booby trap the cache.",
+        label: "Lose 2 missiles. Fleet delayed 2.",
         fx: [
           {
             k: "note",
-            text: "You transfer down some missile warheads and the Engi rig them to blow before setting a distress signal to attract the fleet's attention.",
+            text: "Lose 2 missiles. Fleet delayed 2.",
           },
           { k: "res", id: "missiles", sign: -1, lo: 2, hi: 2 },
           { k: "fleet", n: 2 },
@@ -61,11 +61,11 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "You receive a drone schematic with medium scrap." — [[Engi cache]]
         // Rewards, "Drone": "A random drone schematic & T scrap." That is autoReward drone at the MED level.
-        label: "Secure the cache.",
+        label: "Gain a drone schematic and medium scrap.",
         fx: [
           {
             k: "note",
-            text: "You have the Engi complete their excavations and bring the supplies on-board.",
+            text: "Gain a drone schematic and medium scrap.",
           },
         ],
         hidden: true,

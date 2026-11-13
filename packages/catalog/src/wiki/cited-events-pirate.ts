@@ -41,7 +41,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         id: "c:pirate-fight-in-nebula:0",
         // Wiki citations:
         // > "Fight a Pirate ship (default rewards)." — [[Pirate fight in nebula]]
-        label: "Fight a Pirate ship",
+        label: "Fight the pirate ship.",
         fx: [{ k: "fight", tier: "Pirate ship" }],
       },
     ],
@@ -57,14 +57,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:refugee-pirate",
     aliases: ["Refugee (Pirate)"],
     sectors: ["Pirate Controlled Sector"],
-    body: "Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.",
+    body: "Refugee ship.",
     choices: [
       {
         id: "c:refugee-pirate:0",
-        label: "Hail them.",
-        fx: [{ k: "note", text: "A trade, or a pirate ship using them as bait." }],
+        label: "1 in 2: trade. 1 in 2: fight a pirate ship.",
+        fx: [{ k: "note", text: "1 in 2: trade. 1 in 2: fight a pirate ship." }],
       },
-      { id: "c:refugee-pirate:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+      { id: "c:refugee-pirate:1", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
   // Refugee distress (Pirate). Template:Drifting Refugee Ship, introtext=distress, type=pirate.
@@ -78,14 +78,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:refugee-distress-pirate",
     aliases: ["Refugee distress (Pirate)"],
     sectors: ["Pirate Controlled Sector"],
-    body: "You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.",
+    body: "Refugee ship.",
     choices: [
       {
         id: "c:refugee-distress-pirate:0",
-        label: "Hail them.",
-        fx: [{ k: "note", text: "A trade, or a pirate ship using them as bait." }],
+        label: "1 in 2: trade. 1 in 2: fight a pirate ship.",
+        fx: [{ k: "note", text: "1 in 2: trade. 1 in 2: fight a pirate ship." }],
       },
-      { id: "c:refugee-distress-pirate:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+      { id: "c:refugee-distress-pirate:1", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
   // Research station with no response. Pirate Controlled Sector. unique=true. LRSmap=noship.
@@ -101,36 +101,44 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:research-station-with-no-response",
     aliases: ["Research station with no response"],
     sectors: ["Pirate Controlled Sector"],
-    body: "You arrive to find a small research station putting out a distress signal. There is no response to your hails.",
+    body: "Station. No response.",
     choices: [
       {
         id: "c:research-station-with-no-response:0",
         // Wiki citations:
         // > "Dock with the station and investigate." — [[Research station with no response]]
-        label: "Dock with the station and investigate.",
-        fx: [{ k: "note", text: "The station investigation." }],
+        label:
+          "1 in 3: gain medium scrap and drone parts. 1 in 3: gain 1 crew, more options. 1 in 3: more options.",
+        fx: [
+          {
+            k: "note",
+            text: "1 in 3: gain medium scrap and drone parts. 1 in 3: gain 1 crew, more options. 1 in 3: more options.",
+          },
+        ],
       },
       {
         id: "c:research-station-with-no-response:1",
         // Wiki citations:
         // > "Leave it alone." — [[Research station with no response]]
         // > "Nothing happens." — [[Research station with no response]]
-        label: "Leave it alone.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
       {
         id: "c:research-station-with-no-response:2",
         // Wiki citations:
         // > "(Anti-Personnel Drone) Send your battle drone in to help. [ Drone parts lost: 1 ]" — [[Research station with no response]]
-        label: "Send your battle drone in to help.",
-        fx: [{ k: "note", text: "Nothing, or medium scrap with resources." }],
+        label: "Lose 1 drone part. 1 in 3: gain medium scrap and resources.",
+        fx: [{ k: "note", text: "Lose 1 drone part. 1 in 3: gain medium scrap and resources." }],
       },
       {
         id: "c:research-station-with-no-response:3",
         // Wiki citations:
         // > "(Life Scanner) Run advanced life scans." — [[Research station with no response]]
-        label: "Run advanced life scans.",
-        fx: [{ k: "note", text: "Medium scrap with resources, or nothing." }],
+        label: "1 in 2: nothing happens. 1 in 2: gain medium scrap and resources.",
+        fx: [
+          { k: "note", text: "1 in 2: nothing happens. 1 in 2: gain medium scrap and resources." },
+        ],
       },
     ],
   },

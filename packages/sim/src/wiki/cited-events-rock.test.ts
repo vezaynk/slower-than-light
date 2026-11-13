@@ -155,10 +155,7 @@ describe("Mantis ship with Rock body parts", () => {
     b.name = "Mantis ship with Rock body parts";
     g.here = b.id;
     g.event = citedEvent(g, b);
-    assert.equal(
-      g.event?.body,
-      "A Mantis ship here is adorned with Rock body parts! It would be a gorier display if they had internal organs, but the message is clear enough: this is a hunter of a very specialized kind.",
-    );
+    assert.equal(g.event?.body, "Mantis ship.");
     assert.ok(g.event?.choices.some((c) => c.id === "c:mantis-ship-with-rock-body-parts:0"));
   });
 });

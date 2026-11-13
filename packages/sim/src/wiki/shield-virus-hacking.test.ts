@@ -11,11 +11,10 @@ import {
 } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const LEAD =
-  "Your hacking system automatically counters the digital assault and you move in to fight the ship.";
-const BODY =
-  "Your arrival is greeted by numerous computer alerts. The nearby automated Rebel scout has deployed a virus and disrupted your shield system. Hopefully it won't cause further problems before you can destroy it.";
+const LEAD = eventText("event_AUTO_HACKER_c2_text");
+const BODY = "Hostile Auto-ship. Your shields are hacked.";
 const COUNTER = "c:auto-ship-carrying-shield-virus:1";
 
 function open(g: Game) {
@@ -57,7 +56,9 @@ describe("Auto-ship carrying shield virus hacking", () => {
     const g = createGame(1);
     open(g);
     assert.ok(
-      g.event?.choices.some((c) => c.id === COUNTER && c.label === "Counter the remote hacking."),
+      g.event?.choices.some(
+        (c) => c.id === COUNTER && c.label === "Fight. Hacking offline; shields keep full power.",
+      ),
     );
     assert.equal(choiceDisabled(g, COUNTER), "Needs a Hacking system");
     choose(g, COUNTER);

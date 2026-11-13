@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -19,7 +20,7 @@ describe("Lanius ship attacking civilian escape", () => {
   it("fights a Lanius ship that never escapes", () => {
     const g = createGame(1);
     open(g);
-    const lead = "You charge your weapons, which quickly gets the Lanius ship's attention.";
+    const lead = eventText("event_LANIUS_CIVILIAN_c1_text");
     choose(g, "c:lanius-ship-attacking-civilian:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

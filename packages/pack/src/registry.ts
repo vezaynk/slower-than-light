@@ -1,4 +1,4 @@
-import { clearArchivePhrases } from "./extras/phrases.ts";
+import { restoreArchivePhrases, snapshotArchivePhrases } from "./extras/phrases.ts";
 import { pickOpening } from "./ftl.ts";
 import { cloneGrid } from "./grid.ts";
 import { bonusChance, resourceBounds, scrapBounds, type RewardDifficulty } from "./rewards.ts";
@@ -23,6 +23,7 @@ import type {
   EscapeTimers,
   Stalemate,
   SkillSpeed,
+  AchievementRules,
   OverchargerWaits,
   IonIntruderRule,
   CrystalVengeanceRule,
@@ -94,11 +95,13 @@ let beaconEventsValue: BeaconEvents = {};
 let escapeTimersValue: EscapeTimers = {};
 let stalemateValue: Stalemate = {};
 let skillSpeedValue: SkillSpeed = {};
+let achievementRulesValue: AchievementRules = {};
 let cargoSlotsValue: CargoSlots = {};
 let bonusItemValue: BonusItemWeights = {};
 let baseEscapeTimers: EscapeTimers = {};
 let baseStalemate: Stalemate = {};
 let baseSkillSpeed: SkillSpeed = {};
+let baseAchievementRules: AchievementRules = {};
 let aiTargetValue: AiTarget = {};
 let baseAiTarget: AiTarget = {};
 let overchargerWaitsValue: OverchargerWaits = {};
@@ -285,6 +288,7 @@ function copyChoice(choice: EventChoice): EventChoice {
   if (choice.blue === false) copy.blue = false;
   if (choice.reward) copy.reward = { ...choice.reward };
   if (choice.ship) copy.ship = { ...choice.ship };
+  if (choice.textLoad) copy.textLoad = choice.textLoad;
   if (choice.grants?.length) copy.grants = choice.grants.map((grant) => ({ ...grant }));
   if (choice.boarders) copy.boarders = { ...choice.boarders };
   if (choice.environment) copy.environment = { ...choice.environment };
@@ -586,6 +590,7 @@ function copyHull(row: HullDef): HullDef {
 /** `"base"` replaces the maps. `"append"` adds or overwrites by id. */
 export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
   if (mode === "base") {
+    snapshotArchivePhrases();
     crew.clear();
     weapons.clear();
     augments.clear();
@@ -618,6 +623,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     baseStalemate = { ...pack.stalemate };
     skillSpeedValue = { ...pack.skillSpeed };
     baseSkillSpeed = { ...pack.skillSpeed };
+    achievementRulesValue = { ...pack.achievementRules };
+    baseAchievementRules = { ...pack.achievementRules };
     aiTargetValue = { ...pack.aiTarget };
     baseAiTarget = { ...pack.aiTarget };
     overchargerWaitsValue = { ...pack.overchargerWaits };
@@ -675,6 +682,8 @@ export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
     stalemateValue = { ...stalemateValue, ...pack.stalemate };
   if (mode === "append" && pack.skillSpeed)
     skillSpeedValue = { ...skillSpeedValue, ...pack.skillSpeed };
+  if (mode === "append" && pack.achievementRules)
+    achievementRulesValue = { ...achievementRulesValue, ...pack.achievementRules };
   if (mode === "append" && pack.aiTarget) aiTargetValue = { ...aiTargetValue, ...pack.aiTarget };
   if (mode === "append" && pack.overchargerWaits)
     overchargerWaitsValue = { ...overchargerWaitsValue, ...pack.overchargerWaits };
@@ -1207,6 +1216,37 @@ export function skillMult(
   return fallback;
 }
 
+/**
+ * FTL's achievement thresholds. Used only when no loaded pack sets `<achievementRules>`, with one warning.
+ */
+const FTL_ACHIEVEMENT_RULES: Required<AchievementRules> = {
+  systems: 11,
+  power: 29,
+  stealthSector: 8,
+  blueEvents: 4,
+  blueSector: 5,
+  oxygen: 20,
+  engines: 8,
+  beamSeconds: 5,
+};
+
+/** The loaded `<achievementRules>`, as authored (no defaults filled in). */
+export function achievementRules(): AchievementRules {
+  return { ...achievementRulesValue };
+}
+
+/**
+ * One achievement threshold (gap `<achievementRules>`).
+ * A pack that omits the value gets FTL's, with one warning.
+ */
+export function achievementRule(key: keyof AchievementRules): number {
+  const value = achievementRulesValue[key];
+  if (value != null) return value;
+  const fallback = FTL_ACHIEVEMENT_RULES[key];
+  warnPack(`No <achievementRules ${key}> is loaded; FTL's ${fallback} is used.`);
+  return fallback;
+}
+
 const FTL_OVERCHARGER_WAITS: Required<OverchargerWaits> = {
   layer0: 8,
   layer1: 10,
@@ -1628,7 +1668,7 @@ export function allEmptyBeacons(): EmptyBeaconDef[] {
 
 /** Puts the campaign rows back. Appends made by tests do not survive this. */
 export function resetPackForTests(): void {
-  clearArchivePhrases();
+  restoreArchivePhrases();
   crew.clear();
   weapons.clear();
   augments.clear();
@@ -1655,6 +1695,7 @@ export function resetPackForTests(): void {
   escapeTimersValue = { ...baseEscapeTimers };
   stalemateValue = { ...baseStalemate };
   skillSpeedValue = { ...baseSkillSpeed };
+  achievementRulesValue = { ...baseAchievementRules };
   aiTargetValue = { ...baseAiTarget };
   overchargerWaitsValue = { ...baseOverchargerWaits };
   ionIntruderValue = { ...baseIonIntruder };

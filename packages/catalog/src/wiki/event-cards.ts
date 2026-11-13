@@ -9,26 +9,35 @@ import type { EventCard } from "@stl/pack";
 /** Three printed openings for No fuel: refugee trading. The page gives no odds. */
 const REFUGEE: EventCard[] = [
   {
-    body: "A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, it recognizes you are part of the Federation and offers to split its remaining fuel with you.",
-    choices: [{ id: "c:no-fuel-refugee-trading:low", label: "Continue" }],
+    body: "Refugee ship. It shares fuel.",
+    choices: [{ id: "c:no-fuel-refugee-trading:low", label: "Gain low fuel." }],
   },
   {
-    body: "A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, its hull looks damaged — it is in bad need of scrap and is willing to trade fuel for it.",
+    body: "Refugee ship. Trade offer: scrap for fuel.",
     choices: [
-      { id: "c:no-fuel-refugee-trading:trade", label: "Trade 10 scrap for 3 fuel." },
-      { id: "c:no-fuel-refugee-trading:engi", label: "Negotiate a better trade." },
-      { id: "c:no-fuel-refugee-trading:refuse", label: "Refuse their offer." },
+      { id: "c:no-fuel-refugee-trading:trade", label: "Lose 10 scrap. Gain 3 fuel." },
+      { id: "c:no-fuel-refugee-trading:engi", label: "Ask for a better scrap-for-fuel trade." },
+      {
+        id: "c:no-fuel-refugee-trading:refuse",
+        label: "1 in 2: nothing happens. 1 in 2: a second trade offer.",
+      },
       {
         id: "c:no-fuel-refugee-trading:attack",
-        label: "The helpless refugees make easy targets. Attack them.",
+        label: "Gain medium fuel and scrap.",
       },
     ],
   },
   {
-    body: "A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, it is in bad need of armaments and is willing to trade for them.",
+    body: "Refugee ship. Trade offer: missiles for fuel.",
     choices: [
-      { id: "c:no-fuel-refugee-trading:missiles", label: "Offer some missiles for fuel." },
-      { id: "c:no-fuel-refugee-trading:arm-no", label: "Refuse their offer." },
+      {
+        id: "c:no-fuel-refugee-trading:missiles",
+        label: "Lose 1 missile. Gain 5-7 fuel. 1 in 2: fight a pirate ship.",
+      },
+      {
+        id: "c:no-fuel-refugee-trading:arm-no",
+        label: "2 in 4: fight a pirate ship. 1 in 4: gain low fuel. 1 in 4: nothing happens.",
+      },
     ],
   },
 ];

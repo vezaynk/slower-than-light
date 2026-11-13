@@ -4,8 +4,7 @@ import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const BODY =
-  "A small platform orbits near this beacon - it looks like a fueling station of some sort, and it is cheerily broadcasting reasonable prices in a spectrum of frequencies and languages.";
+const BODY = "Fuel platform.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -28,7 +27,7 @@ describe("Refueling platform opening", () => {
     assert.equal(g.fuel, createGame(1).fuel);
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === "c:refueling-platform:0" && c.label === "Dock with the refueling platform.",
+        (c) => c.id === "c:refueling-platform:0" && c.label === "Nothing happens.",
       ),
     );
   });

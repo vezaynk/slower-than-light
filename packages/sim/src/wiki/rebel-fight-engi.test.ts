@@ -4,8 +4,7 @@ import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const BODY =
-  "The rebel fighter here would seem to suggest elements of the rebel fleet are already making incursions on Engi space. You move to engage.";
+const BODY = "Hostile Rebel ship.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

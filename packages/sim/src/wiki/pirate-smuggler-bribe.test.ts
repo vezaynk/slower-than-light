@@ -3,6 +3,8 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -25,19 +27,19 @@ describe("Pirate smuggler weapons", () => {
     // > "You receive medium fuel and scrap." — [[Pirate smuggler]]
     const closed = createGame(1);
     open(closed);
-    assert.match(closed.event?.body ?? "", /smuggler trying to stay away/);
+    assert.ok((closed.event?.body ?? "").includes(eventText("event_NEBULA_PIRATE_SMUGGLE_text")));
     assert.ok(closed.event?.choices.some((c) => c.id === "c:pirate-smuggler:2"));
     assert.equal(choiceDisabled(closed, "c:pirate-smuggler:2"), "Needs level 6 Weapons");
     choose(closed, "c:pirate-smuggler:2");
     assert.equal(closed.phase, "event");
-    assert.match(closed.event?.body ?? "", /smuggler trying to stay away/);
+    assert.ok((closed.event?.body ?? "").includes(eventText("event_NEBULA_PIRATE_SMUGGLE_text")));
 
     const g = createGame(2);
     open(g);
     g.player.systems.weapons.level = 6;
     assert.equal(choiceDisabled(g, "c:pirate-smuggler:2"), null);
     choose(g, "c:pirate-smuggler:2");
-    assert.match(g.event?.body ?? "", /no need for aggression/i);
+    assert.match(g.event?.body ?? "", textRe("event_NEBULA_PIRATE_SMUGGLE_c3_text"));
     const fuel = g.fuel;
     const missiles = g.missiles;
     const parts = g.player.parts;
@@ -63,7 +65,7 @@ describe("Pirate smuggler weapons", () => {
     g.player.systems.weapons.level = 6;
     choose(g, "c:pirate-smuggler:2");
     choose(g, "q:pirate-smuggler:attack");
-    const lead = "You power up your weapons and move in to engage.";
+    const lead = eventText("event_NEBULA_PIRATE_SMUGGLE_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);

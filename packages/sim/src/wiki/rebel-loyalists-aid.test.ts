@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -19,7 +20,7 @@ describe("Rebel ship attacking Federation loyalists", () => {
   it("aiding the Federation ship engages the Rebel ship", () => {
     const g = createGame(1);
     open(g);
-    const lead = "You power up your weapons and engage the Rebel ship.";
+    const lead = eventText("event_REBEL_VS_FEDERATION_c1_text");
     choose(g, "c:rebel-ship-attacking-federation-loyalists:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

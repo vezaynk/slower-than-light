@@ -10,7 +10,7 @@ import {
   noteZoltanKits,
   rand,
 } from "../sim.ts";
-import { noteAchieve } from "../wiki/achieve-notes.ts";
+import { noteAchieve } from "../rules/achieve-notes.ts";
 import { hackPulseOn } from "./spike.ts";
 
 /** Wiki page "Cloaking", section "Overview": evasion is increased by a flat 60%. */

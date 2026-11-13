@@ -5,6 +5,7 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { joinCrew } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -22,16 +23,18 @@ describe("Space station under construction decline", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:space-station-under-construction:1");
-    assert.equal(g.event?.body, `"I understand." Transmission has been cut.\n\nNothing happens.`);
+    assert.equal(
+      g.event?.body,
+      [eventText("event_QUEST_CONSTRUCTIONYARD_c2_text"), "Nothing happens."].join("\n\n"),
+    );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.enemy, null);
   });
 });
 
-const OFFER = `"Interesting. So this metal man can help us make some of these unique parts out of scrap? That would be a huge help." Your crewmember checks over the blueprints and quickly converts some of their base metal sheets into the specialized parts.\n\n"Amazing! This robot thing could save us a ton of time. Could I buy it off you?"`;
-const PITY =
-  "A pity. In terms of payment, here's some of the scrap metal we don't need, now that we've got the necessary parts.";
+const OFFER = eventText("event_QUEST_CONSTRUCTIONYARD_c3_text");
+const PITY = eventText("event_QUEST_CONSTRUCTIONYARD_c3_c1_c2_text");
 
 describe("Space station under construction Lanius help", () => {
   it("refusing the sale shows the printed pity sentence and pays medium scrap", () => {
@@ -66,7 +69,10 @@ describe("Space station under construction Lanius help", () => {
     assert.equal(g.event?.body, OFFER);
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
-      ["Ask your crew if they agree.", "Our crew is not for sale."],
+      [
+        eventText("event_QUEST_CONSTRUCTIONYARD_c3_c1_c1_choice"),
+        eventText("event_QUEST_CONSTRUCTIONYARD_c3_c1_c2_choice"),
+      ],
     );
     const before = g.scrap;
     choose(g, "q:station:nosale");

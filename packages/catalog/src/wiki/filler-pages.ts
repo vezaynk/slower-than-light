@@ -28,24 +28,25 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "Scans reveal a large asteroid field nearby. Short-range scanners may discover useful materials while we wait for the FTL to recharge.",
+    body: "Asteroid field.",
     choices: [
       {
         id: "c:large-asteroid-field:0",
-        label: "Explore the asteroid field.",
+        label:
+          "1 in 6 each: nothing happens; gain fuel; gain medium scrap and missiles; gain medium scrap and drone parts; take 3 hull damage and a fire; fight a ship.",
         // Six results: FILLER_CHOICES.
         fx: [{ k: "fight", tier: "Pirate ship", asteroid: true }],
       },
       {
         id: "c:large-asteroid-field:1",
-        label: "Too dangerous. We'll just wait for the FTL to charge.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
       // {{Blue Option|Scrap Recovery Arm|Attempt to mine the asteroids.}} High scrap only.
       {
         id: "c:large-asteroid-field:2",
-        label: "Attempt to mine the asteroids.",
-        fx: [{ k: "note", text: "High scrap." }],
+        label: "Gain high scrap.",
+        fx: [{ k: "note", text: "Gain high scrap." }],
       },
     ],
   },
@@ -63,23 +64,23 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula",
     ],
-    body: "You have jumped into the aftermath of what seems to have been a brutal exchange between several ships. Wreckage drifts by your screens, and you can still see the remains of the dying ships sparking and breaking apart. It's hard to determine who the combatants were without closer investigation.",
+    body: "Wreckage.",
     choices: [
       {
         id: "c:battlefield-wreckage:0",
-        label: "Investigate the battlefield.",
+        label: "1 in 2: gain scrap and resources. 1 in 2: nothing happens.",
         fx: [{ k: "fight", tier: "Rebel ship" }],
       },
       {
         id: "c:battlefield-wreckage:1",
-        label: "Ignore the wreckage and continue on.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
       // {{Blue Option|Improved Sensors|Use your Sensors to scan the wreckage.|level=2|shortreq=Sensors}}
       {
         id: "c:battlefield-wreckage:2",
-        label: "Use your Sensors to scan the wreckage.",
-        fx: [{ k: "note", text: "Medium resources with some scrap." }],
+        label: "Gain medium resources and some scrap.",
+        fx: [{ k: "note", text: "Gain medium resources and some scrap." }],
       },
     ],
   },
@@ -92,17 +93,18 @@ export const FILLER_PAGES: CitedEventDef[] = [
     flag: "cited:plagued-station",
     aliases: ["Plagued station", "Plagued Station"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "You arrive near a damaged and dilapidated space station. It appears to be abandoned but you detect faint life signatures on board.",
+    body: "Damaged station. Faint life signs.",
     choices: [
       {
         id: "c:plagued-station:0",
-        label: "Board the station and look for survivors.",
+        label:
+          "1 in 3: gain low scrap. 1 in 3: gain low scrap and 1 Human crew. 1 in 3: gain low scrap, more options.",
         fx: [{ k: "tier", tier: "low" }],
       },
       {
         id: "c:plagued-station:1",
-        label: "Scrap some of the debris.",
-        fx: [{ k: "note", text: "A random amount of scrap." }],
+        label: "Gain scrap.",
+        fx: [{ k: "note", text: "Gain scrap." }],
       },
     ],
   },
@@ -113,26 +115,26 @@ export const FILLER_PAGES: CitedEventDef[] = [
     flag: "cited:rebel-fight-chance",
     aliases: ["Rebel fight chance", "Rebel Fight Chance"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: 'You arrive at a beacon located in a civilian star system. A nearby colony contacts you: "We\'ve got a rogue Rebel ship harassing this system. Do you have time to find it?"',
+    body: "Request: find a Rebel ship in this system.",
     choices: [
       {
         id: "c:rebel-fight-chance:0",
-        label: "Go looking for the Rebel ship.",
+        label: "1 in 2: fight the Rebel ship. 1 in 2: nothing happens.",
         fx: [{ k: "fight", tier: "Rebel ship" }],
       },
       {
         id: "c:rebel-fight-chance:1",
-        label: "No time to search, you prepare to jump away.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
       {
         id: "c:rebel-fight-chance:2",
-        label: "Perform a scan of the area.",
+        label: "Fight the Rebel ship.",
         fx: [{ k: "fight", tier: "Rebel ship" }],
       },
       {
         id: "c:rebel-fight-chance:3",
-        label: "Pinpoint the Rebel's location.",
+        label: "Fight the Rebel ship.",
         fx: [{ k: "fight", tier: "Rebel ship" }],
       },
     ],
@@ -151,10 +153,14 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula",
     ],
-    body: "Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.",
+    body: "Refugee ship.",
     choices: [
-      { id: "c:refugee:0", label: "Hail them.", fx: [{ k: "fight", tier: "Pirate ship" }] },
-      { id: "c:refugee:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+      {
+        id: "c:refugee:0",
+        label: "1 in 2: trade. 1 in 2: fight a pirate ship.",
+        fx: [{ k: "fight", tier: "Pirate ship" }],
+      },
+      { id: "c:refugee:1", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
   // DONOR_PONY. Investigate opens three choices: communicate (Engi crewmember and low scrap with resources, or
@@ -165,14 +171,14 @@ export const FILLER_PAGES: CitedEventDef[] = [
     flag: "cited:intelligent-ponies",
     aliases: ["Intelligent ponies", "Intelligent Ponies"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "Scanners are showing intelligent life forms on a nearby planet. No match for them can be found in the database.",
+    body: "Unknown life forms on a planet.",
     choices: [
       {
         id: "c:intelligent-ponies:0",
-        label: "Investigate.",
-        fx: [{ k: "note", text: "Three follow-up choices." }],
+        label: "More options.",
+        fx: [{ k: "note", text: "More options." }],
       },
-      { id: "c:intelligent-ponies:1", label: "Ignore it.", fx: [{ k: "nothing" }] },
+      { id: "c:intelligent-ponies:1", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
   // EMPTY_STATION2. Examine: low scrap ({{DuplicateEvent|2}}); 2 boarders and a Pirate ship; 2-4 boarders and a
@@ -184,14 +190,14 @@ export const FILLER_PAGES: CitedEventDef[] = [
     flag: "cited:abandoned-station",
     aliases: ["Abandoned station", "Abandoned Station"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "You find a small space station that appears to be abandoned.",
+    body: "Empty station.",
     choices: [
       {
         id: "c:abandoned-station:0",
-        label: "Move in to examine the station.",
+        label: "1 in 2: gain scrap and resources. 1 in 2: fight a ship.",
         fx: [{ k: "tier", tier: "low" }],
       },
-      { id: "c:abandoned-station:1", label: "Stay near the Beacon.", fx: [{ k: "nothing" }] },
+      { id: "c:abandoned-station:1", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
   // TERRAFORMING_SCAN. Scan: nothing, or "Successful Scan" (oxygen upgraded; a Pirate ship; the mold, with a 15-25 scrap
@@ -202,14 +208,14 @@ export const FILLER_PAGES: CitedEventDef[] = [
     flag: "cited:terraforming-scan",
     aliases: ["Terraforming scan", "Terraforming Scan"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: 'You receive a hail from a station orbiting a nearby planet. "Captain, we are Federation Terraforming Team C12 and are in need of assistance. Do you have some time?"',
+    body: "Station. Request: scan a planet.",
     choices: [
       {
         id: "c:terraforming-scan:0",
-        label: "You offer your assistance.",
-        fx: [{ k: "note", text: "They ask for a scan." }],
+        label: "More options.",
+        fx: [{ k: "note", text: "More options." }],
       },
-      { id: "c:terraforming-scan:1", label: "You do not have time.", fx: [{ k: "nothing" }] },
+      { id: "c:terraforming-scan:1", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
   // NEBULA_EMPTY. "Nothing happens." The intro is one of the page's nine texts (EMPTY_PAGES), drawn on arrival.
@@ -227,8 +233,8 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "There's nothing here, save for vast swirls of gas reflecting rays from a distant sun.",
-    choices: [{ id: "c:empty-nebula-beacon:0", label: "Continue", fx: [{ k: "nothing" }] }],
+    body: "Empty beacon. Nebula.",
+    choices: [{ id: "c:empty-nebula-beacon:0", label: "Continue.", fx: [{ k: "nothing" }] }],
   },
   // NEBULA_LOST_SHIP. Follow: a crewmember; a Rebel ship; nothing.
   {
@@ -247,28 +253,28 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "A heavily damaged Federation ship is hiding in the nebula at this beacon. Before you have time to make contact with them, they fade into the nebula.",
+    body: "Damaged ship hiding in the nebula.",
     choices: [
       {
         id: "c:nebula-lost-ship:0",
-        label: "Attempt to follow and help them.",
+        label: "1 in 3: nothing happens. 1 in 3: fight a ship. 1 in 3: gain 1 crew.",
         fx: [{ k: "fight", tier: "Rebel ship" }],
       },
       {
         id: "c:nebula-lost-ship:1",
-        label: "Keep your position, they can handle themselves.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
       // {{Blue Option|Teleporter}}. Crewmember and medium scrap. The button stays visible.
       {
         id: "c:nebula-lost-ship:2",
-        label: "Lock onto their life-signs with your teleporter.",
+        label: "Gain 1 crew and medium scrap.",
         fx: [{ k: "nothing" }],
       },
       // {{Blue Option|Long-ranged Scanner}}. A crewmember, or medium scrap. No odds. INFERRED: equal.
       {
         id: "c:nebula-lost-ship:3",
-        label: "Pump extra power into your sensors and try to track them.",
+        label: "1 in 2: gain medium scrap. 1 in 2: gain 1 crew.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -289,22 +295,23 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "You jump into the middle of a plasma storm. Multiple recently incapacitated ships loom in the shadows, briefly illuminated by the lightning.",
+    body: "Wrecks. Plasma storm.",
     choices: [
       {
         id: "c:plasma-storm-incapacitated-ships:0",
-        label: "Manually search the wreckage for survivors and equipment.",
+        label:
+          "1 in 5 each: take 4 hull damage and a breach, gain high resources; gain 1 crew and low scrap; lose 1 crew, gain low scrap; gain a drone schematic and medium scrap; gain a weapon and medium scrap.",
         fx: [{ k: "hull", n: -4 }],
       },
       {
         id: "c:plasma-storm-incapacitated-ships:1",
-        label: "Avoid the risk and wait to jump away unscathed.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
       // {{Blue Option|Piloting|level=2+}}. Four results, no odds. INFERRED: equal. The weapon pays low scrap.
       {
         id: "c:plasma-storm-incapacitated-ships:2",
-        label: "Have your pilot carefully explore the debris.",
+        label: "1 in 4: gain 1 crew and low scrap. 3 in 4: gain scrap and an item.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -332,11 +339,12 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: '"Greetings! It is so good to see you! We\'ve been out of fuel and floating out here for weeks. We were terrified a pirate or those damn Rebels would find us first. Could you spare some fuel?"',
+    body: "Ship out of fuel. Request: fuel.",
     choices: [
       {
         id: "c:friendly-ship-out-of-fuel:0",
-        label: "Give them the fuel.",
+        label:
+          "Lose 2-4 fuel. Then 1 in 5: reveal the map. 2 in 5: gain high scrap. 1 in 5: gain a weapon. 1 in 5: reactor +1.",
         fx: [
           { k: "res", id: "fuel", sign: -1, lo: 2, hi: 4 },
           { k: "tier", tier: "high" },
@@ -344,7 +352,7 @@ export const FILLER_PAGES: CitedEventDef[] = [
       },
       {
         id: "c:friendly-ship-out-of-fuel:1",
-        label: "Apologize, wish them luck, and continue on.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -356,14 +364,14 @@ export const FILLER_PAGES: CitedEventDef[] = [
     flag: "cited:refugee-distress",
     aliases: ["Refugee distress", "Refugee Distress"],
     sectors: ["Civilian Sector", "Pirate Controlled Sector", "Uncharted Nebula"],
-    body: "You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.",
+    body: "Refugee ship.",
     choices: [
       {
         id: "c:refugee-distress:0",
-        label: "Hail them.",
+        label: "1 in 2: trade. 1 in 2: fight a pirate ship.",
         fx: [{ k: "fight", tier: "Pirate ship" }],
       },
-      { id: "c:refugee-distress:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+      { id: "c:refugee-distress:1", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
   // REFUGEE_GHOST. Board, five results, no odds: lose a crewmember; a crewmember; "medium|2-4 missiles" missiles
@@ -374,17 +382,17 @@ export const FILLER_PAGES: CitedEventDef[] = [
     flag: "cited:refugee-comms-down",
     aliases: ["Refugee comms down", "Refugee Comms Down"],
     sectors: ["Civilian Sector", "Pirate Controlled Sector", "Uncharted Nebula"],
-    body: "You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board, and its communications seem to be down.",
+    body: "Refugee ship. No comms.",
     choices: [
       {
         id: "c:refugee-comms-down:0",
-        label: "Prepare to board and investigate.",
+        label: "More options.",
         fx: [
           { k: "res", id: "missiles", sign: 1, lo: 2, hi: 4 },
           { k: "tier", tier: "medium" },
         ],
       },
-      { id: "c:refugee-comms-down:1", label: "Ignore the ship.", fx: [{ k: "nothing" }] },
+      { id: "c:refugee-comms-down:1", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
   // TRADER_UPGRADES. Inquire offers one of Oxygen, Piloting, Door System, Sensors, or the reactor.
@@ -409,12 +417,12 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Slug Home Nebula",
       "Uncharted Nebula",
     ],
-    body: "You pick up an automated message from a nearby space station. There appears to be a local shipwright that can perform emergency work on military ships.",
+    body: "Upgrade seller.",
     choices: [
       {
         id: "c:trade-scrap-for-upgrades:0",
-        label: "Inquire about their specialty.",
-        fx: [{ k: "note", text: "One printed upgrade offer." }],
+        label: "More options: one upgrade for scrap.",
+        fx: [{ k: "note", text: "More options: one upgrade for scrap." }],
       },
     ],
   },
@@ -442,11 +450,11 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "A ship re-fueling station is stationed at this beacon. We can purchase fuel here.",
+    body: "Fuel seller.",
     choices: [
       {
         id: "c:refueling-station:0",
-        label: "Buy 6 Fuel for 12 Scrap.",
+        label: "Lose 12 scrap. Gain 6 fuel.",
         fx: [
           { k: "res", id: "scrap", sign: -1, lo: 12, hi: 12 },
           { k: "res", id: "fuel", sign: 1, lo: 6, hi: 6 },
@@ -454,7 +462,7 @@ export const FILLER_PAGES: CitedEventDef[] = [
       },
       {
         id: "c:refueling-station:1",
-        label: "Buy 3 Fuel for 6 Scrap.",
+        label: "Lose 6 scrap. Gain 3 fuel.",
         fx: [
           { k: "res", id: "scrap", sign: -1, lo: 6, hi: 6 },
           { k: "res", id: "fuel", sign: 1, lo: 3, hi: 3 },
@@ -462,13 +470,13 @@ export const FILLER_PAGES: CitedEventDef[] = [
       },
       {
         id: "c:refueling-station:2",
-        label: "Buy 1 Fuel for 2 Scrap.",
+        label: "Lose 2 scrap. Gain 1 fuel.",
         fx: [
           { k: "res", id: "scrap", sign: -1, lo: 2, hi: 2 },
           { k: "res", id: "fuel", sign: 1, lo: 1, hi: 1 },
         ],
       },
-      { id: "c:refueling-station:3", label: "Ignore the station.", fx: [{ k: "nothing" }] },
+      { id: "c:refueling-station:3", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
   // HELP_MINERS. Five missiles: 10 hull, a reactor step, or 15-25 scrap. No odds. INFERRED: equal.
@@ -497,24 +505,24 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Slug Home Nebula",
       "Uncharted Nebula",
     ],
-    body: 'You come across an asteroid mining colony. They message you immediately, saying, "Greetings. Our supplies of mining explosives have run out ever since the Rebels blockaded this system. Do you have any extra explosives?"',
+    body: "Request: missiles.",
     choices: [
       {
         id: "c:asteroid-mining-colony:0",
-        label: "Offer to solve their problem by launching a missile.",
+        label: "Lose 1 missile. More options.",
         fx: [{ k: "nothing" }],
       },
       {
         id: "c:asteroid-mining-colony:1",
-        label: "Give them the requested 5 missiles.",
+        label: "Lose 5 missiles. Gain a reward.",
         fx: [{ k: "res", id: "missiles", sign: -1, lo: 5, hi: 5 }],
       },
       {
         id: "c:asteroid-mining-colony:2",
-        label: "Give them 15 missiles.",
+        label: "Lose 15 missiles. Gain a larger reward.",
         fx: [{ k: "res", id: "missiles", sign: -1, lo: 15, hi: 15 }],
       },
-      { id: "c:asteroid-mining-colony:3", label: "Decline.", fx: [{ k: "nothing" }] },
+      { id: "c:asteroid-mining-colony:3", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
   // TRADER_UPGRADES_EXCHANGE. One of three supply bundles, shown before the choice. No odds. INFERRED: equal.
@@ -540,16 +548,16 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Slug Home Nebula",
       "Uncharted Nebula",
     ],
-    body: "You receive a message from a small convoy. They're looking for some military supplies and are offering to try to improve your reactor in exchange.",
+    body: "Offer: reactor upgrade for supplies.",
     choices: [
       {
         id: "c:improve-reactor-for-supplies:0",
-        label: "Agree to the trade.",
-        fx: [{ k: "note", text: "One printed supply bundle." }],
+        label: "Lose supplies. Reactor +1.",
+        fx: [{ k: "note", text: "Lose supplies. Reactor +1." }],
       },
       {
         id: "c:improve-reactor-for-supplies:1",
-        label: "Respectfully decline.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -575,28 +583,28 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Rock Homeworlds",
       "Uncharted Nebula",
     ],
-    body: "You find a number of ships fleeing from a small space station. You hail them, asking what's wrong: \"Help! We're being overrun by some sort of giant alien spiders!\"",
+    body: "Station overrun by creatures.",
     choices: [
       {
         id: "c:giant-alien-spiders:0",
-        label: "Send the crew to help! Giant alien spiders are no joke.",
-        fx: [{ k: "note", text: "A crewmember, or high resources with some scrap." }],
+        label: "1 in 2: lose 1 crew. 1 in 2: more options.",
+        fx: [{ k: "note", text: "1 in 2: lose 1 crew. 1 in 2: more options." }],
       },
-      { id: "c:giant-alien-spiders:1", label: "Leave them alone.", fx: [{ k: "nothing" }] },
+      { id: "c:giant-alien-spiders:1", label: "Nothing happens.", fx: [{ k: "nothing" }] },
       {
         id: "c:giant-alien-spiders:2",
-        label: "Send your battle drone in to help.",
-        fx: [{ k: "note", text: "Medium resources with some scrap." }],
+        label: "Lose 1 drone part. Gain medium resources.",
+        fx: [{ k: "note", text: "Lose 1 drone part. Gain medium resources." }],
       },
       {
         id: "c:giant-alien-spiders:3",
-        label: "Launch a Boarding drone into the station.",
-        fx: [{ k: "note", text: "Low scrap with resources." }],
+        label: "Lose 1 drone part. Gain low scrap and resources.",
+        fx: [{ k: "note", text: "Lose 1 drone part. Gain low scrap and resources." }],
       },
       {
         id: "c:giant-alien-spiders:4",
-        label: "Use the beam to pick off the spiders.",
-        fx: [{ k: "note", text: "High resources with some scrap." }],
+        label: "Gain high resources.",
+        fx: [{ k: "note", text: "Gain high resources." }],
       },
     ],
   },
@@ -620,32 +628,38 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Rock Homeworlds",
       "Uncharted Nebula",
     ],
-    body: "You arrive at the distress beacon near a small asteroid belt and find a ship with pirate markings partially crushed between two large rocks. It must have been illegally mining the belt without proper equipment.",
+    body: "Pirate ship stuck between asteroids.",
     choices: [
       {
         id: "c:crushed-pirate:0",
-        label: "Try to dislodge the ship by shooting at the rocks.",
+        label:
+          "1 in 2: gain low scrap, take 2 system damage. 1 in 2: gain medium scrap and resources.",
         fx: [
           {
             k: "note",
-            text: "2 hull, 2 system damage, and low scrap, or medium scrap with resources.",
+            text: "1 in 2: gain low scrap, take 2 system damage. 1 in 2: gain medium scrap and resources.",
           },
         ],
       },
       {
         id: "c:crushed-pirate:1",
-        label: "Destroy and loot the ship. They're just pirates.",
-        fx: [{ k: "note", text: "Medium scrap with resources, or a Pirate ship." }],
+        label: "1 in 2: gain medium scrap and resources. 1 in 2: fight the pirate ship.",
+        fx: [
+          {
+            k: "note",
+            text: "1 in 2: gain medium scrap and resources. 1 in 2: fight the pirate ship.",
+          },
+        ],
       },
       {
         id: "c:crushed-pirate:2",
-        label: "Carefully cut the ship out.",
-        fx: [{ k: "note", text: "Medium scrap with resources." }],
+        label: "Gain medium scrap and resources.",
+        fx: [{ k: "note", text: "Gain medium scrap and resources." }],
       },
       {
         id: "c:crushed-pirate:3",
-        label: "Have your drone cut the ship out.",
-        fx: [{ k: "note", text: "Medium scrap with resources." }],
+        label: "Lose 1 drone part. Gain medium scrap and resources.",
+        fx: [{ k: "note", text: "Lose 1 drone part. Gain medium scrap and resources." }],
       },
     ],
   },
@@ -667,32 +681,37 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Rock Homeworlds",
       "Uncharted Nebula",
     ],
-    body: "You locate a nearby human mining colony where an unknown disease has spread virulently. They are setting up a quarantine to contain it but a riot has broken out.",
+    body: "Colony riot.",
     choices: [
       {
         id: "c:unknown-disease-on-mining-colony:0",
-        label: "Send in your crew to help control the crowds.",
-        fx: [{ k: "note", text: "A crewmember and medium resources, or nothing." }],
+        label: "1 in 2: nothing happens. 1 in 2: lose 1 crew, gain medium resources.",
+        fx: [
+          {
+            k: "note",
+            text: "1 in 2: nothing happens. 1 in 2: lose 1 crew, gain medium resources.",
+          },
+        ],
       },
       {
         id: "c:unknown-disease-on-mining-colony:1",
-        label: "Ignore their request and move on.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
       {
         id: "c:unknown-disease-on-mining-colony:2",
-        label: "Send your Rock crew-member to prevent a riot.",
-        fx: [{ k: "note", text: "Medium resources with some scrap." }],
+        label: "Gain medium resources.",
+        fx: [{ k: "note", text: "Gain medium resources." }],
       },
       {
         id: "c:unknown-disease-on-mining-colony:3",
-        label: "Send your Engi to calm down the infected.",
-        fx: [{ k: "note", text: "Medium resources with some scrap." }],
+        label: "Gain medium resources.",
+        fx: [{ k: "note", text: "Gain medium resources." }],
       },
       {
         id: "c:unknown-disease-on-mining-colony:4",
-        label: "Use your medbay to help synthesize a cure.",
-        fx: [{ k: "note", text: "Medium resources, or high scrap." }],
+        label: "More options: medium resources, or a weapon and high scrap.",
+        fx: [{ k: "note", text: "More options." }],
       },
     ],
   },
@@ -719,33 +738,33 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "You find the source of the distress call, a small research station. It appears a small laboratory fire got out of control and is threatening to destroy the station. Their fire suppression system is not responding.",
+    body: "Station on fire.",
     choices: [
       {
         id: "c:fire-on-research-station:0",
-        label: "Send your crew in a shuttle to help put out the fire.",
-        fx: [{ k: "note", text: "A crewmember and low scrap, or high scrap." }],
+        label: "1 in 2: lose 1 crew, gain low scrap. 1 in 2: gain high scrap.",
+        fx: [{ k: "note", text: "1 in 2: lose 1 crew, gain low scrap. 1 in 2: gain high scrap." }],
       },
       {
         id: "c:fire-on-research-station:1",
-        label: "Dock and try to rescue the survivors.",
+        label: "1 in 2: take 4 hull damage, gain low scrap. 1 in 2: gain 1 crew and low scrap.",
         fx: [
           {
             k: "note",
-            text: "4 hull, 1 system damage, and low scrap, or Dr. Jones and low scrap.",
+            text: "1 in 2: take 4 hull damage, gain low scrap. 1 in 2: gain 1 crew and low scrap.",
           },
         ],
       },
-      { id: "c:fire-on-research-station:2", label: "Leave.", fx: [{ k: "nothing" }] },
+      { id: "c:fire-on-research-station:2", label: "Nothing happens.", fx: [{ k: "nothing" }] },
       {
         id: "c:fire-on-research-station:3",
-        label: "Send your Rock crew-member in.",
-        fx: [{ k: "note", text: "High scrap and a random augmentation." }],
+        label: "Gain an augment and high scrap.",
+        fx: [{ k: "note", text: "Gain an augment and high scrap." }],
       },
       {
         id: "c:fire-on-research-station:4",
-        label: "Send your repair drone into the fire.",
-        fx: [{ k: "note", text: "High scrap and a random drone schematic." }],
+        label: "Gain a drone schematic and high scrap.",
+        fx: [{ k: "note", text: "Gain a drone schematic and high scrap." }],
       },
     ],
   },
@@ -769,14 +788,14 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "It appears the distress beacon is coming from the surface of a nearby moon. Your sensors are picking up a single life form.",
+    body: "Distress signal from a moon. 1 life form.",
     choices: [
       {
         id: "c:single-life-form-on-moon:0",
-        label: "Go down to the surface to investigate.",
-        fx: [{ k: "note", text: "Charlie, a crewmember, 5 hull, or scrap and repairs." }],
+        label: "More options: crew, hull repair, or scrap.",
+        fx: [{ k: "note", text: "More options." }],
       },
-      { id: "c:single-life-form-on-moon:1", label: "Ignore the signal.", fx: [{ k: "nothing" }] },
+      { id: "c:single-life-form-on-moon:1", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
   // TRAP_BEACON. The intro is one of four printed lines. No odds. INFERRED: equal.
@@ -804,7 +823,7 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "You arrive at the beacon and immediately detect a pirate ship. It seems this distress beacon was a trap!",
+    body: "Hostile pirate ship.",
     choices: [
       {
         id: "c:pirate-ship-distress-trap:0",
@@ -835,21 +854,21 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "The distress signal is coming from a small space station orbiting an uninhabited planet. Their satellite defense system has gone haywire and their repair crew can't approach without being fired on. They're looking for help to fix or disable it.",
+    body: "Station with faulty defense satellites.",
     choices: [
       {
         id: "c:malfunctioning-defense-system:0",
-        label: "Promise to help.",
+        label: "More options.",
         fx: [
           {
             k: "note",
-            text: "Ion, cloaking, an Engi, or low scrap. The 5 hull result stays unwired.",
+            text: "More options.",
           },
         ],
       },
       {
         id: "c:malfunctioning-defense-system:1",
-        label: "Leave them alone.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -876,10 +895,8 @@ export const FILLER_PAGES: CitedEventDef[] = [
       "Slug Home Nebula",
       "Uncharted Nebula",
     ],
-    body: "This Beacon seems to serve as meeting place for local traffic. It seems you can find crew willing to fight on your ship here... for a price.",
-    choices: [
-      { id: "c:crew-hiring-station:0", label: "Don't hire anyone.", fx: [{ k: "nothing" }] },
-    ],
+    body: "Crew for hire.",
+    choices: [{ id: "c:crew-hiring-station:0", label: "Nothing happens.", fx: [{ k: "nothing" }] }],
   },
 ];
 

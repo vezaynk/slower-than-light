@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
@@ -18,8 +19,8 @@ describe("Zoltan wise man reward", () => {
     const guns = g.player.weapons.length;
     assert.equal(pageWin(g, "zoltan-wise-man", false), true);
     const body = g.event?.body ?? "";
-    assert.match(body, /You salvage the remains and contact the wise man/);
-    assert.match(body, /the Zoltan implodes/);
+    assert.match(body, textRe("ship_ZOLTAN_RIFT_MANTIS_destroyed_text"));
+    assert.match(body, textRe("event_ZOLTAN_RIFT_SUCCESS_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 2, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -34,8 +35,8 @@ describe("Zoltan wise man reward", () => {
     const g = createGame(2);
     assert.equal(pageWin(g, "zoltan-wise-man", true), true);
     const body = g.event?.body ?? "";
-    assert.match(body, /You salvage the ship and contact the wise man/);
-    assert.match(body, /the Zoltan implodes/);
+    assert.match(body, textRe("ship_ZOLTAN_RIFT_MANTIS_deadCrew_text"));
+    assert.match(body, textRe("event_ZOLTAN_RIFT_SUCCESS_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 2, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);

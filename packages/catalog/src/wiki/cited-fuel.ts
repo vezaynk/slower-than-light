@@ -68,13 +68,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:no-fuel-friendly-refugee",
     aliases: ["No fuel: friendly refugee", "Friendly Refugee", "Friendly refugee"],
     sectors: [],
-    body: "While it doesn't have much fuel to spare, it recognizes you are part of the Federation and offers to split its remaining fuel with you.",
+    body: "Refugee ship. It shares fuel.",
     choices: [
       {
         id: "c:no-fuel-friendly-refugee:0",
         // Wiki citations:
         // > "You receive medium fuel." — [[No fuel: friendly refugee]]
-        label: "You receive medium fuel",
+        label: "Gain 2-4 fuel.",
         fx: [
           // "You receive {{tooltip|medium|2-4}} [[Rewards#Fuel only|fuel]]."
           { k: "res", id: "fuel", sign: 1, lo: 2, hi: 4 },

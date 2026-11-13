@@ -15,8 +15,8 @@ import {
   victoryCinema,
   victoryCrewLine,
 } from "@stl/sim/interface-copy.ts";
-import { earnedIds, isTracked, noteRun } from "@stl/sim/wiki/achievement-track.ts";
-import { lifetimeOf } from "@stl/sim/wiki/achieve-notes.ts";
+import { earnedIds, isTracked, noteRun } from "@stl/sim/rules/achievement-track.ts";
+import { lifetimeOf } from "@stl/sim/rules/achieve-notes.ts";
 import { playerHulls } from "@stl/sim/hulls.ts";
 import {
   UNLOCKS_KEY,

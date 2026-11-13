@@ -30,61 +30,141 @@ function percent(chance: number): string {
   return `${Math.round(chance * 100)}%`;
 }
 
-/** One line on what a volley does, from the blueprint's own figures. */
+/** Seconds as the card prints them: whole numbers bare, others to one decimal. */
+function seconds(value: number): string {
+  return `${Number.isInteger(value) ? value : Number(value.toFixed(1))} s`;
+}
+
+/**
+ * The weapon's stat summary, from the blueprint's own figures: "3 shots, 1 damage each. 12 s charge. 2 power."
+ * Hit chances, the missile cost, and shield pierce follow as their own sentences.
+ */
 export function weaponDetail(row: WeaponBlueprint): string {
   const shots = Math.max(1, row.shots);
-  let line: string;
-  if (row.kind === "beam") line = `Sweeps ${row.damage} damage across each room it crosses`;
-  else if (row.kind === "bomb") line = "Teleports a charge straight into the target room";
-  else if (row.ion > 0 && row.damage === 0)
-    line = `Fires ${plural(shots, "pulse", "pulses")} of ${row.ion} ion`;
-  else line = `Fires ${plural(shots, "shot", "shots")} of ${row.damage} damage`;
-  if (row.charge > 0) line += `, every ${row.charge} seconds`;
+  const parts: string[] = [];
+  if (row.kind === "beam") parts.push(`Beam, ${row.damage} damage per room.`);
+  else if (row.kind === "bomb") {
+    const hits: string[] = [];
+    if ((row.sysDamage ?? 0) > 0) hits.push(`${row.sysDamage} system damage`);
+    if (row.ion > 0) hits.push(`${row.ion} ion`);
+    const crew = row.crewDamage ?? 0;
+    if (crew > 0) hits.push(`${crew} crew damage`);
+    if (crew < 0) hits.push(`heals ${-crew} crew HP`);
+    parts.push(hits.length > 0 ? `Bomb, ${hits.join(", ")}.` : "Bomb.");
+  } else {
+    const hit: string[] = [];
+    if (row.damage > 0 || row.ion === 0) hit.push(`${row.damage} damage`);
+    if (row.ion > 0) hit.push(`${row.ion} ion`);
+    const unit = row.kind === "flak" ? "projectile" : "shot";
+    const each = shots > 1 ? " each" : "";
+    parts.push(`${plural(shots, unit, `${unit}s`)}, ${hit.join(" and ")}${each}.`);
+  }
+  if (row.charge > 0) parts.push(`${seconds(row.charge)} charge.`);
   if (row.chargeLevels)
-    line += `, and banks up to ${plural(row.chargeLevels, "volley", "volleys")}`;
-  line += ".";
-  const extras: string[] = [];
-  if (row.kind === "bomb" && row.damage > 0) extras.push(`${row.damage} damage`);
-  if (row.kind === "bomb" && row.ion > 0) extras.push(`${row.ion} ion`);
-  if ((row.stunChance ?? 0) > 0) extras.push(`${percent(row.stunChance ?? 0)} stun`);
-  if (row.fire > 0) extras.push(`${percent(row.fire)} fire`);
-  if (row.breach > 0) extras.push(`${percent(row.breach)} breach`);
-  if (row.ammo) extras.push("uses a missile");
+    parts.push(`Stores up to ${plural(row.chargeLevels, "charge", "charges")}.`);
+  if (row.power > 0) parts.push(`${row.power} power.`);
+  const odds: string[] = [];
+  if (row.fire > 0) odds.push(`${percent(row.fire)} fire`);
+  if (row.breach > 0) odds.push(`${percent(row.breach)} breach`);
+  if ((row.stunChance ?? 0) > 0) odds.push(`${percent(row.stunChance ?? 0)} stun`);
+  if (odds.length > 0) parts.push(`${capital(odds.join(", "))}.`);
+  if (row.ammo) parts.push("Uses 1 missile.");
   // A missile that spends ammo flies past every layer, and its card already says so. Its `<sp>` stays off the line.
   if (row.pierce && !(row.kind === "missile" && row.ammo))
-    extras.push(`pierces ${plural(row.pierce, "shield layer", "shield layers")}`);
-  return extras.length > 0 ? `${line} ${capital(extras.join(", "))}.` : line;
+    parts.push(`Pierces ${plural(row.pierce, "shield layer", "shield layers")}.`);
+  return parts.join(" ");
 }
 
 function capital(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-/** The weapon-type line a weapon shows in place of its kind. Only scatter and charged missiles have one. */
+/** The weapon-type line a weapon shows in place of its kind. Only flak and charged missiles have one. */
 export function weaponFlavor(row: WeaponBlueprint): string | undefined {
-  if (row.kind === "flak") return "Scattered Debris Volley";
-  if (row.kind === "missile" && row.chargeLevels) return "Stacked Missile Salvo";
+  if (row.kind === "flak") return "Flak";
+  if (row.kind === "missile" && row.chargeLevels) return "Charge Missile";
   return undefined;
 }
 
 const DRONE_JOB: Record<string, string> = {
-  COMBAT: "Circles the enemy ship and keeps firing at random rooms.",
-  DEFENSE: "Holds station beside your hull and shoots down what comes in.",
-  SHIELD: "Adds a temporary shield layer while it is powered.",
-  BOARDER: "Rams the enemy hull and fights its way through the rooms.",
-  REPAIR: "Walks your ship and fixes damaged systems.",
-  SHIP_REPAIR: "Leaves the hull to patch outer plating.",
-  BATTLE: "Walks your ship and fights intruders.",
+  COMBAT: "Orbits the enemy ship. Fires at random rooms.",
+  DEFENSE: "Orbits your ship. Shoots down incoming missiles.",
+  SHIELD: "Adds a temporary shield layer while powered.",
+  BOARDER: "Boards the enemy ship. Damages systems and fights crew.",
+  REPAIR: "Repairs systems on your ship.",
+  SHIP_REPAIR: "Repairs hull.",
+  BATTLE: "Fights intruders on your ship.",
 };
 
-/** One line on a drone's job, by its `<type>`. */
+/** What a defense drone shoots, by its `<target>`. */
+const DEFENSE_TARGET: Record<string, string> = {
+  DRONES: "Orbits your ship. Shoots down enemy drones.",
+  LASERS: "Orbits your ship. Shoots down missiles, lasers, and ion.",
+};
+
+/** The drone's stat summary, by its `<type>`, `<target>`, and `<power>`: "Repairs hull. 2 power." */
 export function droneDetail(
   type: string | undefined,
   power: number | undefined,
+  target?: string,
 ): string | undefined {
-  const job = type ? DRONE_JOB[type] : undefined;
+  let job = type ? DRONE_JOB[type] : undefined;
   if (!job) return undefined;
-  return power != null ? `${job} Needs ${plural(power, "power bar", "power bars")}.` : job;
+  if (type === "DEFENSE" && target && DEFENSE_TARGET[target]) job = DEFENSE_TARGET[target];
+  return power != null ? `${job} ${power} power.` : job;
+}
+
+/** Names the hull summary prints, by id. */
+export type HullNames = {
+  weapon: (id: string) => string;
+  drone: (id: string) => string;
+  augment: (id: string) => string;
+  kin: (id: string) => string;
+  kit: (id: string) => string;
+};
+
+/** The kits a hull summary reads. */
+type SummaryKit = {
+  level: number;
+  target?: string | null;
+  loadout?: string[];
+  weapon?: string;
+};
+
+/**
+ * A cruiser's stat summary, from its own loadout: weapons, drones, extra systems, augments, crew, and reactor.
+ * "Weapons: Burst Laser II, Artemis. Crew: 3 Human. Reactor 8."
+ */
+export function hullDetail(
+  hull: {
+    reactor: number;
+    weapons: readonly string[];
+    crew: readonly { kin: string }[];
+    kits: Readonly<Partial<Record<string, SummaryKit>>>;
+    augments: readonly string[];
+  },
+  names: HullNames,
+): string {
+  const parts: string[] = [];
+  if (hull.weapons.length > 0) parts.push(`Weapons: ${hull.weapons.map(names.weapon).join(", ")}.`);
+  const bay = hull.kits.drones;
+  const drones = bay ? (bay.loadout ?? (bay.target ? [bay.target] : [])) : [];
+  if (drones.length > 0) parts.push(`Drones: ${drones.map(names.drone).join(", ")}.`);
+  const kits: string[] = [];
+  for (const [kit, row] of Object.entries(hull.kits)) {
+    if (!row) continue;
+    const name = kit === "artillery" && row.weapon ? names.weapon(row.weapon) : names.kit(kit);
+    kits.push(`${name} ${row.level}`);
+  }
+  if (kits.length > 0) parts.push(`Systems: ${kits.join(", ")}.`);
+  if (hull.augments.length > 0)
+    parts.push(`Augments: ${hull.augments.map(names.augment).join(", ")}.`);
+  const crew = new Map<string, number>();
+  for (const member of hull.crew) crew.set(member.kin, (crew.get(member.kin) ?? 0) + 1);
+  if (crew.size > 0)
+    parts.push(`Crew: ${[...crew].map(([kin, n]) => `${n} ${names.kin(kin)}`).join(", ")}.`);
+  parts.push(`Reactor ${hull.reactor}.`);
+  return parts.join(" ");
 }
 
 function scale(label: string, value: number): string | undefined {

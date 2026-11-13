@@ -4,8 +4,7 @@ import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const BODY =
-  "You detect a Rebel scout on an attack approach to a small refueling outpost. Their weapons are charged, but they're not firing yet.";
+const BODY = "Rebel ship attacking a refueling outpost.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

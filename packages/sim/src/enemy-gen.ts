@@ -984,8 +984,7 @@ function breachBomb(): WeaponBlueprint[] {
       breach: 1,
       ammo: true,
       price: 0,
-      blurb:
-        "Self-teleporting explosive designed to damage systems and causes a breach. Can target your own ship.",
+      blurb: "Bomb. Damages the system and breaches the room. Can target your own ship.",
       art: "BOMB_BREACH_1",
     },
   ];

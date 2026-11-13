@@ -15,10 +15,12 @@ import {
 } from "@stl/sim/interface-copy.ts";
 import { listWasPlayed, resetPlayedLists } from "@stl/sim/played-lists.ts";
 import { createRequire } from "node:module";
+import { readdirSync, readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import type { AugmentId, KitId, SysId } from "@stl/pack";
 import type { FtlExtract } from "@stl/ftldat";
 import {
+  archivePhrase,
   CJK_FACES,
   FONT_FACES,
   achievementDef,
@@ -115,7 +117,7 @@ import {
   upgrade,
 } from "@stl/sim/sim.ts";
 import type { Game } from "@stl/sim/types.ts";
-import { conditionMet, isTracked } from "@stl/sim/wiki/achievement-track.ts";
+import { conditionMet, isTracked } from "@stl/sim/rules/achievement-track.ts";
 import { mixBeacons } from "@stl/sim/wiki/beacon-mix.ts";
 import { citedOwns } from "@stl/sim/wiki/cited-events.ts";
 import { emptyPageFor } from "@stl/sim/wiki/filler-events.ts";
@@ -1359,6 +1361,25 @@ function exerciseOffset(
     problems.push(`drawing ${stem} ${layer} offset is not drawn`);
 }
 
+/**
+ * Archive text ids the sim asks for by name (eventText, opt, crewName).
+ * Read from the sim's source: every quoted id-shaped literal outside the tests.
+ */
+let codeIds: string[] | undefined;
+function codeTextIds(): string[] {
+  if (codeIds) return codeIds;
+  const root = new URL("../../../../packages/sim/src/", import.meta.url);
+  const found = new Set<string>();
+  for (const entry of readdirSync(root, { recursive: true, withFileTypes: true })) {
+    if (!entry.isFile() || !entry.name.endsWith(".ts") || entry.name.endsWith(".test.ts")) continue;
+    const text = readFileSync(`${entry.parentPath}/${entry.name}`, "utf8");
+    for (const m of text.matchAll(/["'`]([A-Za-z][A-Za-z0-9]*_[A-Za-z0-9_]+)["'`]/g))
+      found.add(m[1]!);
+  }
+  codeIds = [...found];
+  return codeIds;
+}
+
 /** Text the loaded pack puts on screen. The string check looks for archive sentences inside this. */
 export function shownText(): string {
   const parts: string[] = [];
@@ -1451,6 +1472,7 @@ export function shownText(): string {
   for (const line of verdictArchiveLines()) push(line);
   for (const line of tooltipLines()) push(line);
   push(continueLabel());
+  for (const id of codeTextIds()) push(archivePhrase(id));
   return parts.join("\n");
 }
 

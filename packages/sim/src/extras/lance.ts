@@ -4,7 +4,7 @@ import { cellOccupied, seatKits } from "../layouts.ts";
 import { kitBars, log, noteWeaponManning, rand, sparePower } from "../sim.ts";
 import { ARTILLERY_SHOT_LABEL, artillerySwipeSeconds } from "../wiki/weapons-beam.ts";
 import { isFlakArtillery } from "../rules/artillery.ts";
-import { noteAchieve, noteArtillery } from "../wiki/achieve-notes.ts";
+import { noteAchieve, noteArtillery } from "../rules/achieve-notes.ts";
 import { feedRate } from "./augments.ts";
 import { hackPulseOn } from "./spike.ts";
 import { veilBlocks } from "./veil.ts";

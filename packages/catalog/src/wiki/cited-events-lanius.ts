@@ -37,16 +37,16 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-ship-absorbing-jump-beacon",
     aliases: ["Lanius ship absorbing jump beacon"],
     sectors: ["Abandoned Sector"],
-    body: "You detect a damaged vessel docked with the jump beacon. It appears the Lanius are absorbing metal from the beacon, risking destroying it and becoming stranded.",
+    body: "Damaged Lanius ship docked with the beacon.",
     choices: [
       {
         id: "c:lanius-ship-absorbing-jump-beacon:0",
         // Wiki citations:
         // > "After a long message the translator only able to spurt out \"critical... must... metal...\" You can only surmise they must be desperate for scrap." — [[Lanius ship absorbing jump beacon]]
         // > "You begin to message the ship but it quickly powers on its weapons defensively. It appears to be fully functional and looking for a fight!" — [[Lanius ship absorbing jump beacon]]
-        label: "Ask if they require assistance.",
+        label: "1 in 2: more options. 1 in 2: fight the Lanius ship.",
         // A Lanius ship, or the translator. No odds.
-        fx: [{ k: "note", text: "A Lanius ship, or the translator." }],
+        fx: [{ k: "note", text: "1 in 2: more options. 1 in 2: fight the Lanius ship." }],
       },
       {
         id: "c:lanius-ship-absorbing-jump-beacon:1",
@@ -54,9 +54,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "You prepare to jump as soon as possible. You don't want to be around if they disable this beacon." — [[Lanius ship absorbing jump beacon]]
         // > "Nothing happens." — [[Lanius ship absorbing jump beacon]]
         // > "You make preparations to jump but are surprised when the Lanius ship pulls away from the beacon towards you. It appears to be fully operational!" — [[Lanius ship absorbing jump beacon]]
-        label: "Leave.",
+        label: "3 in 4: nothing happens. 1 in 4: fight the Lanius ship.",
         // Nothing, or a Lanius ship.
-        fx: [{ k: "note", text: "Nothing, or a Lanius ship." }],
+        fx: [{ k: "note", text: "3 in 4: nothing happens. 1 in 4: fight the Lanius ship." }],
       },
       {
         id: "c:lanius-ship-absorbing-jump-beacon:2",
@@ -65,9 +65,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "After a time you are told they were damaged and unable to repair their ship due to a lack of metal. They offer to exchange a piece of their ship's equipment for some scrap or other useful materials." — [[Lanius ship absorbing jump beacon]]
         // > "Decline." — [[Lanius ship absorbing jump beacon]]
         // > "Nothing happens." — [[Lanius ship absorbing jump beacon]]
-        label: "(Lanius Crew) Ask if they require assistance.",
+        label: "More options: trade scrap, missiles or drone parts for an augment.",
         // Decline. Nothing happens. The material trades stay unwired.
-        fx: [{ k: "note", text: "Nothing happens." }],
+        fx: [{ k: "note", text: "More options." }],
       },
       {
         id: "c:lanius-ship-absorbing-jump-beacon:3",
@@ -75,9 +75,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "(Hull Repair Drone) Send a drone to help." — [[Lanius ship absorbing jump beacon]]
         // > "As soon as the drone gets close, a Lanius in a type of spacewalk maneuvering unit grabs it and immediately starts breaking it down for metal. You prepare for a fight but they appear quite grateful for the act. They start to use the metal to repair key portions of their ship. From what you can understand from the translator it appears one of their crew wishes to join you." — [[Lanius ship absorbing jump beacon]]
         // > "You receive a Lanius crewmember." — [[Lanius ship absorbing jump beacon]]
-        label: "(Hull Repair Drone) Send a drone to help.",
+        label: "Gain 1 Lanius crew.",
         // A Lanius crewmember. No drone part is printed.
-        fx: [{ k: "note", text: "A Lanius crewmember." }],
+        fx: [{ k: "note", text: "Gain 1 Lanius crew." }],
       },
     ],
   },
@@ -92,7 +92,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-ship-absorbing-rebel-base",
     aliases: ["Lanius ship absorbing rebel base"],
     sectors: ["Abandoned Sector"],
-    body: "You notice a number of Lanius ships absorbing a forward Rebel base and its automated scouts. They don't seem to be aggressive. Perhaps their desire for metal could prove to be useful?",
+    body: "Lanius ships. Option: delay the fleet.",
     choices: [
       {
         id: "c:lanius-ship-absorbing-rebel-base:0",
@@ -103,9 +103,15 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "Fight a Lanius ship (default Lanius rewards)." — [[Lanius ship absorbing rebel base]]
         // > "You try your best to convey the notion that the approaching Rebel fleet has countless automated ships scouting for them. However, either the translation device has failed or they're simply not interested. They cut the channel and continue to absorb the ships." — [[Lanius ship absorbing rebel base]]
         // > "Nothing happens." — [[Lanius ship absorbing rebel base]]
-        label: "Try to use them to delay the Rebels.",
+        label:
+          "1 in 3: nothing happens. 1 in 3: fight a Lanius ship. 1 in 3: gain medium scrap and resources, fleet delayed 1.",
         // "Medium scrap, a Lanius ship, or nothing."
-        fx: [{ k: "note", text: "Medium scrap and a fleet delay, a Lanius ship, or nothing." }],
+        fx: [
+          {
+            k: "note",
+            text: "1 in 3: nothing happens. 1 in 3: fight a Lanius ship. 1 in 3: gain medium scrap and resources, fleet delayed 1.",
+          },
+        ],
       },
       {
         id: "c:lanius-ship-absorbing-rebel-base:1",
@@ -113,7 +119,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "Leave them alone." — [[Lanius ship absorbing rebel base]]
         // > "You decide it would be better to leave them be." — [[Lanius ship absorbing rebel base]]
         // > "Nothing happens." — [[Lanius ship absorbing rebel base]]
-        label: "Leave them alone.",
+        label: "Nothing happens.",
         // "Nothing happens."
         fx: [{ k: "note", text: "Nothing happens." }],
       },
@@ -123,9 +129,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "(Lanius Crew) Try to use them to delay the Rebels." — [[Lanius ship absorbing rebel base]]
         // > "Your crewmember tells them of the approaching fleet and the number of automated ships they use to scout ahead. They thank you for the tip and prepare to jump in the direction you came. That will hopefully will delay the fleet. You scrap what remains of the Rebel station." — [[Lanius ship absorbing rebel base]]
         // > "You receive medium scrap with resources and Rebel Fleet is delayed for 1 turn." — [[Lanius ship absorbing rebel base]]
-        label: "Try to use them to delay the Rebels.",
+        label: "Gain medium scrap and resources. Fleet delayed 1.",
         // "Lanius crew. Medium scrap and a fleet delay."
-        fx: [{ k: "note", text: "Medium scrap and a fleet delay." }],
+        fx: [{ k: "note", text: "Gain medium scrap and resources. Fleet delayed 1." }],
       },
     ],
   },
@@ -141,16 +147,16 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-craftsmen",
     aliases: ["Lanius craftsmen"],
     sectors: ["Abandoned Sector"],
-    body: "A merchant ship is docked with a Lanius transport. You message them to see if they need any help. It turns out they have been studying the Lanius's ability to reshape metal.",
+    body: "Item seller.",
     choices: [
       {
         id: "c:lanius-craftsmen:0",
         // Wiki citations:
         // > "Inquire about the process." — [[Lanius craftsmen]]
         // > "They respond, \"We haven't the foggiest idea how it works. They appear to meld part of their bodies into the metal and reshape it. They have been willing to demonstrate their ability if you have some extra metal that you would like converted into something.\"" — [[Lanius craftsmen]]
-        label: "Inquire about the process.",
+        label: "More options: buy an augment, weapon or drone for scrap.",
         // The inquiry's crafts and the Lanius discount run in filler-events.ts.
-        fx: [{ k: "note", text: "Nothing happens." }],
+        fx: [{ k: "note", text: "More options." }],
       },
       {
         id: "c:lanius-craftsmen:1",
@@ -158,7 +164,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "Leave them to their research." — [[Lanius craftsmen]]
         // > "While replicating their innate ability would have immeasurable consequences on commercial manufacturing, your mission has a much higher priority at the moment." — [[Lanius craftsmen]]
         // > "Nothing happens." — [[Lanius craftsmen]]
-        label: "Leave them to their research.",
+        label: "Nothing happens.",
         // "Nothing happens."
         fx: [{ k: "note", text: "Nothing happens." }],
       },

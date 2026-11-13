@@ -36,14 +36,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:slug-moons-question",
     aliases: ["Slug moons question"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "You arrive near the distress beacon's signal.",
+    body: "Distress signal. Nebula.",
     choices: [
       {
         id: "c:slug-moons-question:0",
         // Wiki citations:
         // > "Investigate." — [[Slug moons question]]
-        label: "Investigate.",
-        fx: [{ k: "note", text: "The question follows." }],
+        label: "More options.",
+        fx: [{ k: "note", text: "More options." }],
       },
     ],
   },

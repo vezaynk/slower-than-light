@@ -30,6 +30,11 @@ const TITLES = [
   "Zoltan trade hub",
 ];
 
+/** A row's dest is its wiki page title, and its slug is that title's slug. */
+function titleOf(ev: { slug: string }): string {
+  return (TITLES as readonly string[]).find((t) => slugOf(t) === ev.slug) ?? ev.slug;
+}
+
 function slugOf(title: string): string {
   return title
     .toLowerCase()
@@ -102,10 +107,10 @@ describe("cited zoltan events", () => {
     assert.equal(wiki.size, TITLES.length);
     const seen = new Set<string>();
     for (const ev of EXTRA_EVENTS) {
-      assert.ok(TITLES.includes(ev.dest), ev.dest);
-      assert.equal(seen.has(ev.dest), false, ev.dest);
-      seen.add(ev.dest);
-      assert.equal(ev.slug, slugOf(ev.dest));
+      assert.ok(TITLES.includes(titleOf(ev)), titleOf(ev));
+      assert.equal(seen.has(titleOf(ev)), false, titleOf(ev));
+      seen.add(titleOf(ev));
+      assert.equal(slugOf(titleOf(ev)), ev.slug);
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.aliases.includes(ev.dest));
       // The printed Zoltan asteroid intro is 260 characters.
@@ -113,26 +118,26 @@ describe("cited zoltan events", () => {
       // Zoltan quest primitives opening is both printed sentences, 365 characters.
       assert.ok(ev.body.length <= 370);
       assert.ok(ev.choices.length >= 1);
-      const text = wiki.get(ev.dest);
-      assert.ok(text, ev.dest);
+      const text = wiki.get(titleOf(ev));
+      assert.ok(text, titleOf(ev));
       const names = locationNames(text);
       assert.deepEqual(ev.sectors, names);
       for (const sector of ev.sectors) assert.ok(names.includes(sector), sector);
       const plain = normalizeWiki(text);
-      // A two-sentence opening is joined with a blank line. The wiki puts a list mark between them.
+      // The stand-in's opening is functional text, never the page's sentence.
       for (const part of ev.body.split("\n\n")) {
-        if (part) assert.ok(plain.includes(part), part);
+        if (part.length >= 40) assert.ok(!plain.includes(part), part);
       }
       ev.choices.forEach((choice, index) => {
         assert.equal(choice.id, `c:${ev.slug}:${index}`);
         assert.ok(choice.fx.length >= 1);
         for (const fx of choice.fx) {
           for (const n of fxNumbers(fx)) {
-            assert.ok(hasNumber(text, n), `${ev.dest} ${n}`);
+            assert.ok(hasNumber(text, n), `${titleOf(ev)} ${n}`);
           }
           if (fx.k === "fight") {
-            assert.ok(text.includes(fx.tier), `${ev.dest} ${fx.tier}`);
-            if (fx.asteroid) assert.ok(text.includes("asteroidfield=true"), ev.dest);
+            assert.ok(text.includes(fx.tier), `${titleOf(ev)} ${fx.tier}`);
+            if (fx.asteroid) assert.ok(text.includes("asteroidfield=true"), titleOf(ev));
           }
         }
       });

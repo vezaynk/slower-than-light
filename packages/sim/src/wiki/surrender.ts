@@ -50,6 +50,7 @@ import { rollBand } from "./event-bands.ts";
 import { addQuest, questChoose } from "./quests.ts";
 import { stampStockLabels } from "./stock-labels.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
+import { eventText } from "../event-text.ts";
 
 export type SurrenderTier = "low" | "medium" | "high";
 
@@ -83,24 +84,24 @@ export type SurrenderOffer = {
   note?: string;
 };
 
-/** {{DuplicateEvent|3}} on the goods. The printed OR is the three sentences. INFERRED: equal inside that weight. */
+/** {{DuplicateEvent|3}} on the goods. The printed OR is the three sentences (ftl.dat text ids). INFERRED: equal inside that weight. */
 const CRYSTAL_FIGHT_GOODS = [
   // Wiki citations:
   // > "\"Thank you. I hope our early aggression will not prevent a future accord between our peoples.\" They transfer some goods as a means of compensation." — [[Crystal fight#The ship surrenders]]
   // > "They thank you for sparing them, their extreme aggression quickly changing to a calm acceptance. You're not sure if they're mocking you when they dryly state that \"your species has a knack for warfare\"." — [[Crystal fight#The ship surrenders]]
   // > "\"We would like to apologize for our xenophobia. You have shown that aliens can be compassionate, a fact unwritten in our history records. Please, take this.\"" — [[Crystal fight#The ship surrenders]]
-  '"Thank you. I hope our early aggression will not prevent a future accord between our peoples." They transfer some goods as a means of compensation.',
-  "They thank you for sparing them, their extreme aggression quickly changing to a calm acceptance. You're not sure if they're mocking you when they dryly state that \"your species has a knack for warfare\".",
-  '"We would like to apologize for our xenophobia. You have shown that aliens can be compassionate, a fact unwritten in our history records. Please, take this."',
+  "event_CRYSTAL_SHIP_SURRENDER_3_text",
+  "event_CRYSTAL_SHIP_SURRENDER_5_text",
+  "event_CRYSTAL_SHIP_SURRENDER_6_text",
 ];
 
-/** {{DuplicateEvent|2}} on nothing. The printed OR is the two sentences. INFERRED: equal inside that weight. */
+/** {{DuplicateEvent|2}} on nothing. The printed OR is the two sentences (ftl.dat text ids). INFERRED: equal inside that weight. */
 const CRYSTAL_FIGHT_NOTHING = [
   // Wiki citations:
   // > "\"Thank you. We have misjudged you and will not forget your kindness.\" They leave without another word." — [[Crystal fight#The ship surrenders]]
   // > "They respond, \"Good. I'm glad to hear that there are still those who value life throughout the galaxy.\" They abruptly cut communications and prepare to jump away." — [[Crystal fight#The ship surrenders]]
-  '"Thank you. We have misjudged you and will not forget your kindness." They leave without another word.',
-  'They respond, "Good. I\'m glad to hear that there are still those who value life throughout the galaxy." They abruptly cut communications and prepare to jump away.',
+  "event_CRYSTAL_SHIP_SURRENDER_1_text",
+  "event_CRYSTAL_SHIP_SURRENDER_2_text",
 ];
 
 export const ACCEPT_ID = "surrender-accept";
@@ -470,14 +471,10 @@ function crystalFightAccept(g: Game) {
   if (kind === "soldier") {
     // Wiki citations:
     // > "What appears to be a young soldier pushes its way onto the vid screen, \"A captain both able and merciful? I have always wanted to explore beyond our restricted sector... Please, permit me to join your crew?\"" — [[Crystal fight#The ship surrenders]]
-    pageCard(
-      g,
-      'What appears to be a young soldier pushes its way onto the vid screen, "A captain both able and merciful? I have always wanted to explore beyond our restricted sector... Please, permit me to join your crew?"',
-      [
-        { id: "s:crystal-fight:yes", label: "Yes." },
-        { id: "s:crystal-fight:no", label: "No." },
-      ],
-    );
+    pageCard(g, eventText("event_CRYSTAL_SHIP_SURRENDER_7_text"), [
+      { id: "s:crystal-fight:yes", label: eventText("event_CRYSTAL_SHIP_SURRENDER_7_c1_choice") },
+      { id: "s:crystal-fight:no", label: eventText("event_CRYSTAL_SHIP_SURRENDER_7_c2_choice") },
+    ]);
     g.paused = true;
     return;
   }
@@ -489,7 +486,7 @@ function crystalFightAccept(g: Game) {
       CRYSTAL_FIGHT_GOODS[
         Math.min(CRYSTAL_FIGHT_GOODS.length - 1, Math.floor(rand(g) * CRYSTAL_FIGHT_GOODS.length))
       ]!;
-    pageResult(g, line, rollStandard(g));
+    pageResult(g, eventText(line), rollStandard(g));
     return;
   }
   // Wiki citations:
@@ -498,12 +495,7 @@ function crystalFightAccept(g: Game) {
     CRYSTAL_FIGHT_NOTHING[
       Math.min(CRYSTAL_FIGHT_NOTHING.length - 1, Math.floor(rand(g) * CRYSTAL_FIGHT_NOTHING.length))
     ]!;
-  pageResult(
-    g,
-    `${line}
-
-Nothing happens.`,
-  );
+  pageResult(g, eventText(line));
 }
 
 /** choose() routes here first. Returns true when the id was a surrender choice. */
@@ -537,17 +529,17 @@ export function surrenderChoose(g: Game, id: string): boolean {
     // > "You cut off communications and prepare to finish them off." — [[Crystal fight#The ship surrenders]]
     showEventLines(g, [
       plan.event === "crystal-fight"
-        ? "You cut off communications and prepare to finish them off."
+        ? eventText("ship_CRYSTAL_SHIP_surrender_c2_text")
         : plan.event === "the-black-raven"
           ? // Wiki citations:
             // > "\"Wait! There is no need to be....\" You cut off the transmission and prepare to fire." — [[The Black Raven#Fighting the Black Raven]]
             // > "Continue the fight." — [[The Black Raven#Fighting the Black Raven]]
-            '"Wait! There is no need to be...." You cut off the transmission and prepare to fire.'
+            eventText("ship_DONOR_BLACK_RAVEN_surrender_c2_text")
           : plan.event === "crystal-fight-with-surrender-offer-hull-repairs"
-            ? "They wanted to pick a fight with you so that's what they'll get."
+            ? eventText("ship_CRYSTAL_CONVOY_surrender_c2_text")
             : plan.event === "crystal-fight-with-surrender-offer-human-crew"
-              ? "Who knows how many humans will be saved if you kill them now."
-              : "Offer refused. They brace for more.",
+              ? eventText("ship_CRYSTAL_HUNTER_surrender_c2_text")
+              : "Offer refused. The fight continues.",
     ]);
     return true;
   }
@@ -573,10 +565,7 @@ export function surrenderChoose(g: Game, id: string): boolean {
     g.phase = "combat";
     g.paused = false;
     if (joined && plan.event === "crystal-fight-with-surrender-offer-human-crew") {
-      log(
-        g,
-        "They send one of their prisoners over to your ship. They're a bit shaken up and you suspect that they were once a rebel, but they seem to be very glad to be free.",
-      );
+      log(g, eventText("ship_CRYSTAL_HUNTER_surrender_c1_text"));
       log(g, "You receive a Human crewmember and the fight continues.");
     } else if (joined) {
       log(g, `A ${offer.crew} crewmember joins you. The fight continues.`);
@@ -595,8 +584,8 @@ export function surrenderChoose(g: Game, id: string): boolean {
   const base = page?.result
     ? page.result + (weaponName ? ` ${weaponName}.` : "")
     : weaponName
-      ? `They hand over their cargo, and a ${weaponName}.`
-      : "They hand over their cargo and limp away.";
+      ? `Gain ${weaponName}.`
+      : "Surrender accepted.";
   g.reward = {
     scrap: offer.scrap,
     note: [base, ...extras].join(" "),
@@ -916,10 +905,7 @@ function cargoScan(g: Game) {
       between(g, [lo, hi]),
     );
     if (eligible == null) {
-      pageResult(
-        g,
-        "The cargo appears to contain nothing of much interest. You salvage some scrap from the destroyed ship.",
-      );
+      pageResult(g, eventText("event_FLOATING_CARGO_SCAN_LIST_1_text"));
       return;
     }
     const offer: SurrenderOffer = {
@@ -931,39 +917,30 @@ function cargoScan(g: Game) {
       parts: 0,
     };
     offer.scrap = adjustScrap(g, eligible);
-    pageResult(
-      g,
-      "The cargo appears to contain nothing of much interest. You salvage some scrap from the destroyed ship.",
-      offer,
-    );
+    pageResult(g, eventText("event_FLOATING_CARGO_SCAN_LIST_1_text"), offer);
     return;
   }
   if (r === "supplies") {
     // Wiki citations:
     // > "Your Advanced Sensors are able to breach the protective barrier and scan the cargo. It appears to be filled with military supplies! You take everything you can use." — [[Destroyed cargo ship#Scan the boxes]]
     // > "You receive medium scrap with resources." — [[Destroyed cargo ship#Scan the boxes]]
-    pageResult(
-      g,
-      "Your Advanced Sensors are able to breach the protective barrier and scan the cargo. It appears to be filled with military supplies! You take everything you can use.",
-      rollStandard(g, "medium"),
-    );
+    pageResult(g, eventText("event_FLOATING_CARGO_SCAN_LIST_2_text"), rollStandard(g, "medium"));
     return;
   }
   // Wiki citations:
   // > "Your advanced sensors pick up faint life signatures inside the cargo. The life forms appear to be armed. This looks like a planned pirate ambush." — [[Destroyed cargo ship#Scan the boxes]]
   // > "Destroy the crates to prevent another ship from falling victim." — [[Destroyed cargo ship#Scan the boxes]]
   // > "Leave it alone and prepare to jump." — [[Destroyed cargo ship#Scan the boxes]]
-  pageCard(
-    g,
-    "Your advanced sensors pick up faint life signatures inside the cargo. The life forms appear to be armed. This looks like a planned pirate ambush.",
-    [
-      {
-        id: "s:destroyed-cargo-ship:destroy",
-        label: "Destroy the crates to prevent another ship from falling victim.",
-      },
-      { id: "s:destroyed-cargo-ship:leave", label: "Leave it alone and prepare to jump." },
-    ],
-  );
+  pageCard(g, eventText("event_FLOATING_CARGO_SCAN_LIST_3_text"), [
+    {
+      id: "s:destroyed-cargo-ship:destroy",
+      label: eventText("event_FLOATING_CARGO_SCAN_LIST_3_c1_choice"),
+    },
+    {
+      id: "s:destroyed-cargo-ship:leave",
+      label: eventText("event_FLOATING_CARGO_SCAN_LIST_3_c2_choice"),
+    },
+  ]);
 }
 
 export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
@@ -974,19 +951,12 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       // Wiki citations:
       // > "The Engi seem relieved, and eager to get underway. They set off without saying goodbye." — [[Engi surrender]]
       // > "Nothing happens." — [[Engi surrender]]
-      pageResult(
-        g,
-        "The Engi seem relieved, and eager to get underway. They set off without saying goodbye.",
-      );
+      pageResult(g, eventText("event_ENGI_SURRENDER_LIST_1_text"));
     } else {
       // Wiki citations:
       // > "The Engi are satisfied with your explanation. \"Beneficial. Subject goal: long, long journey. Remains compatible with transfer of goods from Engi.\" They send over the gear willingly, and you feel better for it." — [[Engi surrender]]
       // > "You receive a random amount of scrap with resources." — [[Engi surrender]]
-      pageResult(
-        g,
-        'The Engi are satisfied with your explanation. "Beneficial. Subject goal: long, long journey. Remains compatible with transfer of goods from Engi." They send over the gear willingly, and you feel better for it.',
-        rollStandard(g),
-      );
+      pageResult(g, eventText("event_ENGI_SURRENDER_LIST_2_text"), rollStandard(g));
     }
   },
   // Accept their offer of surrender. -> "You receive a random amount of scrap with resources."
@@ -994,11 +964,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "The Engi obediently transfer over the goods and get on their way. Money for nothing." — [[Engi surrender]]
     // > "You receive a random amount of scrap with resources." — [[Engi surrender]]
-    pageResult(
-      g,
-      "The Engi obediently transfer over the goods and get on their way. Money for nothing.",
-      rollStandard(g),
-    );
+    pageResult(g, eventText("event_ENGI_SURRENDER_c2_text"), rollStandard(g));
   },
 
   // ---- "Destroyed cargo ship", Bring it aboard. Four results on the page, no odds (equal, INFERRED). ----
@@ -1009,11 +975,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       // Wiki citations:
       // > "They appear to be filled with military supplies! You take everything you can use and jettison the rest." — [[Destroyed cargo ship]]
       // > "You receive medium scrap with resources." — [[Destroyed cargo ship]]
-      pageResult(
-        g,
-        "They appear to be filled with military supplies! You take everything you can use and jettison the rest.",
-        rollStandard(g, "medium"),
-      );
+      pageResult(g, eventText("event_FLOATING_CARGO_LIST_1_text"), rollStandard(g, "medium"));
     } else if (r === "goods") {
       // Wiki citations:
       // > "The cargo was primarily consumer goods and clothing, nothing particularly useful. You manage to collect some scrap." — [[Destroyed cargo ship]]
@@ -1027,19 +989,13 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
         parts: 0,
       };
       offer.scrap = adjustScrap(g, offer.eligible);
-      pageResult(
-        g,
-        "The cargo was primarily consumer goods and clothing, nothing particularly useful. You manage to collect some scrap.",
-        offer,
-      );
+      pageResult(g, eventText("event_FLOATING_CARGO_LIST_2_text"), offer);
     } else if (r === "boarders") {
       // Wiki citations:
       // > "Once you bring the cargo onto your ship, a pirate bursts out of one of the crates saying, \"Ugh... I was getting cramped in there. Oh, yeah! Prepare to die!\" Immediately after this battle-cry your ship is filled with the sound of crates breaking open..." — [[Destroyed cargo ship]]
       humanBoarders(g, 2, 4);
       beginBoarding(g);
-      showEventLines(g, [
-        'Once you bring the cargo onto your ship, a pirate bursts out of one of the crates saying, "Ugh... I was getting cramped in there. Oh, yeah! Prepare to die!" Immediately after this battle-cry your ship is filled with the sound of crates breaking open...',
-      ]);
+      showEventLines(g, [eventText("event_FLOATING_CARGO_LIST_3_text")]);
     } else {
       // Wiki citations:
       // > "You bring the cargo aboard. Before you have a chance to open them a pirate ship appears out of hiding and charges. At the same time, the crates fly open. Intruders aboard the ship!" — [[Destroyed cargo ship]]
@@ -1054,7 +1010,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       };
       pageFight(
         g,
-        "You bring the cargo aboard. Before you have a chance to open them a pirate ship appears out of hiding and charges. At the same time, the crates fly open. Intruders aboard the ship!",
+        eventText("event_FLOATING_CARGO_LIST_4_text"),
         "Pirate ship",
         "destroyed-cargo-ship",
         escape,
@@ -1082,7 +1038,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // The template's 2-4 and 3-4 are its actual-hull warning, the same reading as the other Pirate rows.
     pageFight(
       g,
-      'You fire on the crates, breaking them open and scattering the pirates into empty space. A pirate ship appears out of nowhere with a message, "You will pay for that!"',
+      eventText("event_FLOATING_CARGO_SCAN_LIST_3_c1_text"),
       "Pirate ship",
       "destroyed-cargo-ship-scan",
     );
@@ -1099,27 +1055,31 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     if (rand(g) < 0.5) {
       // Wiki citations:
       // > "\"Some of our friends have taken to piracy in the recent chaos of the war. We'd like you to \"convince\" them of their poor decision by severely damaging the ship. We'll pay you well as long as you don't kill them all.\"" — [[Settlement mercenary work]]
-      pageCard(
-        g,
-        '"Some of our friends have taken to piracy in the recent chaos of the war. We\'d like you to "convince" them of their poor decision by severely damaging the ship. We\'ll pay you well as long as you don\'t kill them all."',
-        [
-          { id: "s:settlement-mercenary-work:accept", label: "Accept." },
-          { id: "s:settlement-mercenary-work:decline", label: "Decline." },
-        ],
-      );
+      pageCard(g, eventText("event_MERCENARY_WORK_LIST_2_text"), [
+        {
+          id: "s:settlement-mercenary-work:accept",
+          label: eventText("event_MERCENARY_WORK_LIST_2_c1_choice"),
+        },
+        {
+          id: "s:settlement-mercenary-work:decline",
+          label: eventText("event_MERCENARY_WORK_LIST_1_c2_choice"),
+        },
+      ]);
     } else {
       // The space dock offer: "Agree to rescue the store." adds a quest marker (@agent:quests, wiki/quests.ts).
       // Wiki citations:
       // > "\"A space dock is under assault from the Rebels. Although the dock is... technically... illegal within their laws, it's very important for our trade. We'll pay you in fuel and scrap if you promise to save them.\"" — [[Settlement mercenary work]]
       // > "Agree to rescue the store." — [[Settlement mercenary work]]
-      pageCard(
-        g,
-        "\"A space dock is under assault from the Rebels. Although the dock is... technically... illegal within their laws, it's very important for our trade. We'll pay you in fuel and scrap if you promise to save them.\"",
-        [
-          { id: "s:settlement-mercenary-work:dock", label: "Agree to rescue the store." },
-          { id: "s:settlement-mercenary-work:nodock", label: "Decline." },
-        ],
-      );
+      pageCard(g, eventText("event_MERCENARY_WORK_LIST_1_text"), [
+        {
+          id: "s:settlement-mercenary-work:dock",
+          label: eventText("event_MERCENARY_WORK_LIST_1_c1_choice"),
+        },
+        {
+          id: "s:settlement-mercenary-work:nodock",
+          label: eventText("event_MERCENARY_WORK_LIST_1_c2_choice"),
+        },
+      ]);
     }
   },
   // Accept. -> "Fight a Pirate ship." Trivia: "The 'SQUAT_PIRATE_MERCENARY' ship from the settlement never runs away."
@@ -1130,7 +1090,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // > "The \"SQUAT_PIRATE_MERCENARY\" ship from the settlement never runs away." — [[Settlement mercenary work#Trivia]]
     pageFight(
       g,
-      '"Just be sure not to blow them up!" they say nervously as they direct you to a nearby moon. You find the pirate ship docked there. They immediately respond to your appearance with, "Your money or your life!" They must be new to this.',
+      eventText("event_MERCENARY_WORK_LIST_2_c1_text"),
       "Pirate ship",
       "settlement-mercenary-work",
       { ...NEVER_RUN },
@@ -1140,10 +1100,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "\"Fine. I don't know what we'll do about them though...\" You prepare to jump away from this sector." — [[Settlement mercenary work]]
     // > "Nothing happens." — [[Settlement mercenary work]]
-    pageResult(
-      g,
-      "\"Fine. I don't know what we'll do about them though...\" You prepare to jump away from this sector.",
-    );
+    pageResult(g, eventText("event_MERCENARY_WORK_LIST_2_c2_text"));
   },
   // "A quest marker is added to your map." @agent:quests: the space dock rescue (wiki/quests.ts "store-rescue").
   "s:settlement-mercenary-work:dock": (g) => {
@@ -1152,16 +1109,14 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // > "A quest marker is added to your map." — [[Settlement mercenary work]]
     pageResult(
       g,
-      `They transmit the space dock's coordinates.
-
-${addQuest(g, "store-rescue")}`,
+      `${eventText("event_MERCENARY_WORK_LIST_1_c1_text")}\n\n${addQuest(g, "store-rescue")}`,
     );
   },
   "s:settlement-mercenary-work:nodock": (g) => {
     // Wiki citations:
     // > "They regretfully accept your decision." — [[Settlement mercenary work]]
     // > "Nothing happens." — [[Settlement mercenary work]]
-    pageResult(g, "They regretfully accept your decision.");
+    pageResult(g, eventText("event_MERCENARY_WORK_LIST_1_c2_text"));
   },
 
   // ---- "The Black Raven", No. -> the challenge. Both answers fight the Black Raven. ----
@@ -1172,16 +1127,12 @@ ${addQuest(g, "store-rescue")}`,
     // > "Accept his challenge." — [[The Black Raven]]
     // > "Decline." — [[The Black Raven]]
     // > "(Slugman Crew) Engage in a duel of the mind." — [[The Black Raven]]
-    pageCard(
-      g,
-      '"Well I have heard of you and I must see if you are as dangerousss as they say. I challenge you!"',
-      [
-        { id: "s:the-black-raven:accept", label: "Accept his challenge." },
-        { id: "s:the-black-raven:decline", label: "Decline." },
-        // {{Blue Option|Slugman Crew|Engage in a duel of the mind.}}
-        { id: "s:the-black-raven:duel", label: "Engage in a duel of the mind." },
-      ],
-    );
+    pageCard(g, eventText("event_DONOR_BLACK_RAVEN_c1_text"), [
+      { id: "s:the-black-raven:accept", label: eventText("event_DONOR_BLACK_RAVEN_c1_c1_choice") },
+      { id: "s:the-black-raven:decline", label: eventText("event_DONOR_BLACK_RAVEN_c1_c2_choice") },
+      // {{Blue Option|Slugman Crew|Engage in a duel of the mind.}}
+      { id: "s:the-black-raven:duel", label: eventText("event_DONOR_BLACK_RAVEN_c1_c3_choice") },
+    ]);
   },
   // Two results, no odds. INFERRED: equal odds. The win gives a weapon with high scrap; the weapon is unnamed, so
   // Rewards, "Weapon": "A random weapon & T scrap."
@@ -1195,7 +1146,7 @@ ${addQuest(g, "store-rescue")}`,
       // > "Captain Nights' cruiser, the Black Raven, is always a Slug Assault class." — [[The Black Raven#Trivia]]
       pageFight(
         g,
-        "Your Slug crewman's eyes glaze over as the two telepaths concentrate. You can only wonder what is happening. After a short time your comrade grunts in pain and collapses onto the floor, stunned. Nights responds, \"Hah! It'll take more than that to defeat me! Let the real battle begin!\"",
+        eventText("event_DONOR_BLACK_RAVEN_SLUG_1_text"),
         "Slug Assault pirate ship",
         "the-black-raven",
       );
@@ -1208,9 +1159,7 @@ ${addQuest(g, "store-rescue")}`,
       const eligible = between(g, scrapBand(g, "high"));
       pageResult(
         g,
-        `Your Slug crewman's eyes glaze over as the two telepaths concentrate. You are powerless to help, but after a short time your comrade shakes off the daze and appears victorious.
-
-His face contorted with pain, Nights concedes his defeat: "If this is the caliber of subordinatesss you keep, there iss no way we can defeat you. Take thisss and let us leave in shame."`,
+        `${eventText("event_DONOR_BLACK_RAVEN_SLUG_2_text")}\n\n${eventText("event_DONOR_BLACK_RAVEN_SLUG_2_c1_text")}`,
         {
           tier: "high",
           scrap: adjustScrap(g, eligible),
@@ -1223,17 +1172,12 @@ His face contorted with pain, Nights concedes his defeat: "If this is the calibe
       );
     }
   },
-  // INVENTED: the log line (the page goes straight to the fight).
+  // The page goes straight to the fight: no lead-in line.
   "s:the-black-raven:accept": (g) => {
     // Wiki citations:
     // > "Fight the Black Raven." — [[The Black Raven]]
     // > "Captain Nights' cruiser, the Black Raven, is always a Slug Assault class." — [[The Black Raven#Trivia]]
-    pageFight(
-      g,
-      "Captain Nights accepts. The Black Raven moves in.",
-      "Slug Assault pirate ship",
-      "the-black-raven",
-    );
+    pageFight(g, "", "Slug Assault pirate ship", "the-black-raven");
   },
   "s:the-black-raven:decline": (g) => {
     // Wiki citations:
@@ -1242,7 +1186,7 @@ His face contorted with pain, Nights concedes his defeat: "If this is the calibe
     // > "Captain Nights' cruiser, the Black Raven, is always a Slug Assault class." — [[The Black Raven#Trivia]]
     pageFight(
       g,
-      '"I sssee... However you have no choice in the matter!" They move in to attack.',
+      eventText("event_DONOR_BLACK_RAVEN_c1_c2_text"),
       "Slug Assault pirate ship",
       "the-black-raven",
     );
@@ -1257,13 +1201,11 @@ His face contorted with pain, Nights concedes his defeat: "If this is the calibe
     const joined = joinCrew(g, "Crystal");
     pageResult(
       g,
-      joined
-        ? `"Great!" As he brings his few belongings on board, you wonder how a being made of crystal can move with such lightness and enthusiasm.
-
-You receive a Crystal crewmember.`
-        : `"Great!" As he brings his few belongings on board, you wonder how a being made of crystal can move with such lightness and enthusiasm.
-
-There is no room aboard for their crewmember.`,
+      `${eventText("event_CRYSTAL_SHIP_SURRENDER_7_c1_text")}\n\n${
+        joined
+          ? "You receive a Crystal crewmember."
+          : "There is no room aboard for their crewmember."
+      }`,
     );
   },
   // Crystal fight, Accept, No. "a random amount of resources with some scrap."
@@ -1272,11 +1214,7 @@ There is no room aboard for their crewmember.`,
     // > "\"I understand. We did try to kill you...\" They transfer some materials over before leaving." — [[Crystal fight#The ship surrenders]]
     // > "You receive a random amount of resources with some scrap." — [[Crystal fight#The ship surrenders]]
     closeFight(g);
-    pageResult(
-      g,
-      '"I understand. We did try to kill you..." They transfer some materials over before leaving.',
-      rollStandard(g),
-    );
+    pageResult(g, eventText("event_CRYSTAL_SHIP_SURRENDER_7_c2_text"), rollStandard(g));
   },
 
   // ---- "Zoltan ship asks to dock", Dock with them. Two results on the page. ----
@@ -1288,7 +1226,7 @@ There is no room aboard for their crewmember.`,
       // "Fight a Zoltan ship." "never tries to escape" (Zoltan ships never run in rules/escape.ts already).
       pageFight(
         g,
-        "You allow them to approach, but are caught unaware when they open fire!",
+        eventText("event_ZOLTAN_SCIENCE_DOCK_LIST_1_text"),
         "Zoltan ship",
         "zoltan-ship-asks-to-dock",
         { ...NEVER_RUN },
@@ -1300,7 +1238,7 @@ There is no room aboard for their crewmember.`,
       // "You receive medium (fuel: 2-4 ; missiles: 2-4 ; drone parts: 1) resources with some scrap." (Rewards#Stuff)
       pageResult(
         g,
-        "We have been studying the relationships between the species and have determined that the 'Federation' still has potential to be a net positive for the galaxy. Please accept this gift to aid your journey.",
+        eventText("event_ZOLTAN_SCIENCE_DOCK_LIST_2_text"),
         rollSurrenderOffer(g, "medium", true),
       );
     }

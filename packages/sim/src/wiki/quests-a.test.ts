@@ -10,6 +10,7 @@ import { addQuest } from "./quests.ts";
 import { markRuwenEntry } from "./ruwen-entry.ts";
 import { joinCrew } from "./surrender.ts";
 import { placeIn } from "../fixtures.ts";
+import { eventText } from "../event-text.ts";
 
 function here(g: Game): Beacon {
   return g.beacons.find((b) => b.id === g.here)!;
@@ -164,7 +165,7 @@ describe("quest openers (quests-a)", () => {
     assert.deepEqual(ids(g), ["qa:rock-sun:fight"]);
     choose(g, "qa:rock-sun:fight");
     const sun =
-      "The Rock ship starts to power up their FTL drive. If we're going to earn their trust we must endure the heat for as long as they can!";
+      eventText("ship_ROCK_UNLOCK2_escape_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, sun);
     assert.equal(g.log.includes(sun), false);
@@ -180,7 +181,7 @@ describe("quest openers (quests-a)", () => {
     g.enemyEscape!.seconds = 0;
     for (let i = 0; i < 5 && g.phase === "combat"; i++) step(g, 1 / 30);
     assert.equal(g.phase, "event");
-    assert.ok(g.event!.body.startsWith("As they jump away"));
+    assert.ok(g.event!.body.startsWith(eventText("ship_ROCK_UNLOCK2_gotaway_text")));
     choose(g, "ack");
     g.player.hull = 1;
     goToQuest(g, "rock-shipyard");
@@ -198,14 +199,14 @@ describe("quest openers (quests-a)", () => {
     goToQuest(g, "rock-sun");
     choose(g, "qa:rock-sun:fight");
     const sun =
-      "The Rock ship starts to power up their FTL drive. If we're going to earn their trust we must endure the heat for as long as they can!";
+      eventText("ship_ROCK_UNLOCK2_escape_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, sun);
     assert.equal(g.log.includes(sun), false);
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
     choose(g, "ship-resume");
     winByHull(g);
-    assert.ok(g.event!.body.startsWith("Their ship breaks apart"));
+    assert.ok(g.event!.body.startsWith(eventText("ship_ROCK_UNLOCK2_destroyed_text")));
     assert.equal(questBeacon(g, "rock-shipyard"), undefined);
   });
 
@@ -400,7 +401,7 @@ describe("quest openers (quests-a)", () => {
     const ruwen = g.crew.find((c) => c.name === "Ruwen");
     assert.ok(ruwen);
     assert.equal(ruwen.kin, "crystal");
-    assert.ok(g.event!.body.includes("I've never seen a cryogenic system like this"));
+    assert.ok(g.event!.body.includes(eventText("event_ZOLTAN_CREW_STUDY_c4_text")));
   });
 
   it("Ancient device, Scrap it: high scrap, or a Rock ship", () => {
@@ -440,7 +441,7 @@ describe("quest openers (quests-a)", () => {
     choose(g, "qa:uzt:go");
     assert.equal(g.enemy, null);
     assert.equal(g.scrap, scrap);
-    assert.ok(g.event!.body.startsWith("You power down your weapons"));
+    assert.ok(g.event!.body.startsWith(eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_c2_text")));
   });
 
   it("Unarmed Zoltan transport: hear them out -> marker; the bloodless answer unlocks the Zoltan Cruiser", () => {
@@ -508,7 +509,7 @@ describe("quest openers (quests-a)", () => {
     addQuest(g, "zoltan-peace");
     goToQuest(g, "zoltan-peace");
     choose(g, "qa:peace:attack");
-    const lead = "You power your weapons and prepare to fight.";
+    const lead = eventText("event_ZOLTAN_PEACE_QUEST2_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);
@@ -536,7 +537,7 @@ describe("quest openers (quests-a)", () => {
       return x.phase === "event" && x.enemy != null && x.event?.choices[0]?.id === "ship-resume";
     });
     const lead =
-      'As soon as you dock, pirates burst on board and a hostile ship appears on the radar. You hear the Zoltans yell in the distance, "We\'re being held hostage!"';
+      eventText("event_ZOLTAN_CREW_STUDY_LIST_3_text");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);
     choose(g, "ship-resume");
@@ -545,7 +546,7 @@ describe("quest openers (quests-a)", () => {
     assert.equal(g.enemyEscape!.mode, "never");
     assert.equal(g.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length, 2);
     winByHull(g);
-    assert.ok(g.event!.body.startsWith("You take out the ship"));
+    assert.ok(g.event!.body.startsWith(eventText("ship_PIRATE_ZOLTAN_CREW_STUDY_destroyed_text")));
     assert.deepEqual(ids(g), ["qa:zrf:thanks"]);
     const scrap = g.scrap;
     choose(g, "qa:zrf:thanks");
@@ -618,7 +619,7 @@ describe("quest openers (quests-a)", () => {
     const hand = structuredClone(g);
     const augs = hand.augments.length;
     choose(hand, "qa:bride:hand");
-    assert.ok(hand.event!.body.includes("exotic piece of technology"));
+    assert.ok(hand.event!.body.includes(eventText("event_ROCK_QUEST_MARRIAGE_c1_c1_text")));
     assert.equal(
       hand.augments.length + (hand.overflow ?? []).filter((x) => x.kind === "augment").length,
       augs + 1,
@@ -626,7 +627,7 @@ describe("quest openers (quests-a)", () => {
     g.crew = g.crew.filter((c) => c.side === "player").slice(0, 3);
     choose(g, "qa:bride:refuse");
     const lead =
-      "\"I was led to believe your kind did not know mercy. I will join you. But quickly, we must jump away - they will not tolerate...\" She's interrupted by weapons fire from the Basilisk's escort!";
+      eventText("event_ROCK_QUEST_MARRIAGE_c1_c2_text");
     assert.equal(g.phase, "event");
     assert.ok(g.event?.body.includes(lead), g.event?.body);
     assert.equal(g.log.includes(lead), false);
@@ -635,6 +636,6 @@ describe("quest openers (quests-a)", () => {
     assert.equal(g.enemy!.faction, "rock");
     choose(g, "ship-resume");
     winByHull(g);
-    assert.ok(g.event!.body.startsWith("His escort eliminated"));
+    assert.ok(g.event!.body.startsWith(eventText("ship_ROCK_QUEST_MARRIAGE_destroyed_text")));
   });
 });

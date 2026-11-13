@@ -8,8 +8,9 @@ import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
 import { printedBand, rollBand, upgradeRows } from "./event-bands.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
 
-const DULL = "nothing of much interest";
+const DULL = () => eventText("event_FLOATING_CARGO_SCAN_LIST_1_text");
 const GULP = "cargo hold";
 const THANKS = "scrap in exchange";
 const WOW = "repair part of your hull";
@@ -53,7 +54,7 @@ function dullSeed(): number {
   for (let seed = 1; seed <= 80; seed++) {
     const g = scan(seed);
     choose(g, "c:destroyed-cargo-ship:2");
-    if ((g.event?.body ?? "").includes(DULL)) return seed;
+    if ((g.event?.body ?? "").includes(DULL())) return seed;
   }
   assert.fail("no dull scan");
 }
@@ -261,6 +262,7 @@ describe("printed bands", () => {
     assert.ok(paltry.scrap >= 20 && paltry.scrap <= 30, `scrap ${paltry.scrap}`);
     assert.equal(paltry.player.parts, 0);
     assert.notEqual(paltry.seed, paltrySeed);
+    assert.ok(paltry.event?.body.includes(eventText("event_MERCHANT_DELIVER_LIST_2_c1_text")));
 
     rewrite("merchant-s-request", [{ id: "paltry", k: "scrap", lo: 12, hi: 12 }]);
     const fixed = createGame(2);
@@ -271,7 +273,6 @@ describe("printed bands", () => {
     assert.equal(fixed.scrap, 22);
     assert.equal(fixed.player.parts, 0);
     assert.equal(fixed.seed, fixedSeed);
-    assert.match(fixed.event?.body ?? "", /You drop the parts off/);
     assert.match(fixed.event?.body ?? "", /Drone parts: -5\./);
     assert.match(fixed.event?.body ?? "", /Scrap: 12\./);
 
@@ -284,7 +285,7 @@ describe("printed bands", () => {
     assert.equal(gone.scrap, 10);
     assert.equal(gone.player.parts, 0);
     assert.equal(gone.seed, goneSeed);
-    assert.match(gone.event?.body ?? "", /You drop the parts off/);
+    assert.ok((gone.event?.body ?? "").includes(eventText("event_MERCHANT_DELIVER_LIST_2_c1_text")));
     assert.match(gone.event?.body ?? "", /Drone parts: -5\./);
     assert.equal((gone.event?.body ?? "").includes("Scrap:"), false);
 
@@ -363,7 +364,7 @@ describe("printed bands", () => {
     choose(campaign, "c:destroyed-cargo-ship:2");
     const gained = campaign.scrap - 10;
     assert.ok(gained >= 20 && gained <= 35, `scrap ${gained}`);
-    assert.match(campaign.event?.body ?? "", /nothing of much interest/);
+    assert.ok((campaign.event?.body ?? "").includes(DULL()));
 
     rewrite("destroyed-cargo-ship", [{ id: "scan", k: "scrap", lo: 8, hi: 8 }]);
     const fixed = scan(seed);
@@ -374,8 +375,8 @@ describe("printed bands", () => {
     assert.equal(fixed.scrap, 18);
     assert.equal(gone.scrap, 10);
     assert.equal(fixed.seed, gone.seed);
-    assert.match(fixed.event?.body ?? "", /nothing of much interest/);
-    assert.match(gone.event?.body ?? "", /nothing of much interest/);
+    assert.ok((fixed.event?.body ?? "").includes(DULL()));
+    assert.ok((gone.event?.body ?? "").includes(DULL()));
     assert.equal((gone.event?.body ?? "").includes("Scrap:"), false);
   });
 

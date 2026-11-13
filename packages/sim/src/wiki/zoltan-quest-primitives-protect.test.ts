@@ -4,9 +4,10 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
 
 const LEAD =
-  "These creatures should be left to develop at their own pace. You direct all weapons on the Rebel ship and begin the firing sequence.";
+  eventText("event_ZOLTAN_QUEST_PRIMITIVES_c1_c2_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

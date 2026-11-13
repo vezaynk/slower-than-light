@@ -244,7 +244,7 @@ describe("Skipped blue options", () => {
     const ruwen = g.crew.find((c) => c.name === "Ruwen");
     assert.ok(ruwen);
     assert.equal(ruwen?.kin, "crystal");
-    assert.match(g.event?.body ?? "", /cryogenic system/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_ZOLTAN_CREW_STUDY_c4_text")));
     assert.doesNotMatch(g.event?.body ?? "", /lose the augment/i);
   });
 

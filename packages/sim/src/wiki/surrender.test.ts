@@ -23,6 +23,7 @@ import {
   rollSurrenderOffer,
   surrenderOfferView,
 } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 function run(g: Game, seconds: number) {
   for (let i = 0; i < Math.round(seconds * 30) && g.phase === "combat"; i++) step(g, 1 / 30);
@@ -479,7 +480,7 @@ describe("scripted surrenders (event pages)", () => {
     const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-human-crew");
     offer(g);
     const crew = g.crew.filter((c) => c.side === "player").length;
-    const line = "Who knows how many humans will be saved if you kill them now.";
+    const line = eventText("ship_CRYSTAL_HUNTER_surrender_c2_text");
     choose(g, REFUSE_ID);
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -532,7 +533,7 @@ describe("scripted surrenders (event pages)", () => {
   it("hull repairs: refusing shows their line on the card and the fight continues", () => {
     const g = eventFight("Crystal ship", "crystal-fight-with-surrender-offer-hull-repairs");
     offer(g);
-    const line = "They wanted to pick a fight with you so that's what they'll get.";
+    const line = eventText("ship_CRYSTAL_CONVOY_surrender_c2_text");
     choose(g, REFUSE_ID);
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

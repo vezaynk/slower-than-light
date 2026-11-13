@@ -8,6 +8,7 @@ import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
 import { ACCEPT_ID, PAGE_CHOICES, REFUSE_ID } from "./surrender.ts";
 import { placeIn } from "../fixtures.ts";
+import { eventText } from "../event-text.ts";
 
 /** Weapons held anywhere: rack, cargo, or a make-room choice. Rewards, "Weapon": "A random weapon & T scrap." */
 function weaponsHeld(g: Game): number {
@@ -168,7 +169,7 @@ describe("Zoltan ship asks to dock", () => {
       const g = arrive(seed, "Zoltan Controlled Sector", "Zoltan ship asks to dock");
       const s0 = snap(g);
       choose(g, "c:zoltan-ship-asks-to-dock:0");
-      const dockLead = "You allow them to approach, but are caught unaware when they open fire!";
+      const dockLead = eventText("event_ZOLTAN_SCIENCE_DOCK_LIST_1_text");
       const dockFight =
         g.phase === "combat" ||
         (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
@@ -236,7 +237,7 @@ describe("Settlement mercenary work", () => {
       }
       choose(g, "s:settlement-mercenary-work:accept");
       const job =
-        '"Just be sure not to blow them up!" they say nervously as they direct you to a nearby moon. You find the pirate ship docked there. They immediately respond to your appearance with, "Your money or your life!" They must be new to this.';
+        eventText("event_MERCENARY_WORK_LIST_2_c1_text");
       assert.equal(g.phase, "event");
       assert.equal(g.event?.body, job);
       assert.equal(g.log.includes(job), false);
@@ -287,7 +288,7 @@ describe("The Black Raven", () => {
     );
     choose(g, "s:the-black-raven:decline");
     const challenge =
-      '"I sssee... However you have no choice in the matter!" They move in to attack.';
+      eventText("event_DONOR_BLACK_RAVEN_c1_c2_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, challenge);
     assert.equal(g.log.includes(challenge), false);
@@ -316,7 +317,7 @@ describe("The Black Raven", () => {
     // > "\"Wait! There is no need to be....\" You cut off the transmission and prepare to fire." — [[The Black Raven#Fighting the Black Raven]]
     // > "Continue the fight." — [[The Black Raven#Fighting the Black Raven]]
     const cut =
-      '"Wait! There is no need to be...." You cut off the transmission and prepare to fire.';
+      eventText("ship_DONOR_BLACK_RAVEN_surrender_c2_text");
     const g = arrive(5, "Slug Home Nebula", "The Black Raven");
     choose(g, "c:the-black-raven:0");
     choose(g, "s:the-black-raven:decline");
@@ -355,7 +356,7 @@ describe("Destroyed cargo ship", () => {
       const ambushText =
         "You bring the cargo aboard. Before you have a chance to open them a pirate ship appears out of hiding and charges. At the same time, the crates fly open. Intruders aboard the ship!";
       const crateText =
-        'Once you bring the cargo onto your ship, a pirate bursts out of one of the crates saying, "Ugh... I was getting cramped in there. Oh, yeah! Prepare to die!" Immediately after this battle-cry your ship is filled with the sound of crates breaking open...';
+        eventText("event_FLOATING_CARGO_LIST_3_text");
       if ((g.phase === "combat" || resume) && g.enemy) {
         seen.add("ambush");
         assert.equal(g.event?.body, ambushText);

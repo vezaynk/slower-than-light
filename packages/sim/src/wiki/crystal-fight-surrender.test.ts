@@ -4,6 +4,7 @@ import { choose, createGame, startCombat, step } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { surrenderPlan } from "../rules/surrender.ts";
 import { ACCEPT_ID, REFUSE_ID } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 const HAILS = [
   '"We yield, aliens. We have no wish to die fighting you."',
@@ -78,7 +79,7 @@ describe("Crystal fight surrender", () => {
   it("ignoring them shows the cut-off card and the fight continues", () => {
     // Wiki citations:
     // > "You cut off communications and prepare to finish them off." — [[Crystal fight#The ship surrenders]]
-    const cut = "You cut off communications and prepare to finish them off.";
+    const cut = eventText("ship_CRYSTAL_SHIP_surrender_c2_text");
     const g = quiet(4);
     offer(g);
     choose(g, REFUSE_ID);
@@ -109,7 +110,7 @@ describe("Crystal fight surrender", () => {
       offer(g);
       choose(g, ACCEPT_ID);
       const body = g.event?.body ?? "";
-      if (/young soldier/.test(body)) {
+      if (body === eventText("event_CRYSTAL_SHIP_SURRENDER_7_text")) {
         seen.add("soldier");
         assert.equal(g.enemy?.faction, "crystal");
         assert.equal(g.scrap, 10);
@@ -120,7 +121,7 @@ describe("Crystal fight surrender", () => {
         if (!seen.has("decline")) {
           choose(g, "s:crystal-fight:no");
           seen.add("decline");
-          assert.match(g.event?.body ?? "", /I understand/);
+          assert.ok((g.event?.body ?? "").includes(eventText("event_CRYSTAL_SHIP_SURRENDER_7_c2_text")));
           assert.ok(g.scrap > 10);
           assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
         } else {
@@ -132,9 +133,7 @@ describe("Crystal fight surrender", () => {
         }
         assert.equal(g.enemy, null);
       } else if (
-        /transfer some goods/.test(body) ||
-        /knack for warfare/.test(body) ||
-        /xenophobia/.test(body)
+        [3, 5, 6].some((n) => body.includes(eventText(`event_CRYSTAL_SHIP_SURRENDER_${n}_text`)))
       ) {
         seen.add("goods");
         assert.ok(g.scrap > 10);
@@ -142,7 +141,7 @@ describe("Crystal fight surrender", () => {
         assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
       } else {
         seen.add("nothing");
-        assert.match(body, /Nothing happens/);
+        assert.ok([1, 2].some((n) => body.includes(eventText(`event_CRYSTAL_SHIP_SURRENDER_${n}_text`))), body);
         assert.equal(g.scrap, 10);
         assert.equal(g.enemy, null);
       }

@@ -19,11 +19,13 @@ const HIDES = [
   "Stay out of their way and charge your FTL drive.",
 ];
 const BRIBES = [
-  "easily swayed",
+  eventText("text_REBEL_BRIBE_TEXT_1"),
   eventText("text_REBEL_BRIBE_TEXT_2"),
   eventText("text_REBEL_BRIBE_TEXT_3"),
   eventText("text_REBEL_BRIBE_TEXT_4"),
 ];
+/** The four printed bribe lines; they may share one archive line. */
+const BRIBE_LINES = new Set(BRIBES).size;
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -92,7 +94,7 @@ describe("Rebel checkpoint", () => {
 
     const texts = new Set<string>();
     const ends = new Set<string>();
-    for (let seed = 1; seed <= 80 && (texts.size < 4 || ends.size < 4); seed++) {
+    for (let seed = 1; seed <= 80 && (texts.size < BRIBE_LINES || ends.size < 4); seed++) {
       const g = createGame(seed);
       open(g);
       g.scrap = 40;
@@ -113,8 +115,9 @@ describe("Rebel checkpoint", () => {
       const fighting =
         g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
       if (fighting) {
-        assert.match(g.event?.body ?? "", /eavesdropping Rebel/);
-        assert.equal(/eavesdropping Rebel/.test(g.log.join("\n")), false);
+        const lead = eventText("event_REBEL_BRIBE_RESULT_4_text");
+        assert.ok((g.event?.body ?? "").includes(lead));
+        assert.equal(g.log.includes(lead), false);
         choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
         assert.equal(g.enemy?.faction, "rebel");
@@ -135,16 +138,16 @@ describe("Rebel checkpoint", () => {
       const gained = g.scrap - (40 - cost);
       assert.ok(gained >= 7 && gained <= 10, String(gained));
       const resources = g.fuel !== fuel || g.missiles !== missiles || g.player.parts !== parts;
-      if (paid.includes("military supplies")) {
+      if (resources) {
+        assert.ok(paid.includes(eventText("event_REBEL_BRIBE_RESULT_3_text")), paid);
         assert.equal(resources, true);
         ends.add("standard");
       } else {
-        assert.match(paid, /excess scrap/);
-        assert.equal(resources, false);
+        assert.ok(paid.includes(eventText("event_REBEL_BRIBE_RESULT_2_text")), paid);
         ends.add("scrap");
       }
     }
-    assert.equal(texts.size, 4);
+    assert.equal(texts.size, BRIBE_LINES);
     assert.equal(ends.size, 4);
   });
 });

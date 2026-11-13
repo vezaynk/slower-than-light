@@ -75,7 +75,7 @@ describe("Trade: supplies for scrap (Lanius)", () => {
       assert.equal(g.phase, "event");
       assert.equal(
         g.event?.body,
-        `After the exchange is complete they leave without a word.\n\nScrap: ${got.scrap}.`,
+        `${eventText("event_LANIUS_TRADER_LIST_1_text")}\n\nScrap: ${got.scrap}.`,
       );
       assert.equal(g.log.includes(`Scrap: ${got.scrap}.`), false);
       assert.equal(g.event?.choices[0]?.id, "ack");
@@ -103,7 +103,10 @@ describe("Trade: supplies for scrap (Lanius)", () => {
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, scrap);
     assert.equal(g.fuel, fuel);
-    assert.equal(g.event?.body, [eventText("event_LANIUS_TRADER_c2_text"), "Nothing happens."].join("\n\n"));
+    assert.equal(
+      g.event?.body,
+      [eventText("event_LANIUS_TRADER_c2_text"), "Nothing happens."].join("\n\n"),
+    );
   });
 
   it("a short offer stays closed", () => {
@@ -146,14 +149,14 @@ describe("Trade: supplies for scrap (Lanius)", () => {
       assert.equal(choiceDisabled(g, "c:lanius-trader:4"), null);
       choose(g, "c:lanius-trader:4");
       const body = g.event?.body ?? "";
-      assert.match(body, /second proposal/);
+      assert.ok(body.startsWith(`${eventText("event_LANIUS_TRADER_c3_text")}\n\n`), body);
       const got = offer(body);
       inBand(got.cost, 3, 7);
       inBand(got.scrap, BETTER[got.res]![0], BETTER[got.res]![1]);
       assert.equal(g.scrap, 10);
       assert.deepEqual(
         g.event?.choices.map((c) => c.label),
-        ["Agree to the exchange.", "Decline"],
+        [eventText("event_LANIUS_TRADER_c1_choice"), eventText("event_LANIUS_TRADER_c2_choice")],
       );
       const fuel = g.fuel;
       const missiles = g.missiles;
@@ -162,7 +165,7 @@ describe("Trade: supplies for scrap (Lanius)", () => {
       assert.equal(g.phase, "event");
       assert.equal(
         g.event?.body,
-        `After the exchange is complete they leave without a word.\n\nScrap: ${got.scrap}.`,
+        `${eventText("event_LANIUS_TRADER_LIST_1_text")}\n\nScrap: ${got.scrap}.`,
       );
       assert.equal(g.log.includes(`Scrap: ${got.scrap}.`), false);
       assert.equal(g.event?.choices[0]?.id, "ack");

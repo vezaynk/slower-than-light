@@ -69,7 +69,12 @@ describe("Optional fight: Lanius ship and Auto-ship", () => {
       const crew = g.crew.filter((c) => c.side === "player").length;
       assert.equal(pageWin(g, "lanius-ship-absorbing-automated-scout", dead), true);
       const body = g.event?.body ?? "";
-      assert.match(body, dead ? /No more life signs/ : textRe("ship_LANIUS_AUTO_REBEL_destroyed_text", "ship_LANIUS_CIVILIAN_destroyed_text"));
+      assert.match(
+        body,
+        dead
+          ? textRe("ship_LANIUS_AUTO_REBEL_deadCrew_text")
+          : textRe("ship_LANIUS_AUTO_REBEL_destroyed_text", "ship_LANIUS_CIVILIAN_destroyed_text"),
+      );
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.ok(paid[0]! >= (dead ? 19 : 12) && paid[0]! <= (dead ? 23 : 19), body);
@@ -122,11 +127,11 @@ describe("Optional fight: Lanius ship and Auto-ship", () => {
       assert.equal(g.scrap, before + paid[0]!);
       assert.equal(g.player.weapons.length, guns);
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
-      if (/delayed for 1 turn/.test(body)) {
+      if (textRe("event_LANIUS_AUTO_REBEL_LIST_2_text").test(body)) {
         assert.equal(g.fleet, 4);
         seen.add("fleet");
       } else {
-        assert.match(body, /surrounding beacons/);
+        assert.match(body, textRe("event_LANIUS_AUTO_REBEL_LIST_1_text"));
         assert.equal(g.fleet, 5);
         seen.add("map");
       }

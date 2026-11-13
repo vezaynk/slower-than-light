@@ -66,7 +66,9 @@ describe("Trade: supplies for reactor", () => {
       );
       assert.ok(hit >= 0, row.id);
       seenBundle.add(hit);
-      assert.match(row.ev.choices[0].label, /Agree to the trade/);
+      assert.ok(
+        row.ev.choices[0].label.startsWith(eventText("event_TRADER_UPGRADES_EXCHANGE_c1_choice")),
+      );
       assert.equal(row.ev.choices[1].id, "c:improve-reactor-for-supplies:1");
     }
     assert.equal(seenIntro.size, 1);
@@ -88,8 +90,10 @@ describe("Trade: supplies for reactor", () => {
     assert.equal(g.player.parts, 0);
     assert.equal(g.fuel, 0);
     assert.equal(g.player.reactor, reactor + 1);
-    assert.ok((g.event?.body ?? "").includes(eventText("event_TRADER_UPGRADES_EXCHANGE_LIST_1_text")));
-    assert.match(g.event?.body ?? "", /reactor is upgraded/);
+    assert.ok(
+      (g.event?.body ?? "").includes(eventText("event_TRADER_UPGRADES_EXCHANGE_LIST_1_text")),
+    );
+    assert.match(g.event?.body ?? "", /\n\n.*Reactor \+1\./);
   });
 
   it("leaves the card up when a supply is short", () => {

@@ -190,8 +190,7 @@ describe("Optional fight: Auto-ship at station in nebula", () => {
         g.enemy != null && (g.phase === "combat" || g.event?.choices[0]?.id === "ship-resume");
       if (attack) {
         fight = true;
-        const lead =
-          eventText("event_NEBULA_AUTO_DEFENSE_ITEM_HACK_2_text");
+        const lead = eventText("event_NEBULA_AUTO_DEFENSE_ITEM_HACK_2_text");
         assert.ok((g.event?.body ?? "").includes(lead));
         assert.ok((g.event?.body ?? "").includes("Drone parts: -1."));
         assert.equal(g.log.includes(lead), false);
@@ -199,7 +198,13 @@ describe("Optional fight: Auto-ship at station in nebula", () => {
         assert.equal(g.fightEvent, "auto-ship-near-storage-station-in-nebula");
       } else {
         station = true;
-        assert.match(g.event?.body ?? "", textRe("event_NEBULA_AUTO_DEFENSE_ITEM_HACK_1_text", "event_NEBULA_AUTO_DEFENSE_ITEM_c6_text"));
+        assert.match(
+          g.event?.body ?? "",
+          textRe(
+            "event_NEBULA_AUTO_DEFENSE_ITEM_HACK_1_text",
+            "event_NEBULA_AUTO_DEFENSE_ITEM_c6_text",
+          ),
+        );
       }
     }
     assert.equal(fight && station, true);
@@ -221,7 +226,7 @@ describe("Optional fight: Auto-ship at station in nebula", () => {
     choose(improved, "c:auto-ship-near-storage-station-in-nebula:5");
     assert.equal(improved.player.parts, 2);
     assert.equal(improved.phase, "event");
-    assert.match(improved.event?.body ?? "", /completely undetected/);
+    assert.match(improved.event?.body ?? "", textRe("event_NEBULA_AUTO_DEFENSE_ITEM_c6_text"));
     assert.equal(improved.scrap, 10);
     assert.equal(improved.player.weapons.length, guns);
   });

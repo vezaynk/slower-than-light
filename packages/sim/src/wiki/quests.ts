@@ -1914,8 +1914,9 @@ Fuel: ${n}.`,
     const n = rollPrice("FUELING_STATION", "offer", (lo, hi) => between(g, [lo, hi]));
     if (n == null || g.scrap < n) return;
     g.scrap -= n;
-    g.fuel += rollFuel("s:refuel-dock:accept", (lo, hi) => between(g, [lo, hi]));
-    result(g, "", undefined, ["", ""]);
+    const fuel = rollFuel("s:refuel-dock:accept", (lo, hi) => between(g, [lo, hi]));
+    g.fuel += fuel;
+    result(g, "", undefined, [`Scrap: -${n}.`, `Fuel: ${fuel}.`]);
   },
   "s:refuel-dock:reject": (g) => {
     result(g, "Nothing happens.");

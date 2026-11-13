@@ -6,6 +6,7 @@ import { createGame } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
 import "../pack/base.ts";
 import { fillerChoose } from "./filler-events.ts";
+import { textRe } from "./quest-text-re.ts";
 
 const INQUIRE = "c:trade-scrap-for-upgrades:0";
 
@@ -87,7 +88,7 @@ describe("trade scrap table", () => {
     g.player.reactor = 10;
     fillerChoose(g, INQUIRE);
     assert.equal(agree(g), null);
-    assert.match(g.event?.body ?? "", /prepare to move on/);
+    assert.match(g.event?.body ?? "", textRe("event_TRADER_UPGRADES_LIST_1_c3_text"));
     assert.equal(g.scrap, 80);
     assert.equal(g.player.systems.oxygen.level, 1);
   });
@@ -133,7 +134,7 @@ describe("trade scrap table", () => {
     g.player.reactor = 24;
     fillerChoose(g, INQUIRE);
     assert.equal(agree(g), null);
-    assert.match(g.event?.body ?? "", /prepare to move on/);
+    assert.match(g.event?.body ?? "", textRe("event_TRADER_UPGRADES_LIST_1_c3_text"));
     assert.equal(g.scrap, 80);
     assert.equal(g.player.reactor, 24);
   });

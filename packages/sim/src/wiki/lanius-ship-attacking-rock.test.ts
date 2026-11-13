@@ -30,8 +30,7 @@ function resources(body: string): number {
 
 describe("Optional fight: Lanius ship and Rock ship", () => {
   it("attacking shows the Rock distress card and starts a Lanius fight", () => {
-    const lead =
-      eventText("event_LANIUS_ROCK_DISTRESS_c1_text");
+    const lead = eventText("event_LANIUS_ROCK_DISTRESS_c1_text");
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-attacking-rock:0");
@@ -53,7 +52,16 @@ describe("Optional fight: Lanius ship and Rock ship", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "lanius-ship-attacking-rock", dead), true);
       const body = g.event?.body ?? "";
-      assert.match(body, dead ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text") : textRe("event_DESTROYED_DEFAULT_1_text", "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text", "ship_PIRATE_BRIBER_destroyed_text"));
+      assert.match(
+        body,
+        dead
+          ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text")
+          : textRe(
+              "event_DESTROYED_DEFAULT_1_text",
+              "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text",
+              "ship_PIRATE_BRIBER_destroyed_text",
+            ),
+      );
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -87,7 +95,7 @@ describe("Optional fight: Lanius ship and Rock ship", () => {
         assert.equal(g.scrap, before + extra[0]!);
         paid = true;
       } else {
-        assert.match(body, /awkwardly-translated/);
+        assert.match(body, textRe("event_LANIUS_ROCK_DISTRESS_END_1_text"));
         assert.match(body, /Nothing happens/);
         assert.equal(body.includes("Scrap:"), false);
         assert.equal(g.scrap, before);

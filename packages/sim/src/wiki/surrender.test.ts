@@ -261,8 +261,8 @@ describe("surrender in a fight", () => {
     choose(g, REFUSE_ID);
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
-    assert.equal(g.event?.body, "Offer refused. They brace for more.");
-    assert.equal(g.log.includes("Offer refused. They brace for more."), false);
+    assert.equal(g.event?.body, "Offer refused. The fight continues.");
+    assert.equal(g.log.includes("Offer refused. The fight continues."), false);
     assert.ok(g.enemy);
     choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
@@ -465,11 +465,7 @@ describe("scripted surrenders (event pages)", () => {
     assert.equal(mine.length, crew + 1);
     assert.equal(mine.filter((c) => c.kin === "human").length, plain + 1);
     assert.equal(mine[mine.length - 1].kin, "human");
-    assert.ok(
-      g.log.includes(
-        "They send one of their prisoners over to your ship. They're a bit shaken up and you suspect that they were once a rebel, but they seem to be very glad to be free.",
-      ),
-    );
+    assert.ok(g.log.includes(eventText("ship_CRYSTAL_HUNTER_surrender_c1_text")));
     assert.ok(g.log.includes("You receive a Human crewmember and the fight continues."));
     g.enemy!.hull -= 1;
     run(g, 0.5);
@@ -523,11 +519,7 @@ describe("scripted surrenders (event pages)", () => {
     assert.equal(g.player.hull, g.player.hullMax - 4);
     assert.equal(g.fuel, fuel + o.fuel);
     const note = g.reward?.note ?? "";
-    assert.ok(
-      note.includes(
-        "Gain fuel. Repair 8 hull.",
-      ),
-    );
+    assert.ok(note.includes("Gain fuel. Repair 8 hull."));
   });
 
   it("hull repairs: refusing shows their line on the card and the fight continues", () => {
@@ -589,11 +581,7 @@ describe("scripted surrenders (event pages)", () => {
     choose(g, ACCEPT_ID);
     assert.equal(g.phase, "reward");
     const note = g.reward?.note ?? "";
-    assert.ok(
-      note.includes(
-        "Gain a weapon.",
-      ),
-    );
+    assert.ok(note.includes("Gain a weapon."));
     assert.ok(g.player.weapons.some((w) => w.defId === "BEAM_BIO"));
   });
 

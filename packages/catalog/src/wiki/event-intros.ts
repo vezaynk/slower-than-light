@@ -13,13 +13,6 @@ const TRADE_RESOURCE_INTROS = [
   "Trade offer: resources for resources.",
 ];
 
-// Lanius trader. The page prints three intros and no odds. INFERRED: equal.
-const LANIUS_TRADER_INTROS = [
-  "Lanius ship. Trade offer: supplies for scrap.",
-  "Lanius ship. Trade offer: supplies for scrap.",
-  "Lanius ship. Trade offer: supplies for scrap.",
-];
-
 // Pirate fight. The page prints five intros and then a default Pirate ship fight, and it prints no odds.
 // INFERRED: the five intros are equally likely.
 const PIRATE_FIGHT_INTROS = [
@@ -744,7 +737,6 @@ const TRADER_ON = [
 
 export const OPENING_TEXTS: Record<string, readonly string[]> = {
   "trade-resources": TRADE_RESOURCE_INTROS,
-  "lanius-trader": LANIUS_TRADER_INTROS,
   "pirate-fight": PIRATE_FIGHT_INTROS,
   "free-scrap-with-resources": FREE_SCRAP_WITH_RESOURCES_INTROS,
   "pirate-ship-distress-trap": PIRATE_DISTRESS_TRAP_INTROS,

@@ -338,7 +338,7 @@ describe("a fuel list loaded by the wait", () => {
     for (let seed = 1; seed <= 40 && (!traded || !ambush); seed++) {
       const { g } = parked(seed);
       waitHere(g);
-      const accept = g.event?.choices.find((row) => row.label === "Accept.");
+      const accept = g.event?.choices.find((row) => row.label.startsWith("Accept."));
       assert.ok(accept);
       choose(g, accept.id);
       assert.equal(g.fuel, 5);

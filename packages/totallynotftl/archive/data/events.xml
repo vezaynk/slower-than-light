@@ -189,80 +189,28 @@
     <alias>lanius-trader</alias>
     <alias>Lanius trader</alias>
     <sector>LANIUS_SECTOR</sector>
-    <text/>
-    <text>Lanius ship. Trade offer: supplies for scrap.</text>
-    <text>Lanius ship. Trade offer: supplies for scrap.</text>
-    <text>Lanius ship. Trade offer: supplies for scrap.</text>
-    <eventList name="base">
-      <event>
-        <item_modify>
-          <item type="fuel" min="-7" max="-3"/>
-          <item type="scrap" min="15" max="30"/>
-        </item_modify>
-      </event>
-      <event>
-        <item_modify>
-          <item type="missiles" min="-7" max="-3"/>
-          <item type="scrap" min="20" max="40"/>
-        </item_modify>
-      </event>
-      <event>
-        <item_modify>
-          <item type="drones" min="-7" max="-3"/>
-          <item type="scrap" min="20" max="40"/>
-        </item_modify>
-      </event>
-    </eventList>
-    <eventList name="better">
-      <event>
-        <item_modify>
-          <item type="fuel" min="-7" max="-3"/>
-          <item type="scrap" min="20" max="35"/>
-        </item_modify>
-      </event>
-      <event>
-        <item_modify>
-          <item type="missiles" min="-7" max="-3"/>
-          <item type="scrap" min="25" max="50"/>
-        </item_modify>
-      </event>
-      <event>
-        <item_modify>
-          <item type="drones" min="-7" max="-3"/>
-          <item type="scrap" min="25" max="50"/>
-        </item_modify>
-      </event>
-    </eventList>
+    <text load="LANIUS_TRADER_TEXT"/>
     <choice name="c:lanius-trader:0">
-      <text>Lose 3-7 fuel. Gain 15-30 scrap.</text>
-      <item_modify>
-        <item type="fuel" min="-7" max="-3"/>
-      </item_modify>
-      <item_modify>
-        <item type="scrap" min="15" max="30"/>
-      </item_modify>
-    </choice>
-    <choice name="c:lanius-trader:1">
-      <text>Lose 3-7 missiles. Gain 20-40 scrap.</text>
-      <item_modify>
-        <item type="missiles" min="-7" max="-3"/>
-      </item_modify>
-      <item_modify>
-        <item type="scrap" min="20" max="40"/>
-      </item_modify>
-    </choice>
-    <choice name="c:lanius-trader:2">
-      <text>Lose 3-7 drone parts. Gain 20-40 scrap.</text>
-      <item_modify>
-        <item type="drones" min="-7" max="-3"/>
-      </item_modify>
-      <item_modify>
-        <item type="scrap" min="20" max="40"/>
-      </item_modify>
+      <text>Trade.</text>
+      <event load="LANIUS_TRADER_LIST"/>
     </choice>
     <choice name="c:lanius-trader:3">
       <text>Nothing happens.</text>
       <event/>
+    </choice>
+    <choice name="c:lanius-trader:4" hidden="true" req="anaerobic">
+      <text>Ask for a second offer. More choices follow.</text>
+      <event>
+        <text>Second trade offer.</text>
+        <choice name="c:lanius-trader:4:0">
+          <text>Trade.</text>
+          <event load="LANIUS_TRADER_LIST2"/>
+        </choice>
+        <choice name="c:lanius-trader:4:1">
+          <text>Nothing happens.</text>
+          <event/>
+        </choice>
+      </event>
     </choice>
   </event>
   <event name="LANIUS_TRADER_TRANSLATOR">
@@ -272,57 +220,29 @@
     <alias>Lanius Merchant with Improved Translator</alias>
     <alias>Lanius trader with translator</alias>
     <sector>LANIUS_SECTOR</sector>
-    <text/>
-    <eventList name="base">
-      <event>
-        <item_modify>
-          <item type="fuel" min="-7" max="-3"/>
-          <item type="scrap" min="15" max="30"/>
-        </item_modify>
-      </event>
-      <event>
-        <item_modify>
-          <item type="missiles" min="-7" max="-3"/>
-          <item type="scrap" min="20" max="40"/>
-        </item_modify>
-      </event>
-      <event>
-        <item_modify>
-          <item type="drones" min="-7" max="-3"/>
-          <item type="scrap" min="20" max="40"/>
-        </item_modify>
-      </event>
-    </eventList>
+    <text>Lanius ship. Trade offer: supplies for scrap.</text>
     <choice name="c:lanius-trader-with-translator:0">
-      <text>Lose 3-7 fuel. Gain 15-30 scrap.</text>
-      <item_modify>
-        <item type="fuel" min="-7" max="-3"/>
-      </item_modify>
-      <item_modify>
-        <item type="scrap" min="15" max="30"/>
-      </item_modify>
-    </choice>
-    <choice name="c:lanius-trader-with-translator:1">
-      <text>Lose 3-7 missiles. Gain 20-40 scrap.</text>
-      <item_modify>
-        <item type="missiles" min="-7" max="-3"/>
-      </item_modify>
-      <item_modify>
-        <item type="scrap" min="20" max="40"/>
-      </item_modify>
-    </choice>
-    <choice name="c:lanius-trader-with-translator:2">
-      <text>Lose 3-7 drone parts. Gain 20-40 scrap.</text>
-      <item_modify>
-        <item type="drones" min="-7" max="-3"/>
-      </item_modify>
-      <item_modify>
-        <item type="scrap" min="20" max="40"/>
-      </item_modify>
+      <text>Trade.</text>
+      <event load="LANIUS_TRADER_LIST"/>
     </choice>
     <choice name="c:lanius-trader-with-translator:3">
       <text>Nothing happens.</text>
       <event/>
+    </choice>
+    <choice name="c:lanius-trader-with-translator:4" hidden="true">
+      <text>Ask about the translator. More choices follow.</text>
+      <event>
+        <text>Offer: 1 Lanius crew for 40 scrap.</text>
+        <choice name="c:lanius-trader-with-translator:4:0" hidden="true">
+          <text>Lose 40 scrap. Gain 1 Lanius crew.</text>
+          <req><item_modify><item type="scrap" min="-40" max="-40"/></item_modify>Need 40 scrap</req>
+          <event load="LANIUS_TRANSLATOR_HIRE"/>
+        </choice>
+        <choice name="c:lanius-trader-with-translator:4:1">
+          <text>Nothing happens.</text>
+          <event/>
+        </choice>
+      </event>
     </choice>
   </event>
   <event name="QUEST_MANTIS_INVASION_START">
@@ -3132,11 +3052,6 @@
       <req><item_modify><item type="drones" min="-1" max="-1"/></item_modify>Need 1 drone part</req>
       <event/>
     </choice>
-    <choice name="c:lanius-trader:4" owner="quest">
-      <text>c:lanius-trader:4</text>
-      <req><crewMember name="anaerobic"/>Needs a Lanius crewmember</req>
-      <event/>
-    </choice>
     <choice name="c:space-station-under-construction:2" owner="quest">
       <text>c:space-station-under-construction:2</text>
       <req><crewMember name="anaerobic"/>Needs a Lanius crewmember</req>
@@ -3150,11 +3065,6 @@
     <choice name="q:lanius-dormant:autopilot" owner="quest">
       <text>q:lanius-dormant:autopilot</text>
       <req req="pilot" lvl="2">Needs level 2 Piloting</req>
-      <event/>
-    </choice>
-    <choice name="q:lanius-translator:buy" owner="quest">
-      <text>q:lanius-translator:buy</text>
-      <req><item_modify><item type="scrap" min="-40" max="-40"/></item_modify>Need 40 scrap</req>
       <event/>
     </choice>
     <choice name="c:auto-ship-near-sensor-station:2" owner="quest">
@@ -3621,6 +3531,79 @@
     <text>Nothing happens.</text>
     <text>Nothing happens.</text>
   </event>
+  <event name="LANIUS_TRADER_LIST_FUEL">
+    <title>LANIUS_TRADER_LIST_FUEL</title>
+    <text>Trade complete.</text>
+    <item_modify>
+      <item type="fuel" min="-7" max="-3"/>
+    </item_modify>
+    <item_modify>
+      <item type="scrap" min="15" max="30"/>
+    </item_modify>
+  </event>
+  <event name="LANIUS_TRADER_LIST_MISSILES">
+    <title>LANIUS_TRADER_LIST_MISSILES</title>
+    <text>Trade complete.</text>
+    <item_modify>
+      <item type="missiles" min="-7" max="-3"/>
+    </item_modify>
+    <item_modify>
+      <item type="scrap" min="20" max="40"/>
+    </item_modify>
+  </event>
+  <event name="LANIUS_TRADER_LIST_PARTS">
+    <title>LANIUS_TRADER_LIST_PARTS</title>
+    <text>Trade complete.</text>
+    <item_modify>
+      <item type="drones" min="-7" max="-3"/>
+    </item_modify>
+    <item_modify>
+      <item type="scrap" min="20" max="40"/>
+    </item_modify>
+  </event>
+  <event name="LANIUS_TRADER_LIST2_FUEL">
+    <title>LANIUS_TRADER_LIST2_FUEL</title>
+    <text>Trade complete.</text>
+    <item_modify>
+      <item type="fuel" min="-7" max="-3"/>
+    </item_modify>
+    <item_modify>
+      <item type="scrap" min="20" max="35"/>
+    </item_modify>
+  </event>
+  <event name="LANIUS_TRADER_LIST2_MISSILES">
+    <title>LANIUS_TRADER_LIST2_MISSILES</title>
+    <text>Trade complete.</text>
+    <item_modify>
+      <item type="missiles" min="-7" max="-3"/>
+    </item_modify>
+    <item_modify>
+      <item type="scrap" min="25" max="50"/>
+    </item_modify>
+  </event>
+  <event name="LANIUS_TRADER_LIST2_PARTS">
+    <title>LANIUS_TRADER_LIST2_PARTS</title>
+    <text>Trade complete.</text>
+    <item_modify>
+      <item type="drones" min="-7" max="-3"/>
+    </item_modify>
+    <item_modify>
+      <item type="scrap" min="25" max="50"/>
+    </item_modify>
+  </event>
+  <event name="LANIUS_TRANSLATOR_HIRE">
+    <title>LANIUS_TRANSLATOR_HIRE</title>
+    <text>Gain 1 Lanius crew, named Translator.</text>
+    <item_modify>
+      <item type="scrap" min="-40" max="-40"/>
+    </item_modify>
+    <crewMember amount="1" class="anaerobic" name="Translator"/>
+  </event>
+  <textList name="LANIUS_TRADER_TEXT">
+    <text>Lanius ship. Trade offer: supplies for scrap.</text>
+    <text>Lanius ship. Trade offer: supplies for scrap.</text>
+    <text>Lanius ship. Trade offer: supplies for scrap.</text>
+  </textList>
   <eventList name="FILLER">
     <event load="EMPTY_STATION2" unique="true"/>
     <event load="AUTO_REFUEL_STATION" unique="true"/>
@@ -5544,6 +5527,16 @@
     <event load="FUEL_ON_REBEL_WARNING" unique="false"/>
     <event load="FUEL_ON_REBEL_ATTACK" unique="false"/>
     <event load="NO_FUEL_REFUGEE" unique="false"/>
+  </eventList>
+  <eventList name="LANIUS_TRADER_LIST">
+    <event load="LANIUS_TRADER_LIST_FUEL" unique="false"/>
+    <event load="LANIUS_TRADER_LIST_MISSILES" unique="false"/>
+    <event load="LANIUS_TRADER_LIST_PARTS" unique="false"/>
+  </eventList>
+  <eventList name="LANIUS_TRADER_LIST2">
+    <event load="LANIUS_TRADER_LIST2_FUEL" unique="false"/>
+    <event load="LANIUS_TRADER_LIST2_MISSILES" unique="false"/>
+    <event load="LANIUS_TRADER_LIST2_PARTS" unique="false"/>
   </eventList>
   <eventList name="ROCK_ATHIEST_GOOD">
     <event name="ROCK_ATHIEST_GOOD_JOIN" unique="false">

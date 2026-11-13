@@ -357,16 +357,7 @@ function eventRow(row: EventDef): EventDef {
     aliases: [...row.aliases],
     sectors: sectorIds(row.sectors),
     body: row.body,
-    choices: row.choices.map((choice) => {
-      const copy: EventChoice = {
-        id: choice.id,
-        label: choice.label,
-        fx: choice.fx.map((fx) => ({ ...fx })),
-      };
-      if (choice.hidden) copy.hidden = true;
-      if (choice.reward) copy.reward = { ...choice.reward };
-      return stampedChoice(copy);
-    }),
+    choices: row.choices.map((choice) => stampTree(choice)),
   };
   const texts = OPENING_TEXTS[row.id];
   if (texts && texts.length > 1) {
@@ -375,6 +366,8 @@ function eventRow(row: EventDef): EventDef {
     if (TEXT_LIST_OPENINGS.has(archiveId)) copy.openings = [{ load: archiveId }];
     else copy.texts = [...texts];
   }
+  // ftl.dat draws LANIUS_TRADER from LANIUS_TRADER_TEXT, not from the event id.
+  if (row.id === "lanius-trader") copy.openings = [{ load: "LANIUS_TRADER_TEXT" }];
   const offers = OFFER_ROWS[row.id];
   if (offers && offers.length > 0) copy.offers = offers.map(copyOffer);
   const rolls = ROLL_LISTS[row.id];
@@ -440,6 +433,19 @@ function lockOwner(id: string): EventChoice["owner"] | undefined {
   const slug = /^c:([^:]+):/.exec(id)?.[1];
   if (slug && MISSING_PAGE_SLUGS.has(slug)) return "missing";
   return undefined;
+}
+
+function stampTree(choice: EventChoice): EventChoice {
+  const copy: EventChoice = {
+    id: choice.id,
+    label: choice.label,
+    fx: choice.fx.map((fx) => ({ ...fx })),
+  };
+  if (choice.hidden) copy.hidden = true;
+  if (choice.reqs) copy.reqs = choice.reqs.map(copyReq);
+  if (choice.choices) copy.choices = choice.choices.map(stampTree);
+  if (choice.reward) copy.reward = { ...choice.reward };
+  return stampedChoice(copy);
 }
 
 /** A button stores the locks, the handler, and the fuel gift authored for its id. The tables are not mutated. */
@@ -1265,6 +1271,67 @@ const REBEL_TRADE: EventDef = {
   ],
 };
 
+function laniusTrade(
+  id: string,
+  spend: "fuel" | "missiles" | "parts",
+  scrapLo: number,
+  scrapHi: number,
+  body: string,
+): EventDef {
+  return {
+    id,
+    dest: id,
+    flag: id,
+    aliases: [],
+    sectors: [],
+    body,
+    choices: [],
+    fx: [
+      { k: "res", id: spend, sign: -1, lo: 3, hi: 7 },
+      { k: "res", id: "scrap", sign: 1, lo: scrapLo, hi: scrapHi },
+    ],
+  };
+}
+
+const LANIUS_TRADE_PAGES: EventDef[] = [
+  laniusTrade("LANIUS_TRADER_LIST_FUEL", "fuel", 15, 30, "Trade complete."),
+  laniusTrade("LANIUS_TRADER_LIST_MISSILES", "missiles", 20, 40, "Trade complete."),
+  laniusTrade("LANIUS_TRADER_LIST_PARTS", "parts", 20, 40, "Trade complete."),
+  laniusTrade("LANIUS_TRADER_LIST2_FUEL", "fuel", 20, 35, "Trade complete."),
+  laniusTrade("LANIUS_TRADER_LIST2_MISSILES", "missiles", 25, 50, "Trade complete."),
+  laniusTrade("LANIUS_TRADER_LIST2_PARTS", "parts", 25, 50, "Trade complete."),
+  {
+    id: "LANIUS_TRANSLATOR_HIRE",
+    dest: "LANIUS_TRANSLATOR_HIRE",
+    flag: "LANIUS_TRANSLATOR_HIRE",
+    aliases: [],
+    sectors: [],
+    body: "Gain 1 Lanius crew, named Translator.",
+    choices: [],
+    fx: [{ k: "res", id: "scrap", sign: -1, lo: 40, hi: 40 }],
+    grants: [{ kind: "crew", id: "anaerobic", amount: 1, name: "Translator" }],
+  },
+];
+
+const LANIUS_TRADE_LISTS: FillerListDef[] = [
+  {
+    id: "LANIUS_TRADER_LIST",
+    entries: [
+      { id: "LANIUS_TRADER_LIST_FUEL", unique: false },
+      { id: "LANIUS_TRADER_LIST_MISSILES", unique: false },
+      { id: "LANIUS_TRADER_LIST_PARTS", unique: false },
+    ],
+  },
+  {
+    id: "LANIUS_TRADER_LIST2",
+    entries: [
+      { id: "LANIUS_TRADER_LIST2_FUEL", unique: false },
+      { id: "LANIUS_TRADER_LIST2_MISSILES", unique: false },
+      { id: "LANIUS_TRADER_LIST2_PARTS", unique: false },
+    ],
+  },
+];
+
 /** Sector ids and the authoring slug stay on the record. The archive writes both, and the registry resolves the slug. */
 function storedEvent(event: EventDef): EventDef {
   return event;
@@ -1625,6 +1692,8 @@ export function loadCatalog(): void {
     FUEL_NOTHING_DISTRESS,
   ])
     if (!events.some((event) => event.id === page.id)) events.push(page);
+  for (const page of LANIUS_TRADE_PAGES)
+    if (!events.some((event) => event.id === page.id)) events.push(page);
   for (const event of events) {
     loadShipEvents(event);
     hoistEventShip(event);
@@ -1696,6 +1765,7 @@ export function loadCatalog(): void {
         EXIT_LIST,
         NO_FUEL_LIST,
         NO_FUEL_DISTRESS_LIST,
+        ...LANIUS_TRADE_LISTS,
         ROCK_ATHIEST_GOOD,
         { id: "STANDIN_EMPTY", entries: [] },
       ],
@@ -1703,6 +1773,20 @@ export function loadCatalog(): void {
       empties,
       textLists: [
         ...textListOpenings(),
+        {
+          id: "LANIUS_TRADER_TEXT",
+          lines: [
+            {
+              text: "Lanius ship. Trade offer: supplies for scrap.",
+            },
+            {
+              text: "Lanius ship. Trade offer: supplies for scrap.",
+            },
+            {
+              text: "Lanius ship. Trade offer: supplies for scrap.",
+            },
+          ],
+        },
         { id: "NAME_SYLLABLES", lines: NAME_SYLLABLES.map((text) => ({ text })) },
         { id: "CREW_POOL", lines: CREW_POOL.map((text) => ({ text })) },
         { id: "ROCK_ATHIEST_BAD", lines: [{ text: ROCK_LIES }, { text: ROCK_TRAITORS }] },

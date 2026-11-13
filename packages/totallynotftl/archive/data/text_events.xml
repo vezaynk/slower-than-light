@@ -594,11 +594,8 @@
   <text name="event_LANIUS_SOLO_SALVAGE_LIST_3_c2_choice">Nothing happens.</text>
   <text name="event_LANIUS_SOLO_SALVAGE_LIST_3_c2_text">You leave.</text>
   <text name="event_LANIUS_SOLO_SALVAGE_LIST_3_text">They refuse to share.</text>
-  <text name="event_LANIUS_TRADER_c1_choice">1 in 3 each: lose 3-7 fuel, gain 15-30 scrap; lose 3-7 missiles, gain 20-40 scrap; lose 3-7 drone parts, gain 20-40 scrap.</text>
   <text name="event_LANIUS_TRADER_c2_choice">Nothing happens.</text>
   <text name="event_LANIUS_TRADER_c2_text">You leave.</text>
-  <text name="event_LANIUS_TRADER_c3_choice">Get a second offer: 3-7 fuel, missiles, or drone parts for 20-50 scrap.</text>
-  <text name="event_LANIUS_TRADER_c3_text">New trade offer.</text>
   <text name="event_LANIUS_TRADER_LIST_1_text">Trade complete.</text>
   <text name="event_LANIUS_TRADER_TRANSLATOR_c1_choice">Make the trade shown.</text>
   <text name="event_LANIUS_TRADER_TRANSLATOR_c2_choice">Nothing happens.</text>
@@ -607,9 +604,6 @@
   <text name="event_LANIUS_TRADER_TRANSLATOR_c3_c1_text">Lose 40 scrap. Gain 1 Lanius crew.</text>
   <text name="event_LANIUS_TRADER_TRANSLATOR_c3_c2_choice">Nothing happens.</text>
   <text name="event_LANIUS_TRADER_TRANSLATOR_c3_c2_text">You leave.</text>
-  <text name="event_LANIUS_TRADER_TRANSLATOR_c3_choice">Get an offer: 1 Lanius crew for 40 scrap.</text>
-  <text name="event_LANIUS_TRADER_TRANSLATOR_c3_text">Offer: a Lanius crewmember for 40 scrap.</text>
-  <text name="event_LANIUS_TRADER_TRANSLATOR_text">Trade offer: one resource for scrap.</text>
   <text name="event_MADMAN_1_text">Lose 1 crew.</text>
   <text name="event_MADMAN_2_text">Gain 1 crew.</text>
   <text name="event_MADMAN_3_text">5 hull damage and system damage.</text>

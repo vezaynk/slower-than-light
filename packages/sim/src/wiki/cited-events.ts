@@ -182,6 +182,80 @@ function spend(g: Game, id: ResId, n: number) {
   else g.player.parts -= n;
 }
 
+type Preset = NonNullable<Game["eventPresets"]>[string];
+
+const PRESET_WORD: Record<string, string> = {
+  fuel: "fuel",
+  missiles: "missiles",
+  parts: "drone parts",
+  scrap: "scrap",
+};
+
+/** The resolved trade on a preset button: what it spends, then what it gains. Empty when the page moves no resource. */
+function presetLine(preset: Preset): string {
+  const fx = preset.page.fx ?? [];
+  const lose: string[] = [];
+  const gain: string[] = [];
+  fx.forEach((row, i) => {
+    if (row.k !== "res") return;
+    const n = preset.amounts[i] ?? 0;
+    (row.sign < 0 ? lose : gain).push(`${n} ${PRESET_WORD[row.id] ?? row.id}`);
+  });
+  const parts: string[] = [];
+  if (lose.length) parts.push(`Lose ${lose.join(", ")}.`);
+  if (gain.length) parts.push(`Gain ${gain.join(", ")}.`);
+  return parts.join(" ");
+}
+
+/** The first resource the preset spends that the ship does not hold, as a refusal. */
+function presetShort(g: Game, preset: Preset): string | null {
+  const fx = preset.page.fx ?? [];
+  for (let i = 0; i < fx.length; i++) {
+    const row = fx[i]!;
+    if (row.k !== "res" || row.sign >= 0) continue;
+    const n = preset.amounts[i] ?? 0;
+    if (stock(g, row.id as ResId) < n) return `Need ${n} ${PRESET_WORD[row.id] ?? row.id}`;
+  }
+  return null;
+}
+
+/** The drawn page with its amounts fixed, so the click pays what the button showed. */
+function presetPage(preset: Preset): PackEvent {
+  return {
+    ...preset.page,
+    fx: (preset.page.fx ?? []).map((row, i) =>
+      row.k === "res"
+        ? { ...row, lo: preset.amounts[i] ?? row.lo, hi: preset.amounts[i] ?? row.hi }
+        : row,
+    ),
+  };
+}
+
+/**
+ * ftl.dat builds every result when the card opens. A button that loads an eventList draws its page and rolls the
+ * page's resources now, shows that trade after the button's own words, and pays it on the click. The draws follow the
+ * buttons' order.
+ */
+function presetGotos<T extends { id: string; label: string }>(g: Game, choices: readonly T[]): T[] {
+  const presets: Record<string, Preset> = {};
+  const out = choices.map((shown) => {
+    const def = findChoice(shown.id);
+    const go = def?.fx.find((fx) => fx.k === "goto");
+    if (!go || go.k !== "goto" || !fillerList(go.id)) return shown;
+    const page = drawLoadedPage(go.id, (n) => between(g, [0, n - 1]));
+    if (!page) return shown;
+    const amounts = (page.fx ?? []).map((row) =>
+      row.k === "res" ? between(g, [row.lo, row.hi]) : 0,
+    );
+    const preset = { page, amounts };
+    presets[shown.id] = preset;
+    const line = presetLine(preset);
+    return line ? { ...shown, label: `${shown.label} [${line}]` } : shown;
+  });
+  g.eventPresets = presets;
+  return out;
+}
+
 function findChoice(id: string): ChoiceDef | null {
   for (const ev of loadedEvents()) {
     for (const c of ev.choices) if (c.id === id) return c;
@@ -405,32 +479,6 @@ export function stampCitedEvents(g: Game) {
     spot.name = ev.dest;
   }
   markRuwenEntry(g);
-}
-
-export type LaniusTraderRes = "fuel" | "missiles" | "parts";
-export type LaniusTraderOffer = { res: LaniusTraderRes; cost: number; scrap: number };
-
-/** One Lanius row from the packed page. The resource draw stays between, then the cost, then the scrap. */
-export function rollLaniusTrader(
-  g: Game,
-  better: boolean,
-  id = "LANIUS_TRADER",
-): LaniusTraderOffer {
-  const band = better ? "better" : "base";
-  const rows = [];
-  for (const row of eventDef(storedId(id))?.offers ?? [])
-    if (row.k === "lanius" && row.band === band) rows.push(row);
-  const row = rows[between(g, [0, rows.length - 1])]!;
-  return { res: row.res, cost: between(g, row.cost), scrap: between(g, row.scrap) };
-}
-
-export function laniusTraderOfferText(offer: LaniusTraderOffer): string {
-  const word = offer.res === "parts" ? "drone parts" : offer.res;
-  return `You lose ${offer.cost} ${word} and receive ${offer.scrap} scrap.`;
-}
-
-export function laniusTraderTakeId(offer: LaniusTraderOffer): string {
-  return `q:lanius-trader:take:${offer.res}:${offer.cost}:${offer.scrap}`;
 }
 
 // ftl.dat text ids. Every moon page shares the first page's question and answer buttons.
@@ -771,8 +819,6 @@ function zoltanOddMoon(ctx: CitedChoice, id: string): boolean | null {
 const ROW_CARDS: Record<string, string> = {
   TRADER_CIV: "trade",
   NEBULA_TRADER: "trade",
-  LANIUS_TRADER: "lanius",
-  LANIUS_TRADER_TRANSLATOR: "lanius",
   FUEL_TRADER: "fuel",
   FUEL_TRADER_DISTRESS: "fuel",
   SLUG_DISTRESS_QUESTION: "count",
@@ -817,20 +863,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
   if (missing) return missing;
   if (ev.slug === "SLUG_DISTRESS_QUESTION") return slugMoonsCard(g, b, ev.dest);
   if (ev.slug === "ZOLTAN_ODD_MOON") return zoltanOddCard(ev.dest);
-  if (ev.slug === "LANIUS_TRADER") {
-    const offer = rollLaniusTrader(g, false);
-    // The offer is rolled first so the shown trade stays on the same draws. The intro uses the next draw.
-    const intro = opening(g, "LANIUS_TRADER");
-    return {
-      title: ev.dest,
-      body: `${intro}\n\n${laniusTraderOfferText(offer)}`,
-      choices: [
-        { id: laniusTraderTakeId(offer), label: eventText("event_LANIUS_TRADER_c1_choice") },
-        { id: "c:lanius-trader:3", label: eventText("event_LANIUS_TRADER_c2_choice") },
-        { id: "c:lanius-trader:4", label: eventText("event_LANIUS_TRADER_c3_choice") },
-      ],
-    };
-  }
   // Auto-ship near radar station. Combat Drone Mark I or II, or an Anti-Ship Beam Drone.
   if (ev.slug === "AUTO_DEFENSE_RADAR") {
     return {
@@ -1073,30 +1105,6 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
     });
     return { title: ev.dest, body, choices };
   }
-  // Lanius trader with translator. The printed hail, then the same one shown base trade. No better-band blue option.
-  if (ev.slug === "LANIUS_TRADER_TRANSLATOR") {
-    const offer = rollLaniusTrader(g, false, "LANIUS_TRADER_TRANSLATOR");
-    return {
-      title: ev.dest,
-      body: `${eventText("event_LANIUS_TRADER_TRANSLATOR_text")}
-
-${laniusTraderOfferText(offer)}`,
-      choices: [
-        {
-          id: `q:lanius-translator:take:${offer.res}:${offer.cost}:${offer.scrap}`,
-          label: eventText("event_LANIUS_TRADER_TRANSLATOR_c1_choice"),
-        },
-        {
-          id: "c:lanius-trader-with-translator:3",
-          label: eventText("event_LANIUS_TRADER_TRANSLATOR_c2_choice"),
-        },
-        {
-          id: "c:lanius-trader-with-translator:4",
-          label: eventText("event_LANIUS_TRADER_TRANSLATOR_c3_choice"),
-        },
-      ],
-    };
-  }
   // Space station under construction. {{Blue Option|Lanius Crew|Offer to have your crewmember help.}}
   // The button stays visible. Agreeing to the sale is the follow-up card in wiki/quests.ts.
   if (ev.slug === "QUEST_CONSTRUCTIONYARD") {
@@ -1271,7 +1279,7 @@ export function openLoadedListPage(g: Game, id: string): boolean {
 export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   const ev = citedEventRaw(g, b);
   if (!ev) return null;
-  ev.choices = stampStockLabels(ev.choices);
+  ev.choices = presetGotos(g, stampStockLabels(ev.choices));
   return ev;
 }
 
@@ -1290,6 +1298,11 @@ function ownsHullRepair(g: Game): boolean {
 }
 
 export function citedChoiceDisabled(g: Game, id: string): string | null {
+  const preset = g.eventPresets?.[id];
+  if (preset) {
+    const short = presetShort(g, preset);
+    if (short) return short;
+  }
   const missing = missingDisabled(g, id);
   if (missing) return missing;
   const locked = ownedLock(g, id, locksOwned("cited"));
@@ -1831,7 +1844,8 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   }
   const gotoFx = choice.fx.find((fx) => fx.k === "goto");
   if (gotoFx && gotoFx.k === "goto") {
-    const page = gotoPage(ctx, gotoFx.id);
+    const preset = g.eventPresets?.[id];
+    const page = preset ? presetPage(preset) : gotoPage(ctx, gotoFx.id);
     if (!page) return false;
     // The destination pays its own item_modify inside showArchivePage. The button's fx already ran above.
     const lines: string[] = [];
@@ -1849,7 +1863,10 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     pageCard(
       g,
       [page.body, ...extra].filter(Boolean).join("\n\n"),
-      page.choices.map((next) => ({ id: next.id, label: next.label })),
+      presetGotos(
+        g,
+        page.choices.map((next) => ({ id: next.id, label: next.label })),
+      ),
     );
     if (g.phase === "event") g.paused = true;
     return true;
@@ -1861,7 +1878,10 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     pageCard(
       g,
       body,
-      inline.map((next) => ({ id: next.id, label: next.label })),
+      presetGotos(
+        g,
+        inline.map((next) => ({ id: next.id, label: next.label })),
+      ),
     );
     g.paused = true;
     return true;

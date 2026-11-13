@@ -53,6 +53,14 @@ function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
 }
 
+/** The two cargo rows that also carry ftl.dat's `<crewMember amount="1"/>`. */
+function joins(text: string): number {
+  return text.startsWith(eventText("event_REBEL_TRANSPORT_DESTROYED_9_text")) ||
+    text.startsWith(eventText("event_REBEL_TRANSPORT_CAPTURED_2_text"))
+    ? 1
+    : 0;
+}
+
 describe("Rebel transport ship", () => {
   it("demanding the cargo starts a Rebel ship that is already running and does not surrender", () => {
     const g = createGame(1);
@@ -112,7 +120,7 @@ describe("Rebel transport ship", () => {
         assert.equal(g.scrap, 10 + paid[0]!);
         assert.equal(held(g, "weapon"), guns + gives(text, "weapon"), body);
         assert.equal(held(g, "drone"), kits + gives(text, "drone"), body);
-        assert.equal(g.crew.length, people);
+        assert.equal(g.crew.length, people + joins(text));
         const resources = ["Fuel", "Missiles", "Drone parts"].filter((label) =>
           new RegExp(`${label}: \\d+`).test(body),
         ).length;

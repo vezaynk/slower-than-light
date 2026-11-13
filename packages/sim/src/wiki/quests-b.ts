@@ -612,12 +612,12 @@ export const PART_B: QuestPart = {
   quests: {
     // Asteroid belt distress, Encrypted federation signal and Engi ship attacked by Mantis ship also add the existing
     // "fed-base" marker ({{Hidden federation base}}, wiki/quests.ts).
-    "capture-ship": { page: "Capture the ship", title: "Bandit ship" },
-    "fed-assist": { page: "Encrypted federation signal", title: "Federation outpost" },
-    "merchant-delivery": { page: "Merchant's request", title: "Delivery station" },
-    "merchant-investigation": { page: "Merchant's request", title: "Lost freighter" },
-    "merchant-station": { page: "Merchant's request", title: "Cargo destination" },
-    abadoth: { page: "Nebula wreckage", title: "Dead crewman's coordinates" },
+    "capture-ship": { page: "Quest: capture a ship", title: "Quest: capture the ship" },
+    "fed-assist": { page: "Planet signal", title: "Federation outpost" },
+    "merchant-delivery": { page: "Quest offer: merchant", title: "Delivery station" },
+    "merchant-investigation": { page: "Quest offer: merchant", title: "Lost freighter" },
+    "merchant-station": { page: "Quest offer: merchant", title: "Cargo destination" },
+    abadoth: { page: "Wreckage in nebula", title: "Dead crewman's coordinates" },
   },
 
   arrive: {

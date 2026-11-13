@@ -16,7 +16,7 @@ function breached(g: Game) {
   return g.player.rooms.filter((r) => r.breach > 0);
 }
 
-describe("Plasma storm incapacitated ships", () => {
+describe("Wrecks in plasma storm", () => {
   // Rewards, "Drone": "A random drone schematic & T scrap."
   it("the schematic result pays medium scrap and grants a random drone schematic", () => {
     let hits = 0;

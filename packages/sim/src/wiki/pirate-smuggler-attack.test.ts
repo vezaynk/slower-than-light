@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_PIRATE_SMUGGLE";
-  b.name = "Pirate smuggler";
+  b.name = "Optional fight: pirate smuggler";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Pirate smuggler");
+  assert.equal(g.event?.title, "Optional fight: pirate smuggler");
 }
 
 describe("Pirate smuggler attack", () => {

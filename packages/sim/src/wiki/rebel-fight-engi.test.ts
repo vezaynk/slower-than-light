@@ -5,20 +5,20 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "The rebel fighter here would seem to suggest elements of the rebel fleet are already making incursions on Engi space. You move to engage.";
+  "Hostile Rebel ship.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ENGI_REBEL_FIGHT";
-  b.name = "Rebel fight (Engi)";
+  b.name = "Hostile Rebel ship (Engi sector)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel fight (Engi)");
+  assert.equal(g.event?.title, "Hostile Rebel ship (Engi sector)");
 }
 
-describe("Rebel fight (Engi)", () => {
+describe("Hostile Rebel ship (Engi sector)", () => {
   it("shows the printed intro, and the fight choice starts a Rebel combat", () => {
     // Wiki citations:
     // > "The rebel fighter here would seem to suggest elements of the rebel fleet are already making incursions on Engi space. You move to engage." — [[Rebel fight (Engi)]]
@@ -44,7 +44,7 @@ describe("Rebel fight (Engi)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "ENGI_REBEL_FIGHT";
-    dest.name = "Rebel fight (Engi)";
+    dest.name = "Hostile Rebel ship (Engi sector)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

@@ -6,23 +6,23 @@ import { citedEvent } from "./cited-events.ts";
 import { eventDef, loadPack, resetPackForTests, textList } from "@stl/pack";
 
 const INTROS = [
-  "A Rock mining vessel is harvesting the mineral-rich asteroids in this locality, and their scouts take your presence to be a transgression. Battle stations!",
-  "A rookie Rock cargo ship has taken its orders too literally and took the most direct route to their destination... right through an asteroid field. They're confused and fire wildly as you jump in.",
-  `The captain of a Rock freighter lost in the asteroid field hails you: "Our co-ordinates led us here, but only death greets us. What must be must be. Death to all." You power up the battle systems and wonder how long they've been stuck here.`,
+  "Hostile Rock ship. Asteroid field.",
+  "Hostile Rock ship. Asteroid field.",
+  "Hostile Rock ship. Asteroid field.",
 ];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ROCK_FIGHT_ASTEROID";
-  b.name = "Rock fight in asteroid field";
+  b.name = "Hostile Rock ship in asteroid field";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rock fight in asteroid field");
+  assert.equal(g.event?.title, "Hostile Rock ship in asteroid field");
 }
 
-describe("Rock fight in asteroid field", () => {
+describe("Hostile Rock ship in asteroid field", () => {
   it("shows one of the three intros, and the fight starts inside an asteroid field", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight in asteroid field]]
@@ -31,7 +31,7 @@ describe("Rock fight in asteroid field", () => {
     // > "The captain of a Rock freighter lost in the asteroid field hails you: \"Our co-ordinates led us here, but only death greets us. What must be must be. Death to all.\" You power up the battle systems and wonder how long they've been stuck here." — [[Rock fight in asteroid field]]
     // > "Fight a Rock ship (default rewards)." — [[Rock fight in asteroid field]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 80 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -39,7 +39,7 @@ describe("Rock fight in asteroid field", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:rock-fight-in-asteroid-field:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);
@@ -85,14 +85,14 @@ describe("Rock fight in asteroid field", () => {
     assert.equal(textList("ROCK_FIGHT_ASTEROID")?.lines.length, INTROS.length);
     try {
       const seen = new Set<string>();
-      for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
+      for (let seed = 1; seed <= 80 && seen.size < new Set(INTROS).size; seed++) {
         const g = createGame(seed);
         open(g);
         const body = g.event?.body ?? "";
         assert.ok(INTROS.includes(body), body);
         seen.add(body);
       }
-      assert.equal(seen.size, INTROS.length);
+      assert.equal(seen.size, new Set(INTROS).size);
     } finally {
       resetPackForTests();
     }
@@ -109,7 +109,7 @@ describe("Rock fight in asteroid field", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "ROCK_FIGHT_ASTEROID";
-    dest.name = "Rock fight in asteroid field";
+    dest.name = "Hostile Rock ship in asteroid field";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

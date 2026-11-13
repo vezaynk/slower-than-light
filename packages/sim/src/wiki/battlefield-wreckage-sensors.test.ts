@@ -14,7 +14,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "WRECKAGE_EVENT";
-  b.name = "Battlefield wreckage";
+  b.name = "Wreckage: search";
   g.here = b.id;
   g.event = citedEvent(g, b);
   // The card lives on the filler list, stamped filler:battlefield-wreckage. citedEvent may be null.
@@ -23,7 +23,7 @@ function open(g: Game) {
     g.event = fillerEvent(g, b);
   }
   g.phase = "event";
-  assert.equal(g.event?.title, "Battlefield wreckage");
+  assert.equal(g.event?.title, "Wreckage: search");
 }
 
 describe("Battlefield wreckage Improved Sensors", () => {
@@ -36,7 +36,7 @@ describe("Battlefield wreckage Improved Sensors", () => {
     const parts = g.player.parts;
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === SCAN && c.label === "Use your Sensors to scan the wreckage.",
+        (c) => c.id === SCAN && c.label === "Gain medium resources and some scrap.",
       ),
     );
     // INFERRED: the refusal line. The page names Sensors level 2 and prints no sentence.

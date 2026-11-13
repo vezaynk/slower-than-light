@@ -11,12 +11,12 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_PIRATE_CIVILIAN";
-  b.name = "Pirate ship attacking civilian (Lanius)";
+  b.name = "Optional fight: pirate ship and civilian (Lanius)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Pirate ship attacking civilian (Lanius)");
+  assert.equal(g.event?.title, "Optional fight: pirate ship and civilian (Lanius)");
 }
 
 function scraps(body: string): number[] {
@@ -29,7 +29,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Pirate ship attacking civilian (Lanius)", () => {
+describe("Optional fight: pirate ship and civilian (Lanius)", () => {
   it("attacking the pirate starts a pirate fight", () => {
     const g = createGame(1);
     open(g);

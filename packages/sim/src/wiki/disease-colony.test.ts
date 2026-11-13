@@ -14,7 +14,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Unknown disease on mining colony",
+    name: "Distress: colony riot",
     tier: "",
     flag: "filler:unknown-disease-on-mining-colony",
     asteroid: false,
@@ -49,9 +49,9 @@ function mediumStuff(body: string) {
   if (got.parts) assert.equal(got.parts, 1);
 }
 
-describe("Unknown disease on mining colony", () => {
+describe("Distress: colony riot", () => {
   it("is a card a distress draw can reach", () => {
-    assert.equal(pageForRow("Unknown disease on mining colony")?.slug, "DISTRESS_STATION_DISEASE");
+    assert.equal(pageForRow("Distress: colony riot")?.slug, "DISTRESS_STATION_DISEASE");
   });
 
   it("hides the blue options until that crew or medbay is aboard", () => {

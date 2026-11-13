@@ -17,11 +17,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_TRADER_TRANSLATOR";
-  b.name = "Lanius trader with translator";
+  b.name = "Trade: supplies for scrap or crew (Lanius)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Lanius trader with translator");
+  assert.equal(g.event?.title, "Trade: supplies for scrap or crew (Lanius)");
   g.missiles = 20;
   g.player.parts = 20;
 }
@@ -39,7 +39,7 @@ function inBand(n: number, lo: number, hi: number) {
 const HAIL =
   eventText("event_LANIUS_TRADER_TRANSLATOR_text");
 
-describe("Lanius trader with translator", () => {
+describe("Trade: supplies for scrap or crew (Lanius)", () => {
   it("shows the printed hail, then one base offer, and agreeing pays those amounts", () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 40 && seen.size < 3; seed++) {

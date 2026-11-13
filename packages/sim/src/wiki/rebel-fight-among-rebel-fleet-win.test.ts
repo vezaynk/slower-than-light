@@ -10,11 +10,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "BOSS_FLEETS_REBEL";
-  b.name = "Rebel fight among Rebel fleet";
+  b.name = "Hostile Rebel ship (Last Stand, Rebel fleet)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel fight among Rebel fleet");
+  assert.equal(g.event?.title, "Hostile Rebel ship (Last Stand, Rebel fleet)");
 }
 
 function scraps(body: string): number[] {

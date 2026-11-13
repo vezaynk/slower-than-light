@@ -124,7 +124,7 @@ describe("Disabled Rock ship", () => {
     open(bare);
     assert.equal(choiceDisabled(bare, "c:disabled-rock-ship:2"), "Needs a Slug crewmember");
     fillerChoose(bare, "c:disabled-rock-ship:2");
-    assert.match(bare.event?.body ?? "", /disabled rock transport/);
+    assert.equal(bare.event?.body, "Disabled Rock ship.");
     assert.equal(bare.scrap, 10);
 
     let clear = false;

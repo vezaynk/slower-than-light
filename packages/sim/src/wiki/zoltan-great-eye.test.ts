@@ -10,11 +10,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_ZOLTAN_EYE";
-  b.name = "Zoltan Great Eye";
+  b.name = "Monolith in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Zoltan Great Eye");
+  assert.equal(g.event?.title, "Monolith in nebula");
 }
 
 function players(g: Game) {
@@ -29,7 +29,7 @@ function reward(body: string) {
   return { scrap: n("Scrap"), fuel: n("Fuel"), missiles: n("Missiles"), parts: n("Drone parts") };
 }
 
-describe("Zoltan Great Eye", () => {
+describe("Monolith in nebula", () => {
   it("leaving spends nothing", () => {
     // Wiki citations:
     // > "Your mission is to save the Federation, not discover new wonders around the galaxy. You prepare to jump." — [[Zoltan Great Eye]]

@@ -15,6 +15,11 @@ const TITLES = [
   "Store (Mantis)",
 ] as const;
 
+/** A row's dest is its functional title; its slug is the wiki page title's slug. */
+function titleOf(ev: { slug: string }): string {
+  return (TITLES as readonly string[]).find((t) => slugOf(t) === ev.slug) ?? ev.slug;
+}
+
 function slugOf(title: string): string {
   return title
     .toLowerCase()
@@ -66,26 +71,26 @@ describe("cited mantis events", () => {
     const allowed = new Set<string>(TITLES);
     assert.ok(EXTRA_EVENTS.length >= 1);
     for (const ev of EXTRA_EVENTS) {
-      assert.ok(allowed.has(ev.dest), ev.dest);
-      assert.equal(ev.slug, slugOf(ev.dest));
+      assert.ok(allowed.has(titleOf(ev)), titleOf(ev));
+      assert.equal(slugOf(titleOf(ev)), ev.slug);
       assert.equal(ev.flag, `cited:${ev.slug}`);
       // The printed near-sun boarders opening is 250 characters.
       assert.ok(ev.body.length <= 260);
       ev.choices.forEach((choice, index) => {
         assert.equal(choice.id, `c:${ev.slug}:${index}`);
       });
-      const text = await pageText(ev.dest);
+      const text = await pageText(titleOf(ev));
       assert.deepEqual(ev.sectors, locationNames(text));
       for (const choice of ev.choices) {
         for (const fx of choice.fx) {
           for (const n of fxNumbers(fx)) {
-            assert.match(text, new RegExp(`(?<![\\d.])${n}(?!\\d)`), `${ev.dest} ${n}`);
+            assert.match(text, new RegExp(`(?<![\\d.])${n}(?!\\d)`), `${titleOf(ev)} ${n}`);
           }
-          if (fx.k === "fight") assert.ok(text.includes(fx.tier), `${ev.dest} ${fx.tier}`);
+          if (fx.k === "fight") assert.ok(text.includes(fx.tier), `${titleOf(ev)} ${fx.tier}`);
         }
       }
     }
-    const dests = EXTRA_EVENTS.map((ev) => ev.dest);
+    const dests = EXTRA_EVENTS.map((ev) => titleOf(ev));
     assert.deepEqual(dests, [
       "Mantis fight near sun",
       "Mantis ship-collectors",

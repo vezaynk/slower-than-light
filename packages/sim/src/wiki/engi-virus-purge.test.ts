@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ENGI_VIRUS";
-  b.name = "The Engi virus";
+  b.name = "Hostile Engi ship: virus";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "The Engi virus");
+  assert.equal(g.event?.title, "Hostile Engi ship: virus");
 }
 
 describe("The Engi virus purge", () => {

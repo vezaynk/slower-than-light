@@ -19,11 +19,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "CRYSTAL_REQUEST";
-  b.name = "Crystalline ship messaging about Rebels";
+  b.name = "Flight-plan offer: scrap or fleet";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Crystalline ship messaging about Rebels");
+  assert.equal(g.event?.title, "Flight-plan offer: scrap or fleet");
 }
 
 function gear(g: Game) {
@@ -44,10 +44,10 @@ describe("Crystalline ship messaging about Rebels flight plans", () => {
     assert.deepEqual(
       g.event?.choices.map((c) => [c.id, c.label]),
       [
-        [`${PLANS}:0`, "Give them your flight plans"],
-        [`${PLANS}:1`, "Accept the scrap but give them false flight plans"],
-        [`${PLANS}:2`, "Accept the scrap but give them falsified flight plans."],
-        [`${PLANS}:3`, "Refuse"],
+        [`${PLANS}:0`, "Gain high scrap. Fleet advances 1."],
+        [`${PLANS}:1`, "1 in 2: gain high scrap, fleet delayed 1. 1 in 2: fight and 1-2 Crystal boarders."],
+        [`${PLANS}:2`, "Gain high scrap. Fleet delayed 1."],
+        [`${PLANS}:3`, "Nothing happens."],
       ],
     );
   });

@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "FLOATING_CARGO";
-  b.name = "Destroyed cargo ship";
+  b.name = "Floating cargo";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Destroyed cargo ship");
+  assert.equal(g.event?.title, "Floating cargo");
 }
 
 describe("Destroyed cargo ship leave", () => {

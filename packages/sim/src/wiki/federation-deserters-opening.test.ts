@@ -5,17 +5,17 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "For a moment you assume it's a glitch, but no... you've found a Federation military ship! They hail you and, after some probing, reveal that they deserted the Federation fleet before stumbling into this sector while seeking refuge.";
+  "Federation ship. Offer: supplies for a map.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "CRYSTAL_FED_DESERTER";
-  b.name = "Federation deserters";
+  b.name = "Supplies for map: Federation ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Federation deserters");
+  assert.equal(g.event?.title, "Supplies for map: Federation ship");
 }
 
 describe("Federation deserters opening", () => {

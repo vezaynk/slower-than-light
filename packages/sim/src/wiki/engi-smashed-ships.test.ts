@@ -11,14 +11,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ENGI_SEX";
-  b.name = "Engi smashed ships";
+  b.name = "Optional fight: two Engi ships";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Engi smashed ships");
+  assert.equal(g.event?.title, "Optional fight: two Engi ships");
 }
 
-describe("Engi smashed ships", () => {
+describe("Optional fight: two Engi ships", () => {
   it("winning pays nothing after either ending", () => {
     for (const dead of [false, true]) {
       const g = createGame(dead ? 2 : 1);

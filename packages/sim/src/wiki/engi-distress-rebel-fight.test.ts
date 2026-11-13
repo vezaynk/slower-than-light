@@ -12,11 +12,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "DISTRESS_ENGI_REBEL";
-  b.name = "Engi distress Rebel fight";
+  b.name = "Hostile Rebel ship (Engi distress)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Engi distress Rebel fight");
+  assert.equal(g.event?.title, "Hostile Rebel ship (Engi distress)");
 }
 
 function scraps(body: string): number[] {
@@ -29,7 +29,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Engi distress Rebel fight", () => {
+describe("Hostile Rebel ship (Engi distress)", () => {
   it("fights a Rebel ship that never runs and never surrenders", () => {
     const g = createGame(1);
     open(g);

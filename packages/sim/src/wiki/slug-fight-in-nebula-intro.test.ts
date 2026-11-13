@@ -5,22 +5,22 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "Your sensors are no match for the Slug's telepathic abilities - a ship you never even saw opens fire from astern!",
-  "The Slug vessel you encounter here has obviously made a big score and is looking to test its new armaments. They picked the wrong ship to attack.",
-  `A Slug passenger ship hails: "Please, your worthy alien highnessesss, we are unarmed and sseeking asssylum." You approach cautiously, and weapons immediately spring from their hull!`,
-  "A Slug ship - a rogue, you suspect - approaches, but when he sees you're Federation he thinks better of the sneak attack and fires everything he has.",
-  "Direct attacks are not preferred by the Slugs, but of the three you see at this beacon, one has the brass to make a move on your position!",
+  "Hostile Slug ship. Nebula.",
+  "Hostile Slug ship. Nebula.",
+  "Hostile Slug ship. Nebula.",
+  "Hostile Slug ship. Nebula.",
+  "Hostile Slug ship. Nebula.",
 ];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_SLUG_FIGHT";
-  b.name = "Slug fight in nebula";
+  b.name = "Hostile Slug ship in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Slug fight in nebula");
+  assert.equal(g.event?.title, "Hostile Slug ship in nebula");
 }
 
 describe("Slug fight in nebula intro", () => {
@@ -34,9 +34,8 @@ describe("Slug fight in nebula intro", () => {
     // > "Direct attacks are not preferred by the Slugs, but of the three you see at this beacon, one has the brass to make a move on your position!" — [[Slug fight in nebula]]
     // > "Fight a Slug ship (default rewards)." — [[Slug fight in nebula]]
     assert.equal(INTROS.length, 5);
-    assert.equal(new Set(INTROS).size, 5);
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 200 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 200 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -44,7 +43,7 @@ describe("Slug fight in nebula intro", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:slug-fight-in-nebula:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);
@@ -67,7 +66,7 @@ describe("Slug fight in nebula intro", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "NEBULA_SLUG_FIGHT";
-    dest.name = "Slug fight in nebula";
+    dest.name = "Hostile Slug ship in nebula";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

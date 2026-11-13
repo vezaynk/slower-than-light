@@ -4,9 +4,9 @@ import { describe, it } from "node:test";
 import { choiceDisabled, createGame } from "../sim.ts";
 import { fillerChoose, pageForRow } from "./filler-events.ts";
 
-describe("Refueling station", () => {
+describe("Trade: scrap for fuel", () => {
   it("is a card an items draw can reach", () => {
-    assert.equal(pageForRow("Refueling station")?.slug, "REFUEL_STATION");
+    assert.equal(pageForRow("Trade: scrap for fuel")?.slug, "REFUEL_STATION");
   });
 
   it("sells 6, 3, or 1 fuel for 12, 6, or 2 scrap", () => {

@@ -5,13 +5,13 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const HAIL =
-  'The distress call appears to be emanating from a Slug ship caught in open space by a Mantis raider. They contact you on emergency frequencies: "Please, we\'ll give you all we have if you sssave ussss!"';
+  "Mantis ship attacking a Slug ship.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "SLUG_DISTRESS_MANTIS";
-  b.name = "Mantis ship attacking Slug ship";
+  b.name = "Optional fight: Mantis ship or Slug ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -26,7 +26,7 @@ describe("Mantis ship attacking Slug ship hail", () => {
     // > "Of all the species in the galaxy, these two deserve one another. You power up the jump drive." — [[Mantis ship attacking Slug ship]]
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.title, "Mantis ship attacking Slug ship");
+    assert.equal(g.event?.title, "Optional fight: Mantis ship or Slug ship");
     assert.equal(g.event?.body, HAIL);
     assert.deepEqual(
       g.event?.choices.map((c) => c.id),

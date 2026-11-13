@@ -10,11 +10,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "CRYSTAL_PIRATE_CRYSTAL";
-  b.name = "Pirate ship attacking Crystal";
+  b.name = "Optional fight: pirate ship and Crystal ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Pirate ship attacking Crystal");
+  assert.equal(g.event?.title, "Optional fight: pirate ship and Crystal ship");
 }
 
 function scraps(body: string): number[] {
@@ -27,7 +27,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Pirate ship attacking Crystal", () => {
+describe("Optional fight: pirate ship and Crystal ship", () => {
   it("attacking starts a pirate fight, and ignoring them does nothing", () => {
     // Wiki citations:
     // > "Fight a Pirate ship." — [[Pirate ship attacking Crystal]]

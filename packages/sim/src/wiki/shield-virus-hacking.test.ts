@@ -16,18 +16,18 @@ import { eventText } from "../event-text.ts";
 const LEAD =
   eventText("event_AUTO_HACKER_c2_text");
 const BODY =
-  "Your arrival is greeted by numerous computer alerts. The nearby automated Rebel scout has deployed a virus and disrupted your shield system. Hopefully it won't cause further problems before you can destroy it.";
+  "Hostile Auto-ship. Your shields are hacked.";
 const COUNTER = "c:auto-ship-carrying-shield-virus:1";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "AUTO_HACKER";
-  b.name = "Auto-ship carrying shield virus";
+  b.name = "Hostile Auto-ship: shield hack";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Auto-ship carrying shield virus");
+  assert.equal(g.event?.title, "Hostile Auto-ship: shield hack");
   assert.equal(g.event?.body, BODY);
 }
 
@@ -58,7 +58,7 @@ describe("Auto-ship carrying shield virus hacking", () => {
     const g = createGame(1);
     open(g);
     assert.ok(
-      g.event?.choices.some((c) => c.id === COUNTER && c.label === "Counter the remote hacking."),
+      g.event?.choices.some((c) => c.id === COUNTER && c.label === "Fight. Hacking offline; shields keep full power."),
     );
     assert.equal(choiceDisabled(g, COUNTER), "Needs a Hacking system");
     choose(g, COUNTER);
@@ -66,7 +66,7 @@ describe("Auto-ship carrying shield virus hacking", () => {
     assert.equal(g.enemy, null);
     assert.equal(g.scrap, 10);
     assert.equal(g.log.includes(LEAD), false);
-    assert.equal(g.event?.title, "Auto-ship carrying shield virus");
+    assert.equal(g.event?.title, "Hostile Auto-ship: shield hack");
     assert.equal(g.event?.body, BODY);
     assert.ok(g.event?.choices.some((c) => c.id === "c:auto-ship-carrying-shield-virus:0"));
     assert.ok(g.event?.choices.some((c) => c.id === COUNTER));

@@ -15,7 +15,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Fire on research station",
+    name: "Distress: station fire",
     tier: "",
     flag: "filler:fire-on-research-station",
     asteroid: false,
@@ -65,9 +65,9 @@ function repairDrone(): Kit {
   };
 }
 
-describe("Fire on research station", () => {
+describe("Distress: station fire", () => {
   it("is a card a distress draw can reach", () => {
-    assert.equal(pageForRow("Fire on research station")?.slug, "DISTRESS_STATION_FIRE");
+    assert.equal(pageForRow("Distress: station fire")?.slug, "DISTRESS_STATION_FIRE");
   });
 
   it("hides the Rock and repair drone until they are aboard", () => {

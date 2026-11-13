@@ -5,20 +5,20 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  'You arrive in an asteroid field and are greeted by a Zoltan guard, "By attempting to access these closed mining fields, you are in violation of the Natural Mineral Protection Act. Your weaponry will be confiscated for processing." You don\'t have time for this.';
+  "Hostile Zoltan ship. Asteroid field.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ZOLTAN_ASTEROID";
-  b.name = "Zoltan fight in asteroid field";
+  b.name = "Hostile Zoltan ship in asteroid field";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Zoltan fight in asteroid field");
+  assert.equal(g.event?.title, "Hostile Zoltan ship in asteroid field");
 }
 
-describe("Zoltan fight in asteroid field", () => {
+describe("Hostile Zoltan ship in asteroid field", () => {
   it("shows the printed intro, and the fight choice starts a Zoltan combat in an asteroid field", () => {
     // Wiki citations:
     // > "You arrive in an asteroid field and are greeted by a Zoltan guard, \"By attempting to access these closed mining fields, you are in violation of the Natural Mineral Protection Act. Your weaponry will be confiscated for processing.\" You don't have time for this." — [[Zoltan fight in asteroid field]]
@@ -47,7 +47,7 @@ describe("Zoltan fight in asteroid field", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "ZOLTAN_ASTEROID";
-    dest.name = "Zoltan fight in asteroid field";
+    dest.name = "Hostile Zoltan ship in asteroid field";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

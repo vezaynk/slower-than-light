@@ -10,7 +10,7 @@ import {
 } from "./sim.ts";
 
 const WAIT =
-  "A pirate ship was lying in wait inside this asteroid field. It immediately moves in to attack.";
+  "Hostile pirate ship. Asteroid field.";
 
 describe("event lines stay on the card", () => {
   it("opens a continue card and leaves the sky log alone", () => {
@@ -91,7 +91,7 @@ describe("event lines stay on the card", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "PIRATE_ASTEROID";
-    dest.name = "Pirate fight in asteroid field";
+    dest.name = "Hostile pirate ship in asteroid field";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

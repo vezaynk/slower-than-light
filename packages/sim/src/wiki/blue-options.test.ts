@@ -69,7 +69,7 @@ function lead(body: string, id: string): boolean {
 describe("Skipped blue options", () => {
   it("nebula lost ship beams a crewmember for medium scrap, or tracks them with scanners", () => {
     const plain = createGame(1);
-    const ev = openFiller(plain, "nebula-lost-ship", "Nebula lost ship");
+    const ev = openFiller(plain, "nebula-lost-ship", "Lost ship in nebula");
     assert.deepEqual(
       ev.choices.map((c) => c.id),
       [
@@ -86,7 +86,7 @@ describe("Skipped blue options", () => {
     beam.player.kits.teleporter = kit("teleporter");
     const crew = beam.crew.filter((c) => c.side === "player").length;
     const scrap = beam.scrap;
-    openFiller(beam, "nebula-lost-ship", "Nebula lost ship");
+    openFiller(beam, "nebula-lost-ship", "Lost ship in nebula");
     choose(beam, "c:nebula-lost-ship:2");
     assert.ok((beam.event?.body ?? "").includes(eventText("event_NEBULA_LOST_SHIP_c3_text")));
     assert.equal(beam.crew.filter((c) => c.side === "player").length, crew + 1);
@@ -116,7 +116,7 @@ describe("Skipped blue options", () => {
 
   it("plasma piloting level 2 rolls the four printed results, and the weapon pays low scrap", () => {
     const plain = createGame(1);
-    openFiller(plain, "plasma-storm-incapacitated-ships", "Plasma storm incapacitated ships");
+    openFiller(plain, "plasma-storm-incapacitated-ships", "Wrecks in plasma storm");
     assert.ok(plain.event?.choices.some((c) => c.id === "c:plasma-storm-incapacitated-ships:2"));
     assert.equal(
       choiceDisabled(plain, "c:plasma-storm-incapacitated-ships:2"),
@@ -159,14 +159,14 @@ describe("Skipped blue options", () => {
     // > "They happily accept your offer for help. Once the drone does its work they transfer over some fuel for your trouble." — [[No fuel: Engi ship repair]]
     // > "You receive Fuel gained: 4-6." — [[No fuel: Engi ship repair]]
     const bare = createGame(1);
-    openCited(bare, "no-fuel-engi-ship-repair", "No fuel: Engi ship repair");
+    openCited(bare, "no-fuel-engi-ship-repair", "Out of fuel: Engi trade");
     assert.ok(bare.event?.choices.some((c) => c.id === "c:no-fuel-engi-ship-repair:2"));
     assert.equal(choiceDisabled(bare, "c:no-fuel-engi-ship-repair:2"), "Needs a Hull Repair Drone");
 
     const dry = createGame(2);
     dry.player.kits.drones = swarm("SHIP_REPAIR");
     dry.player.parts = 0;
-    openCited(dry, "no-fuel-engi-ship-repair", "No fuel: Engi ship repair");
+    openCited(dry, "no-fuel-engi-ship-repair", "Out of fuel: Engi trade");
     assert.equal(choiceDisabled(dry, "c:no-fuel-engi-ship-repair:2"), "Need 1 drone part");
     const fuel = dry.fuel;
     choose(dry, "c:no-fuel-engi-ship-repair:2");
@@ -177,7 +177,7 @@ describe("Skipped blue options", () => {
     g.player.kits.drones = swarm("SHIP_REPAIR");
     g.player.parts = 1;
     const before = g.fuel;
-    openCited(g, "no-fuel-engi-ship-repair", "No fuel: Engi ship repair");
+    openCited(g, "no-fuel-engi-ship-repair", "Out of fuel: Engi trade");
     choose(g, "c:no-fuel-engi-ship-repair:2");
     assert.ok((g.event?.body ?? "").includes(eventText("event_FUEL_OFF_ENGI_DUBIOUS_c3_text")));
     assert.equal(g.player.parts, 0);
@@ -243,7 +243,7 @@ describe("Skipped blue options", () => {
     // > "I've never seen a cryogenic system like this." — [[Zoltan research facility]]
     // > "Crystal crewmember named Ruwen" — [[Zoltan research facility]]
     const g = createGame(4);
-    openCited(g, "zoltan-research-facility", "Zoltan research facility");
+    openCited(g, "zoltan-research-facility", "Zoltan crew scan");
     assert.ok(g.event?.choices.some((c) => c.id === "c:zoltan-research-facility:3"));
     assert.equal(choiceDisabled(g, "c:zoltan-research-facility:3"), "Needs a Damaged Stasis Pod");
     g.augments = ["ADV_SCANNERS", "STASIS_POD", "STASIS_POD"];

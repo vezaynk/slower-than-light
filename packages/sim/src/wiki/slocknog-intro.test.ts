@@ -5,21 +5,21 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  'You detect life signs on a nearby moon - a lone Slug marooned on its surface. "Ah, a sssentient ssspecies, after all this time. I am Slocknog, a wandering hero ssseeking adventure. You may hire me for a ssmall sssum."';
+  "Crew for hire: 1 Slug.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.kind = "event";
   b.flag = "SLUG_DISTRESS_RESCUE";
-  b.name = "Slocknog";
+  b.name = "Hire: Slug crew";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   return b;
 }
 
-describe("Slocknog", () => {
+describe("Hire: Slug crew", () => {
   it("shows the printed hire sentence", () => {
     // Wiki citations:
     // > "You detect life signs on a nearby moon - a lone Slug marooned on its surface. \"Ah, a sssentient ssspecies, after all this time. I am Slocknog, a wandering hero ssseeking adventure. You may hire me for a ssmall sssum.\"" — [[Slocknog]]

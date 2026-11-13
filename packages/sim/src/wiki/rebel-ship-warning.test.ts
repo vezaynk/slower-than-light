@@ -9,14 +9,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "SQUAT_WARNING";
-  b.name = "Rebel ship warning";
+  b.name = "Fleeing Rebel ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel ship warning");
+  assert.equal(g.event?.title, "Fleeing Rebel ship");
 }
 
-describe("Rebel ship warning", () => {
+describe("Fleeing Rebel ship", () => {
   it("prints the scout sentence, and the fight choice starts a Rebel ship", () => {
     // Wiki citations:
     // > "You stumble across a forward scout of the Rebel fleet." — [[Rebel ship warning]]
@@ -24,7 +24,7 @@ describe("Rebel ship warning", () => {
     // > "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!" — [[Rebel ship warning]]
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.body, "You stumble across a forward scout of the Rebel fleet.");
+    assert.equal(g.event?.body, "Fleeing Rebel ship.");
     assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-ship-warning:0"));
     const told =
       eventText("ship_SQUAT_WARNING_escape_text");
@@ -53,7 +53,7 @@ describe("Rebel ship warning", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "SQUAT_WARNING";
-    dest.name = "Rebel ship warning";
+    dest.name = "Fleeing Rebel ship";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;
@@ -62,7 +62,7 @@ describe("Rebel ship warning", () => {
     g.sector = 1;
     g.phase = "map";
     g.event = null;
-    const scout = "You stumble across a forward scout of the Rebel fleet.";
+    const scout = "Fleeing Rebel ship.";
     const told =
       eventText("ship_SQUAT_WARNING_escape_text");
     commitJump(g, dest.id);

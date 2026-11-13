@@ -25,6 +25,11 @@ const TITLES = [
   "Store (Rock)",
 ];
 
+/** A row's dest is its functional title; its slug is the wiki page title's slug. */
+function titleOf(ev: { slug: string }): string {
+  return (TITLES as readonly string[]).find((t) => slug(t) === ev.slug) ?? ev.slug;
+}
+
 function pages(): Map<string, string> {
   const want = new Set(TITLES);
   const found = new Map<string, string>();
@@ -75,21 +80,21 @@ describe("cited rock events", () => {
     assert.equal(found.size, TITLES.length);
     const seen = new Set<string>();
     for (const ev of EXTRA_EVENTS) {
-      assert.ok(TITLES.includes(ev.dest), ev.dest);
-      assert.ok(!seen.has(ev.dest), ev.dest);
-      seen.add(ev.dest);
-      assert.deepEqual(ev.sectors, sectorNames(found.get(ev.dest) ?? ""));
-      assert.equal(ev.slug, slug(ev.dest));
+      assert.ok(TITLES.includes(titleOf(ev)), titleOf(ev));
+      assert.ok(!seen.has(titleOf(ev)), titleOf(ev));
+      seen.add(titleOf(ev));
+      assert.deepEqual(ev.sectors, sectorNames(found.get(titleOf(ev)) ?? ""));
+      assert.equal(slug(titleOf(ev)), ev.slug);
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.body.length <= 240);
-      const text = found.get(ev.dest) ?? "";
+      const text = found.get(titleOf(ev)) ?? "";
       ev.choices.forEach((choice, index) => {
         assert.equal(choice.id, `c:${ev.slug}:${index}`);
         for (const fx of choice.fx) {
-          assert.equal(fx.k === "res" || fx.k === "hull" || fx.k === "fleet", false, ev.dest);
+          assert.equal(fx.k === "res" || fx.k === "hull" || fx.k === "fleet", false, titleOf(ev));
           if (fx.k === "fight") {
-            assert.ok(text.includes(fx.tier), `${ev.dest} ${fx.tier}`);
-            if (fx.asteroid) assert.ok(text.includes("asteroidfield=true"), ev.dest);
+            assert.ok(text.includes(fx.tier), `${titleOf(ev)} ${fx.tier}`);
+            if (fx.asteroid) assert.ok(text.includes("asteroidfield=true"), titleOf(ev));
           }
         }
       });
@@ -100,7 +105,7 @@ describe("cited rock events", () => {
 describe("rock fight with boarders in an asteroid field", () => {
   it("does not put a note on the opening fight", () => {
     const field = EXTRA_EVENTS.find(
-      (e) => e.dest === "Rock fight with boarders in asteroid field",
+      (e) => titleOf(e) === "Rock fight with boarders in asteroid field",
     )!;
     assert.equal(
       field.choices[0].fx.some((fx) => fx.k === "note"),

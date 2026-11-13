@@ -7,13 +7,13 @@ import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "You spy two pirate ships lurking in the nebula here. They remain unaware of your presence; you're able to get your scanners to at least identify their cargo: One is carrying the fuel supplies, the other the ammunition. They begin to drift away from each other in the storm.";
+  "Two pirate ships. One carries fuel, one carries missiles. Plasma storm.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "STORM_ZOLTAN_SUPPLY_CHOICE";
-  b.name = "Pirate ships in plasma storm";
+  b.name = "Optional fight: pirate ships in plasma storm";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -28,10 +28,12 @@ describe("Pirate ships in plasma storm hail", () => {
     // > "Let them leave." — [[Pirate ships in plasma storm]]
     const g = createGame(1);
     open(g);
-    const def = allEvents().find((event) => event.dest === "Pirate ships in plasma storm");
+    const def = allEvents().find(
+      (event) => event.dest === "Optional fight: pirate ships in plasma storm",
+    );
     assert.ok(def);
     const ids = g.event?.choices.map((c) => c.id) ?? [];
-    assert.equal(g.event?.title, "Pirate ships in plasma storm");
+    assert.equal(g.event?.title, "Optional fight: pirate ships in plasma storm");
     assert.equal(g.event?.body, BODY);
     assert.equal(ids[0], "c:pirate-ships-in-plasma-storm:0");
     assert.deepEqual(

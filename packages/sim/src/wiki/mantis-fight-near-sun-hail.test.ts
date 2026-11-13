@@ -5,26 +5,26 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "Who knows why the Mantis would venture so close to a sun. Perhaps it makes for more of a challenge?";
+  "Hostile Mantis ship. Sun: fires break out.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "MANTIS_SUN_FIGHT";
-  b.name = "Mantis fight near sun";
+  b.name = "Hostile Mantis ship near sun";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
 }
 
-describe("Mantis fight near sun", () => {
+describe("Hostile Mantis ship near sun", () => {
   it("prints the full opening sentence, then fights a Mantis ship", () => {
     // Wiki citations:
     // > "Who knows why the Mantis would venture so close to a sun. Perhaps it makes for more of a challenge?" — [[Mantis fight near sun]]
     // > "Fight a Mantis ship (default rewards)." — [[Mantis fight near sun]]
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.title, "Mantis fight near sun");
+    assert.equal(g.event?.title, "Hostile Mantis ship near sun");
     assert.equal(g.event?.body, BODY);
     assert.equal(g.scrap, 10);
     choose(g, "c:mantis-fight-near-sun:0");
@@ -47,7 +47,7 @@ describe("Mantis fight near sun", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "MANTIS_SUN_FIGHT";
-    dest.name = "Mantis fight near sun";
+    dest.name = "Hostile Mantis ship near sun";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

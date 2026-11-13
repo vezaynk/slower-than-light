@@ -14,7 +14,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Giant alien spiders",
+    name: "Distress: station infestation",
     tier: "",
     flag: "filler:giant-alien-spiders",
     asteroid: false,
@@ -43,15 +43,15 @@ function reward(body: string) {
   return { scrap: n("Scrap"), fuel: n("Fuel"), missiles: n("Missiles"), parts: n("Drone parts") };
 }
 
-describe("Giant alien spiders", () => {
+describe("Distress: station infestation", () => {
   it("is a card a distress draw can reach", () => {
-    assert.equal(pageForRow("Giant alien spiders")?.slug, "DISTRESS_INFESTATION");
+    assert.equal(pageForRow("Distress: station infestation")?.slug, "DISTRESS_INFESTATION");
   });
 
   it("hides the blue options until that gear is fitted", () => {
     const plain = createGame(1);
     const ev = open(plain);
-    assert.match(ev.body, /giant alien spiders/);
+    assert.equal(ev.body, "Station overrun by creatures.");
     assert.deepEqual(
       ev.choices.map((c) => c.id),
       ["c:giant-alien-spiders:0", "c:giant-alien-spiders:1"],

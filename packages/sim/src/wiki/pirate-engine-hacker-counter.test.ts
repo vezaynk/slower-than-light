@@ -12,11 +12,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "PIRATE_NO_ESCAPE";
-  b.name = "Pirate engine hacker";
+  b.name = "Hostile pirate ship: engine hack";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Pirate engine hacker");
+  assert.equal(g.event?.title, "Hostile pirate ship: engine hack");
 }
 
 describe("Pirate engine hacker hacking counter", () => {
@@ -25,7 +25,7 @@ describe("Pirate engine hacker hacking counter", () => {
     open(g);
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === "c:pirate-engine-hacker:1" && c.label === "Counter the remote hacking.",
+        (c) => c.id === "c:pirate-engine-hacker:1" && c.label === "Fight. Hacking offline; engines keep power.",
       ),
     );
     assert.equal(choiceDisabled(g, "c:pirate-engine-hacker:1"), "Needs a Hacking system");

@@ -14,7 +14,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ROGUE_REBEL";
-  b.name = "Rebel fight chance";
+  b.name = "Optional fight: hidden Rebel ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   if (!g.event) {
@@ -22,7 +22,7 @@ function open(g: Game) {
     g.event = fillerEvent(g, b);
   }
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel fight chance");
+  assert.equal(g.event?.title, "Optional fight: hidden Rebel ship");
 }
 
 describe("Rebel fight chance Advanced Sensors", () => {
@@ -31,7 +31,7 @@ describe("Rebel fight chance Advanced Sensors", () => {
     g.player.systems.sensors.level = 2;
     open(g);
     assert.ok(
-      g.event?.choices.some((c) => c.id === PIN && c.label === "Pinpoint the Rebel's location."),
+      g.event?.choices.some((c) => c.id === PIN && c.label === "Fight the Rebel ship."),
     );
     assert.equal(choiceDisabled(g, PIN), "Needs Sensors level 3");
     choose(g, PIN);

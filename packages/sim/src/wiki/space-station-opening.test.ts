@@ -5,13 +5,13 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  'You come across a space station under construction. You receive a message from their command tower, "Greetings. We recently lost contact with a cargo ship that was set to deliver more construction materials. Could you help us figure out what happened to them?"';
+  "Quest offer.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "QUEST_CONSTRUCTIONYARD";
-  b.name = "Space station under construction";
+  b.name = "Quest: missing cargo ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -21,7 +21,7 @@ describe("Space station under construction opening", () => {
   it("prints the request sentence and keeps both choices", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.title, "Space station under construction");
+    assert.equal(g.event?.title, "Quest: missing cargo ship");
     assert.equal(g.event?.body, BODY);
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

@@ -16,14 +16,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // "Asteroid belt distress" ({{Locations|Civilian Sector|Engi Controlled Sector|Engi Homeworlds|Pirate Controlled
   // Sector|Rebel Controlled Sector|Rebel Stronghold|Rock Controlled Sector|Rock Homeworlds|Uncharted Nebula|distress=true}}).
   {
-    dest: "Asteroid belt distress",
+    dest: "Distress: ship in asteroid belt",
     slug: "asteroid-belt-distress",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Uncharted Nebula." — [[Asteroid belt distress]]
     // > "It is unique." — [[Asteroid belt distress]]
     // > "You follow the distress beacon to a tiny asteroid belt." — [[Asteroid belt distress]]
     flag: "cited:asteroid-belt-distress",
-    aliases: ["Asteroid belt distress", "Asteroid Belt Distress"],
+    aliases: [],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -35,29 +35,29 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Rock Homeworlds",
       "Uncharted Nebula",
     ],
-    body: "You follow the distress beacon to a tiny asteroid belt. You find a small ship struggling to maneuver through the field.",
+    body: "Ship in an asteroid belt.",
     choices: [
       {
         id: "c:asteroid-belt-distress:0",
         // Wiki citations:
         // > "Hail them to offer assistance." — [[Asteroid belt distress]]
         // > "Help! Our shields are down and we won't last long!" — [[Asteroid belt distress]]
-        label: "Hail them to offer assistance.",
-        fx: [{ k: "note", text: "They beg for help." }],
+        label: "More options.",
+        fx: [{ k: "note", text: "More options." }],
       },
     ],
   },
   // "Capture the ship" ({{Locations|Civilian Sector|Rock Controlled Sector|Rock Homeworlds|Zoltan Controlled Sector|
   // Zoltan Homeworlds}}). The three blue options lead to "Offer a solution" (wiki/quests-b.ts).
   {
-    dest: "Capture the ship",
+    dest: "Quest: capture a ship",
     slug: "capture-the-ship",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Rock Controlled Sector, Rock Homeworlds, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Capture the ship]]
     // > "It is unique." — [[Capture the ship]]
     // > "You arrive to find a number of ships convening around a station." — [[Capture the ship]]
     flag: "cited:capture-the-ship",
-    aliases: ["Capture the ship", "Capture the Ship"],
+    aliases: [],
     sectors: [
       "Civilian Sector",
       "Rock Controlled Sector",
@@ -65,9 +65,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: `You arrive to find a number of ships convening around a station. There is some unencrypted chatter between the ships, you tune in and listen for anything interesting.
-
-Overhearing their conversation, it seems that they need to take possession of an enemy ship intact.`,
+    body: "Quest offer: capture a ship intact.",
     choices: [
       {
         id: "c:capture-the-ship:0",
@@ -75,15 +73,15 @@ Overhearing their conversation, it seems that they need to take possession of an
         // > "Offer your services." — [[Capture the ship]]
         // > "you are not \"properly equipped\" for this type of mission." — [[Capture the ship]]
         // > "Nothing happens." — [[Capture the ship]]
-        label: "Offer your services.",
-        fx: [{ k: "note", text: "They decline." }],
+        label: "Nothing happens.",
+        fx: [{ k: "note", text: "Nothing happens." }],
       },
       {
         id: "c:capture-the-ship:1",
         // Wiki citations:
         // > "Leave them alone." — [[Capture the ship]]
         // > "Nothing happens." — [[Capture the ship]]
-        label: "Leave them alone.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
       {
@@ -91,24 +89,24 @@ Overhearing their conversation, it seems that they need to take possession of an
         // Wiki citations:
         // > "(Teleporter) Offer to board their ship." — [[Capture the ship]]
         // > "Offer a solution." — [[Capture the ship]]
-        label: "Offer to board their ship.",
-        fx: [{ k: "note", text: "They hear your offer." }],
+        label: "More options: quest beacon.",
+        fx: [{ k: "note", text: "More options." }],
       },
       {
         id: "c:capture-the-ship:3",
         // Wiki citations:
         // > "(Fire Bomb) Offer to burn the crew out." — [[Capture the ship]]
         // > "Offer a solution." — [[Capture the ship]]
-        label: "Offer to burn the crew out.",
-        fx: [{ k: "note", text: "They hear your offer." }],
+        label: "More options: quest beacon.",
+        fx: [{ k: "note", text: "More options." }],
       },
       {
         id: "c:capture-the-ship:4",
         // Wiki citations:
         // > "(Bio Beam) Offer to 'remove' their crew. (Requires Anti-Bio Beam)" — [[Capture the ship]]
         // > "Offer a solution." — [[Capture the ship]]
-        label: "Offer to 'remove' their crew.",
-        fx: [{ k: "note", text: "They hear your offer." }],
+        label: "More options: quest beacon.",
+        fx: [{ k: "note", text: "More options." }],
       },
     ],
   },
@@ -116,14 +114,14 @@ Overhearing their conversation, it seems that they need to take possession of an
   // Rebel Controlled Sector|Rebel Stronghold|Rock Controlled Sector|Rock Homeworlds|Zoltan Controlled Sector|Zoltan
   // Homeworlds}}). The away party rolls one of five results (wiki/quests-b.ts).
   {
-    dest: "Encrypted federation signal",
+    dest: "Planet signal",
     slug: "encrypted-federation-signal",
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector, Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Rebel Controlled Sector, Rebel Stronghold, Rock Controlled Sector, Rock Homeworlds, Zoltan Controlled Sector, Zoltan Homeworlds." — [[Encrypted federation signal]]
     // > "It is unique." — [[Encrypted federation signal]]
     // > "A Federation encrypted signal is being broadcast from a nearby planet." — [[Encrypted federation signal]]
     flag: "cited:encrypted-federation-signal",
-    aliases: ["Encrypted federation signal", "Encrypted Federation Signal"],
+    aliases: [],
     sectors: [
       "Abandoned Sector",
       "Civilian Sector",
@@ -136,37 +134,43 @@ Overhearing their conversation, it seems that they need to take possession of an
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "A Federation encrypted signal is being broadcast from a nearby planet.",
+    body: "Signal from a planet.",
     choices: [
       {
         id: "c:encrypted-federation-signal:0",
         // Wiki citations:
         // > "Send an away party to investigate." — [[Encrypted federation signal]]
         // > "2-3 human boarders beam aboard your ship and you fight a Rebel ship (default rewards)." — [[Encrypted federation signal]]
-        label: "Send an away party to investigate.",
-        fx: [{ k: "note", text: "The away party reports back." }],
+        label:
+          "1 in 5: quest beacon. 1 in 5: gain medium resources, quest beacon. 1 in 5: nothing happens. 1 in 5: gain high scrap and resources. 1 in 5: fight and 2-3 Human boarders.",
+        fx: [
+          {
+            k: "note",
+            text: "1 in 5: quest beacon. 1 in 5: gain medium resources, quest beacon. 1 in 5: nothing happens. 1 in 5: gain high scrap and resources. 1 in 5: fight and 2-3 Human boarders.",
+          },
+        ],
       },
       {
         id: "c:encrypted-federation-signal:1",
         // Wiki citations:
         // > "It could be a trap, let's move on." — [[Encrypted federation signal]]
         // > "Nothing happens." — [[Encrypted federation signal]]
-        label: "It could be a trap, let's move on.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
   },
   // "Engi ship attacked by Mantis ship" ({{Locations|Engi Controlled Sector|Engi Homeworlds}}).
   {
-    dest: "Engi ship attacked by Mantis ship",
+    dest: "Optional fight: Mantis ship (Engi distress)",
     slug: "engi-ship-attacked-by-mantis-ship",
     // Wiki citations:
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Engi ship attacked by Mantis ship]]
     // > "You receive a distress call from a nearby Engi ship." — [[Engi ship attacked by Mantis ship]]
     flag: "cited:engi-ship-attacked-by-mantis-ship",
-    aliases: ["Engi ship attacked by Mantis ship", "Engi Ship Attacked by Mantis Ship"],
+    aliases: [],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
-    body: 'You receive a distress call from a nearby Engi ship. "Assistance requested. Danger present. Imminent destruction."',
+    body: "Distress call.",
     choices: [
       {
         id: "c:engi-ship-attacked-by-mantis-ship:0",
@@ -174,15 +178,15 @@ Overhearing their conversation, it seems that they need to take possession of an
         // > "Respond to the call and move in to assist." — [[Engi ship attacked by Mantis ship]]
         // > "You fight a normal Mantis ship." — [[Engi ship attacked by Mantis ship]]
         // > "1-2 mantis boarders beam aboard your ship and you fight a mantis-controlled Engi ship (default rewards)." — [[Engi ship attacked by Mantis ship]]
-        label: "Respond to the call and move in to assist.",
-        fx: [{ k: "note", text: "You move in." }],
+        label: "1 in 2: fight a Mantis ship with 1-2 Mantis boarders. 1 in 2: fight a Mantis ship.",
+        fx: [{ k: "note", text: "Fight." }],
       },
       {
         id: "c:engi-ship-attacked-by-mantis-ship:1",
         // Wiki citations:
         // > "Keep your distance." — [[Engi ship attacked by Mantis ship]]
         // > "Nothing happens." — [[Engi ship attacked by Mantis ship]]
-        label: "Keep your distance.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -190,14 +194,14 @@ Overhearing their conversation, it seems that they need to take possession of an
   // "Merchant's request" ({{Locations|Civilian Sector|Engi Controlled Sector|Engi Homeworlds|Pirate Controlled Sector|
   // Rebel Controlled Sector|Rebel Stronghold}}).
   {
-    dest: "Merchant's request",
+    dest: "Quest offer: merchant",
     slug: "merchant-s-request",
     // Wiki citations:
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold." — [[Merchant's request]]
     // > "It is unique." — [[Merchant's request]]
     // > "You arrive at a populated sector." — [[Merchant's request]]
     flag: "cited:merchant-s-request",
-    aliases: ["Merchant's request", "Merchant's Request"],
+    aliases: [],
     sectors: [
       "Civilian Sector",
       "Engi Controlled Sector",
@@ -206,44 +210,44 @@ Overhearing their conversation, it seems that they need to take possession of an
       "Rebel Controlled Sector",
       "Rebel Stronghold",
     ],
-    body: "You arrive at a populated sector. One merchant seems to be mass-broadcasting a request for a mercenary ship to aid him. Shall we respond?",
+    body: "Quest offer.",
     choices: [
       {
         id: "c:merchant-s-request:0",
         // Wiki citations:
         // > "You receive Drone parts gained: 5 and Merchant's Delivery quest marker is added to your map." — [[Merchant's request]]
         // > "Merchant's Investigation quest marker is added to your map." — [[Merchant's request]]
-        label: "Yes.",
-        fx: [{ k: "note", text: "The merchant explains." }],
+        label: "More options.",
+        fx: [{ k: "note", text: "More options." }],
       },
       {
         id: "c:merchant-s-request:1",
         // Wiki citations:
         // > "Nothing happens." — [[Merchant's request]]
-        label: "No.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
   },
   // "Nebula wreckage" ({{Locations|Slug Controlled Nebula|Uncharted Nebula|nebula=true}}).
   {
-    dest: "Nebula wreckage",
+    dest: "Wreckage in nebula",
     slug: "nebula-wreckage",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Uncharted Nebula." — [[Nebula wreckage]]
     // > "It is unique." — [[Nebula wreckage]]
     // > "This nebula looks like it's recently seen two ships exchange fire" — [[Nebula wreckage]]
     flag: "cited:nebula-wreckage",
-    aliases: ["Nebula wreckage", "Nebula Wreckage"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Uncharted Nebula"],
-    body: "This nebula looks like it's recently seen two ships exchange fire... with mutually-assured destructive results. Wreckage drifts by your screens and tumbles into the depths of the nebula to be lost to sight. It's hard to determine who the combatants were without closer investigation.",
+    body: "Wreckage. Nebula.",
     choices: [
       {
         id: "c:nebula-wreckage:0",
         // Wiki citations:
         // > "(Slug Crew) Ask your Slug crew to scan for survivors." — [[Nebula wreckage]]
-        label: "Ask your Slug crew to scan for survivors.",
-        fx: [{ k: "note", text: "Your Slug finds a survivor." }],
+        label: "More options: quest beacon or crew.",
+        fx: [{ k: "note", text: "More options." }],
       },
       {
         id: "c:nebula-wreckage:1",
@@ -252,15 +256,16 @@ Overhearing their conversation, it seems that they need to take possession of an
         // > "3× The wreckage is drifting faster than it first appeared." — [[Nebula wreckage]]
         // > "Your ship takes 5 hull damage" — [[Nebula wreckage]]
         // > "You spot a life form floating within the wreckage." — [[Nebula wreckage]]
-        label: "Investigate the battlefield.",
-        fx: [{ k: "note", text: "You search the wreckage." }],
+        label:
+          "1 in 5: take 4 hull damage and a fire. 3 in 5: nothing happens. 1 in 5: more options.",
+        fx: [{ k: "note", text: "Searched." }],
       },
       {
         id: "c:nebula-wreckage:2",
         // Wiki citations:
         // > "Leave the battlefield before other ships arrive." — [[Nebula wreckage]]
         // > "Nothing happens." — [[Nebula wreckage]]
-        label: "Leave the battlefield before other ships arrive.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],

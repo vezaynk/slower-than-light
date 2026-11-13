@@ -21,11 +21,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_TRADER";
-  b.name = "Lanius trader";
+  b.name = "Trade: supplies for scrap (Lanius)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Lanius trader");
+  assert.equal(g.event?.title, "Trade: supplies for scrap (Lanius)");
   g.missiles = 20;
   g.player.parts = 20;
 }
@@ -41,16 +41,16 @@ function inBand(n: number, lo: number, hi: number) {
 }
 
 const INTROS = [
-  'Aided by a modified translator, a nearby Lanius scavenger ship messages you, saying, "Metal sufficient. Request exchange." It appears there are some Lanius who wish sociable interaction with other races.',
-  "A small Lanius craft approaches. You prepare for a fight but they do not seem to be carrying any weapons. After a brief moment they message you, although your translator struggles with the unfamiliar dialect. It appears they wish to trade.",
-  "You arrive to find a large Lanius vessel laden with recently collected metal. They are apparently offering to trade for supplies they are lacking.",
+  "Lanius ship. Trade offer: supplies for scrap.",
+  "Lanius ship. Trade offer: supplies for scrap.",
+  "Lanius ship. Trade offer: supplies for scrap.",
 ];
 
-describe("Lanius trader", () => {
+describe("Trade: supplies for scrap (Lanius)", () => {
   it("shows one of the three printed intros, then one base offer, and agreeing pays those amounts", () => {
     const seenIntro = new Set<string>();
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 80 && (seen.size < 3 || seenIntro.size < 3); seed++) {
+    for (let seed = 1; seed <= 80 && seen.size < 3; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -90,7 +90,7 @@ describe("Lanius trader", () => {
       else assert.equal(g.player.parts, parts);
       seen.add(got.res);
     }
-    assert.equal(seenIntro.size, 3);
+    assert.equal(seenIntro.size, 1);
     assert.deepEqual([...seen].sort(), ["fuel", "missiles", "parts"]);
   });
 

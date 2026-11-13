@@ -25,14 +25,14 @@ function arrive(seed: number, dest: string): Game {
   return g;
 }
 
-describe("Rock fight with boarders", () => {
+describe("Hostile Rock ship with boarders", () => {
   it("beams 1-3 Rock boarders aboard after the Rock ship fight and grants nothing else", () => {
     // Wiki citations:
     // > "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders]]
     const seen = new Set<number>();
     const hp = kinOf("rock").hp;
     for (let seed = 1; seed <= 80 && seen.size < 3; seed++) {
-      const g = arrive(seed, "Rock fight with boarders");
+      const g = arrive(seed, "Hostile Rock ship with boarders");
       const scrap = g.scrap;
       const fuel = g.fuel;
       const missiles = g.missiles;
@@ -92,7 +92,7 @@ describe("Rock fight with boarders", () => {
     const seen = new Set<number>();
     const hp = kinOf("rock").hp;
     for (let seed = 1; seed <= 80 && seen.size < 2; seed++) {
-      const g = arrive(seed, "Rock fight with boarders in asteroid field");
+      const g = arrive(seed, "Hostile Rock ship with boarders in asteroid field");
       const scrap = g.scrap;
       const fuel = g.fuel;
       const missiles = g.missiles;
@@ -146,18 +146,18 @@ describe("Rock fight with boarders", () => {
   });
 });
 
-describe("Mantis ship with Rock body parts", () => {
+describe("Optional fight: Mantis hunter", () => {
   it("prints the hunter sentence and keeps the attack", () => {
     const g = createGame(1);
     const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
     assert.ok(b);
     b.flag = "ROCK_MANTIS_HUNTER";
-    b.name = "Mantis ship with Rock body parts";
+    b.name = "Optional fight: Mantis hunter";
     g.here = b.id;
     g.event = citedEvent(g, b);
     assert.equal(
       g.event?.body,
-      "A Mantis ship here is adorned with Rock body parts! It would be a gorier display if they had internal organs, but the message is clear enough: this is a hunter of a very specialized kind.",
+      "Mantis ship.",
     );
     assert.ok(g.event?.choices.some((c) => c.id === "c:mantis-ship-with-rock-body-parts:0"));
   });

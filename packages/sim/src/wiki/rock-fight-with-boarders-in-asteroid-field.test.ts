@@ -5,22 +5,22 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "You arrive in an asteroid field and immediately begin evasive maneuvers when a loud clunk reverberates through the ship. At first you think the hull has been hit, but the noise came from some Rock intruders teleporting aboard the ship!",
-  "Your shields are being taxed as they deflect the debris from an asteroid field. As you weave your way between the rocks, you happen upon a Rock pirate stronghold. You register teleport signatures and hear shouts aboard the ship.",
+  "Hostile Rock ship. Asteroid field. Rock boarders.",
+  "Hostile Rock ship. Asteroid field. Rock boarders.",
 ];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ROCK_BOARDERS_ASTEROID";
-  b.name = "Rock fight with boarders in asteroid field";
+  b.name = "Hostile Rock ship with boarders in asteroid field";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rock fight with boarders in asteroid field");
+  assert.equal(g.event?.title, "Hostile Rock ship with boarders in asteroid field");
 }
 
-describe("Rock fight with boarders in asteroid field", () => {
+describe("Hostile Rock ship with boarders in asteroid field", () => {
   it("shows one of the two intros, and the fight still beams Rock boarders in an asteroid field", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Rock fight with boarders in asteroid field]]
@@ -28,7 +28,7 @@ describe("Rock fight with boarders in asteroid field", () => {
     // > "''Your shields are being taxed as they deflect the debris from an asteroid field. As you weave your way between the rocks, you happen upon a Rock pirate stronghold. You register teleport signatures and hear shouts aboard the ship.'" — [[Rock fight with boarders in asteroid field]]
     // > "1-2 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders in asteroid field]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 40 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -38,7 +38,7 @@ describe("Rock fight with boarders in asteroid field", () => {
       );
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     const before = g.crew.filter((c) => c.side === "player").length;
@@ -66,7 +66,7 @@ describe("Rock fight with boarders in asteroid field", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "ROCK_BOARDERS_ASTEROID";
-    dest.name = "Rock fight with boarders in asteroid field";
+    dest.name = "Hostile Rock ship with boarders in asteroid field";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

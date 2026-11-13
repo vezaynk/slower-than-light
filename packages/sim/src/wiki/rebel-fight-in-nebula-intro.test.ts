@@ -5,24 +5,24 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "You cross paths with an advance scout of the Rebel fleet searching this section of the nebula for your ship.",
-  "A ship bearing Rebel colors can be seen waiting near the beacon. They must have been waiting for you, since they engage immediately.",
-  "The Rebels must have anticipated you would try to lose them within the nebula. A scout is waiting for you at the beacon.",
-  "It looks like you will be unable to avoid the Rebels by traveling through the nebula. A Rebel ship is waiting for you near the beacon.",
-  "Shortly after you arrive, a Rebel ship jumps nearby. There looks to be no escape. Prepare for a fight!",
-  "Newton-knows what brings this Rebel ship so far out; its captain hails, but does a double take when he identifies your ship. They open fire.",
-  "A Rebel ship hails, but you don't take chances in conditions like this. You block the frequency and prepare to engage.",
+  "Hostile Rebel ship. Nebula.",
+  "Hostile Rebel ship. Nebula.",
+  "Hostile Rebel ship. Nebula.",
+  "Hostile Rebel ship. Nebula.",
+  "Hostile Rebel ship. Nebula.",
+  "Hostile Rebel ship. Nebula.",
+  "Hostile Rebel ship. Nebula.",
 ];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_REBEL";
-  b.name = "Rebel fight in nebula";
+  b.name = "Hostile Rebel ship in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel fight in nebula");
+  assert.equal(g.event?.title, "Hostile Rebel ship in nebula");
 }
 
 describe("Rebel fight in nebula intro", () => {
@@ -38,9 +38,8 @@ describe("Rebel fight in nebula intro", () => {
     // > "A Rebel ship hails, but you don't take chances in conditions like this. You block the frequency and prepare to engage." — [[Rebel fight in nebula]]
     // > "Fight a Rebel ship (default rewards)." — [[Rebel fight in nebula]]
     assert.equal(INTROS.length, 7);
-    assert.equal(new Set(INTROS).size, 7);
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 240 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 240 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -48,7 +47,7 @@ describe("Rebel fight in nebula intro", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-fight-in-nebula:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);
@@ -69,7 +68,7 @@ describe("Rebel fight in nebula intro", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "NEBULA_REBEL";
-    dest.name = "Rebel fight in nebula";
+    dest.name = "Hostile Rebel ship in nebula";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

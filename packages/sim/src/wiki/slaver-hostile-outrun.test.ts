@@ -6,17 +6,17 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const ID = "c:slaver-hostile:1";
-const LABEL = "Attempt to out-run the slaver ship.";
+const LABEL = "1 in 3: fight the pirate ship. 2 in 3: nothing happens.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "PIRATE_SLAVER";
-  b.name = "Slaver (hostile)";
+  b.name = "Crew demand: pirate ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Slaver (hostile)");
+  assert.equal(g.event?.title, "Crew demand: pirate ship");
 }
 
 describe("Slaver (hostile) Engines out-run", () => {

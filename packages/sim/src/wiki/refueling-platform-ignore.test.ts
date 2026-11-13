@@ -6,7 +6,7 @@ import { citedEvent } from "./cited-events.ts";
 import { eventText } from "../event-text.ts";
 
 const ID = "c:refueling-platform:1";
-const LABEL = "Ignore the refueling platform.";
+const LABEL = "Fight the pirate ship.";
 const BAIT =
   eventText("event_FUELING_STATION_IGNORE_1_text");
 

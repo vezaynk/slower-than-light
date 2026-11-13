@@ -10,15 +10,15 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "STORM_AUTO";
-  b.name = "Auto-ship fight in plasma storm";
+  b.name = "Hostile Auto-ship in plasma storm";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Auto-ship fight in plasma storm");
+  assert.equal(g.event?.title, "Hostile Auto-ship in plasma storm");
 }
 
-describe("Auto-ship fight in plasma storm", () => {
+describe("Hostile Auto-ship in plasma storm", () => {
   it("preparing to fight starts an Auto-ship", () => {
     // Wiki citations:
     // > "You jump into a sector of the nebula beset by a plasma storm. An automated Rebel scout stationed at the beacon moves in to attack." — [[Auto-ship fight in plasma storm]]
@@ -28,7 +28,7 @@ describe("Auto-ship fight in plasma storm", () => {
     open(g);
     assert.equal(
       g.event?.body,
-      "You jump into a sector of the nebula beset by a plasma storm. An automated Rebel scout stationed at the beacon moves in to attack.",
+      "Hostile Auto-ship. Plasma storm.",
     );
     for (const n of [1, 2, 3]) {
       assert.equal(

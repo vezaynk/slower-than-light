@@ -5,20 +5,20 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "There must have been rich pickings for pirates around here up until war broke out. The pirate you encounter here looks worn down, but hungry. You'll have to fight!";
+  "Hostile pirate ship.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ENGI_PIRATE_FIGHT";
-  b.name = "Pirate fight (Engi)";
+  b.name = "Hostile pirate ship (Engi sector)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Pirate fight (Engi)");
+  assert.equal(g.event?.title, "Hostile pirate ship (Engi sector)");
 }
 
-describe("Pirate fight (Engi)", () => {
+describe("Hostile pirate ship (Engi sector)", () => {
   it("shows the printed intro, and the fight choice starts a pirate combat", () => {
     // Wiki citations:
     // > "There must have been rich pickings for pirates around here up until war broke out. The pirate you encounter here looks worn down, but hungry. You'll have to fight!" — [[Pirate fight (Engi)]]
@@ -43,7 +43,7 @@ describe("Pirate fight (Engi)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "ENGI_PIRATE_FIGHT";
-    dest.name = "Pirate fight (Engi)";
+    dest.name = "Hostile pirate ship (Engi sector)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

@@ -5,23 +5,23 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "There appears to be a pirate ship nearby. Be on your guard; anyone trying to hunt in Slug territory is either formidable or deeply stupid, and in space, either can be dangerous.",
-  `"We knew anyone foolish enough to try and sneak through a Slug nebula would stick to open space. Yield your goods and we may let you live." You cut the transmission in lieu of a response.`,
-  "Before you can take a moment's rest from the ever present nebulas in this sector, a pirate ship appears behind you and opens fire.",
+  "Hostile pirate ship.",
+  "Hostile pirate ship.",
+  "Hostile pirate ship.",
 ];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "SLUG_PIRATE";
-  b.name = "Pirate fight (Slug)";
+  b.name = "Hostile pirate ship (Slug sector)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Pirate fight (Slug)");
+  assert.equal(g.event?.title, "Hostile pirate ship (Slug sector)");
 }
 
-describe("Pirate fight (Slug)", () => {
+describe("Hostile pirate ship (Slug sector)", () => {
   it("shows one of the three intros, and the fight choice starts a pirate combat", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight (Slug)]]
@@ -30,7 +30,7 @@ describe("Pirate fight (Slug)", () => {
     // > "Before you can take a moment's rest from the ever present nebulas in this sector, a pirate ship appears behind you and opens fire." — [[Pirate fight (Slug)]]
     // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Slug)]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 80 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -38,7 +38,7 @@ describe("Pirate fight (Slug)", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:pirate-fight-slug:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);
@@ -60,7 +60,7 @@ describe("Pirate fight (Slug)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "SLUG_PIRATE";
-    dest.name = "Pirate fight (Slug)";
+    dest.name = "Hostile pirate ship (Slug sector)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

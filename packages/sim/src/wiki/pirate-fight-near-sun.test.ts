@@ -5,20 +5,20 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "This beacon has been placed too close to a super-giant class M star! The ship will gradually overheat until you get out of here... or die. A pirate, apparently oblivious to the danger of the sun, moves in to engage.";
+  "Hostile pirate ship. Sun: fires break out.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "PIRATE_SUN";
-  b.name = "Pirate fight near sun";
+  b.name = "Hostile pirate ship near sun";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Pirate fight near sun");
+  assert.equal(g.event?.title, "Hostile pirate ship near sun");
 }
 
-describe("Pirate fight near sun", () => {
+describe("Hostile pirate ship near sun", () => {
   it("shows the sun intro, and the fight choice starts a pirate combat", () => {
     // Wiki citations:
     // > "This beacon has been placed too close to a super-giant class M star! The ship will gradually overheat until you get out of here... or die. A pirate, apparently oblivious to the danger of the sun, moves in to engage." — [[Pirate fight near sun]]
@@ -44,7 +44,7 @@ describe("Pirate fight near sun", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "PIRATE_SUN";
-    dest.name = "Pirate fight near sun";
+    dest.name = "Hostile pirate ship near sun";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

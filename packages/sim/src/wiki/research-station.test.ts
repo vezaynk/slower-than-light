@@ -14,11 +14,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "STATION_SICK";
-  b.name = "Research station with no response";
+  b.name = "Silent research station";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Research station with no response");
+  assert.equal(g.event?.title, "Silent research station");
 }
 
 function drone(kind: string): Kit {
@@ -35,7 +35,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Research station with no response", () => {
+describe("Silent research station", () => {
   it("is one pirate sector card with the arrival sentence", () => {
     // Wiki citations:
     // > "This random event occurs in Pirate Controlled Sector." — [[Research station with no response]]
@@ -47,20 +47,20 @@ describe("Research station with no response", () => {
     // > "Run advanced life scans." — [[Research station with no response]]
     // > "(Life Scanner)" — [[Research station with no response]]
     const pages = citedPagesFor("PIRATE_SECTOR").filter(
-      (p) => p.dest === "Research station with no response",
+      (p) => p.dest === "Silent research station",
     );
     assert.equal(pages.length, 1);
     assert.deepEqual(pages[0]?.sectors, ["PIRATE_SECTOR"]);
     const g = createGame(1);
     open(g);
-    assert.match(g.event?.body ?? "", /no response to your hails/);
+    assert.match(g.event?.body ?? "", /^Station\. No response\.$/);
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
       [
-        "Dock with the station and investigate.",
-        "Leave it alone.",
-        "Send your battle drone in to help.",
-        "Run advanced life scans.",
+        "1 in 3: gain medium scrap and drone parts. 1 in 3: gain 1 crew, more options. 1 in 3: more options.",
+        "Nothing happens.",
+        "Lose 1 drone part. 1 in 3: gain medium scrap and resources.",
+        "1 in 2: nothing happens. 1 in 2: gain medium scrap and resources.",
       ],
     );
   });
@@ -119,7 +119,7 @@ describe("Research station with no response", () => {
     open(bare);
     assert.equal(choiceDisabled(bare, DRONE), "Needs an Anti-Personnel Drone");
     choose(bare, DRONE);
-    assert.match(bare.event?.body ?? "", /no response to your hails/);
+    assert.match(bare.event?.body ?? "", /^Station\. No response\.$/);
     assert.equal(bare.scrap, 10);
 
     const broke = createGame(2);
@@ -202,7 +202,7 @@ describe("Research station with no response", () => {
         assert.equal(/Drone parts: -1/.test(body), false);
       } else {
         held = true;
-        assert.match(body, /no response to your hails/);
+        assert.match(body, /^Station\. No response\.$/);
         assert.equal(g.player.parts, 0);
         assert.equal(g.scrap, scrap);
       }
@@ -222,7 +222,7 @@ describe("Research station with no response", () => {
     open(bare);
     assert.equal(choiceDisabled(bare, SCAN), "Needs a Lifeform Scanner");
     choose(bare, SCAN);
-    assert.match(bare.event?.body ?? "", /no response to your hails/);
+    assert.match(bare.event?.body ?? "", /^Station\. No response\.$/);
 
     let clear = false;
     let life = false;

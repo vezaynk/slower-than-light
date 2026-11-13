@@ -14,7 +14,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Abandoned station",
+    name: "Empty station",
     tier: "",
     flag: "filler:abandoned-station",
     asteroid: false,
@@ -32,11 +32,11 @@ function open(g: Game) {
   return ev;
 }
 
-describe("Abandoned station", () => {
+describe("Empty station", () => {
   it("staying near the Beacon prints the sentence and nothing happens", () => {
     const g = createGame(1);
     const ev = open(g);
-    assert.equal(ev.title, "Abandoned station");
+    assert.equal(ev.title, "Empty station");
     assert.ok(ev.choices.some((c) => c.id === "c:abandoned-station:1"));
     g.fleet = 5;
     const fuel = g.fuel;

@@ -25,11 +25,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "AUTO_DEFENSE_ITEM";
-  b.name = "Auto-ship near storage station";
+  b.name = "Optional fight: Auto-ship at storage station";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Auto-ship near storage station");
+  assert.equal(g.event?.title, "Optional fight: Auto-ship at storage station");
 }
 
 function scraps(body: string): number[] {
@@ -42,7 +42,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Auto-ship near storage station", () => {
+describe("Optional fight: Auto-ship at storage station", () => {
   it("attacking starts an Auto-ship fight", () => {
     // Wiki citations:
     // > "An advanced Rebel automated ship remains stationed near a small Rebel space-station. Sensors indicate it's a storage vessel for military goods." — [[Auto-ship near storage station]]
@@ -52,7 +52,7 @@ describe("Auto-ship near storage station", () => {
     open(g);
     assert.equal(
       g.event?.body,
-      "An advanced Rebel automated ship remains stationed near a small Rebel space-station. Sensors indicate it's a storage vessel for military goods.",
+      "Auto-ship guarding a storage station.",
     );
     assert.equal(
       g.event?.choices.some((c) => c.id === "c:auto-ship-near-storage-station:2"),

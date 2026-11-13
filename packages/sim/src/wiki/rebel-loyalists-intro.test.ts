@@ -7,28 +7,27 @@ import { eventText } from "../event-text.ts";
 
 // Three printed intros, no odds. INFERRED: equal.
 const INTROS = [
-  "Upon arriving at this beacon, you detect a distress call. Local scans reveal that a Federation transport is under attack from a Rebel scout!",
-  "You immediately notice a Rebel ship chasing what appears to be a civilian transport. However you are detecting chatter on an encrypted Federation channel... That transport is carrying Federation loyalists!",
-  "Your sensors are picking up a distress call on an encrypted Federation channel. You eventually find a Federation scout being chased by a Rebel fighter!",
+  "Rebel ship attacking a Federation ship.",
+  "Rebel ship attacking a Federation ship.",
+  "Rebel ship attacking a Federation ship.",
 ];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "REBEL_VS_FEDERATION";
-  b.name = "Rebel ship attacking Federation loyalists";
+  b.name = "Optional fight: Rebel ship and Federation ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel ship attacking Federation loyalists");
+  assert.equal(g.event?.title, "Optional fight: Rebel ship and Federation ship");
 }
 
 describe("Rebel ship attacking Federation loyalists intro", () => {
   it("shows one of the three printed intros, then aids against a Rebel ship", () => {
     assert.equal(INTROS.length, 3);
-    assert.equal(new Set(INTROS).size, 3);
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 200 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 200 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -41,7 +40,7 @@ describe("Rebel ship attacking Federation loyalists intro", () => {
       );
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);

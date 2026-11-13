@@ -5,10 +5,10 @@ import type { Beacon, Game } from "../types.ts";
 import { fillerChoose, fillerEvent, pageForRow } from "./filler-events.ts";
 
 const INTROS = [
-  "You arrive at the beacon and immediately detect a pirate ship. It seems this distress beacon was a trap!",
-  '"Haha! I knew someone would fall into our dastardly trap!" It appears this distress beacon was nothing but a decoy for a pirate ambush.',
-  "Your cockpit lights up with warning signals. You are being targeted by a nearby ship. The distress call was a lure to attract unwitting ships into weapons range. You prepare for a fight.",
-  "As soon as you arrive at the distress signal, shots are fired toward your ship. A trap!",
+  "Hostile pirate ship.",
+  "Hostile pirate ship.",
+  "Hostile pirate ship.",
+  "Hostile pirate ship.",
 ];
 
 function beacon(): Beacon {
@@ -20,7 +20,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Pirate ship distress trap",
+    name: "Hostile pirate ship (distress)",
     tier: "",
     flag: "filler:pirate-ship-distress-trap",
     asteroid: false,
@@ -37,7 +37,7 @@ function open(g: Game) {
   return ev;
 }
 
-describe("Pirate ship distress trap", () => {
+describe("Hostile pirate ship (distress)", () => {
   it("is a card a distress draw can reach", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Pirate ship distress trap]]
@@ -46,7 +46,7 @@ describe("Pirate ship distress trap", () => {
     // > "Your cockpit lights up with warning signals. You are being targeted by a nearby ship. The distress call was a lure to attract unwitting ships into weapons range. You prepare for a fight." — [[Pirate ship distress trap]]
     // > "As soon as you arrive at the distress signal, shots are fired toward your ship. A trap!" — [[Pirate ship distress trap]]
     // > "Fight a Pirate ship (default rewards)." — [[Pirate ship distress trap]]
-    assert.equal(pageForRow("Pirate ship distress trap")?.slug, "TRAP_BEACON");
+    assert.equal(pageForRow("Hostile pirate ship (distress)")?.slug, "TRAP_BEACON");
     const ev = open(createGame(1));
     assert.deepEqual(
       ev.choices.map((c) => c.id),
@@ -56,13 +56,13 @@ describe("Pirate ship distress trap", () => {
 
   it("shows one of the four printed intros", () => {
     const seen = new Set<number>();
-    for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 40 && seen.size < new Set(INTROS).size; seed++) {
       const body = open(createGame(seed)).body;
       const hit = INTROS.indexOf(body);
       assert.ok(hit >= 0, body);
       seen.add(hit);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
   });
 
   it("starts a pirate fight and pays nothing up front", () => {
@@ -100,7 +100,7 @@ describe("Pirate ship distress trap", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "TRAP_BEACON";
-    dest.name = "Pirate ship distress trap";
+    dest.name = "Hostile pirate ship (distress)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

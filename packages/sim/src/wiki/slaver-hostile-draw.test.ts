@@ -6,7 +6,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const ID = "c:slaver-hostile:2";
-const LABEL = "Draw straws and send a crew-member over to the slavers.";
+const LABEL = "Lose 1 crew.";
 const CLONE =
   eventText("event_PIRATE_SLAVER_c1_c0_clone");
 
@@ -14,11 +14,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "PIRATE_SLAVER";
-  b.name = "Slaver (hostile)";
+  b.name = "Crew demand: pirate ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Slaver (hostile)");
+  assert.equal(g.event?.title, "Crew demand: pirate ship");
 }
 
 function players(g: Game) {

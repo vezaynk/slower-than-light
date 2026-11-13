@@ -5,31 +5,30 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "You're greeted by a rare sight: a Mantis ship that appears not to have noticed you.",
-  "For once, you see the Mantis before they see you.",
-  "When they see the Mantis warship waiting in ambush at your intended coordinates, your crew is relieved to note you've jumped someway off the mark.",
-  `You overhear Mantis comm chatter: "Negative, I have killed more humans!" You gulp noticeably, but luckily they don't see you yet.`,
-  `You overhear Mantis comm chatter: "The one on the right is starting to rot. Take him down. Take off his fingers. Put him out of the airlock." They certainly don't seem to be friendly...`,
-  `You overhear Mantis comm chatter: "Agreed. Next ship is your turn. Good hunting." They don't see you yet.`,
+  "Mantis ship. It has not attacked yet.",
+  "Mantis ship. It has not attacked yet.",
+  "Mantis ship. It has not attacked yet.",
+  "Mantis ship. It has not attacked yet.",
+  "Mantis ship. It has not attacked yet.",
+  "Mantis ship. It has not attacked yet.",
 ];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "MANTIS_FIGHT_CHOICE";
-  b.name = "Mantis fight choice";
+  b.name = "Optional fight: Mantis ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Mantis fight choice");
+  assert.equal(g.event?.title, "Optional fight: Mantis ship");
 }
 
-describe("Mantis fight choice", () => {
+describe("Optional fight: Mantis ship", () => {
   it("shows one of the six printed intros, then attacks a Mantis ship", () => {
     assert.equal(INTROS.length, 6);
-    assert.equal(new Set(INTROS).size, 6);
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 200 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 200 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -37,7 +36,7 @@ describe("Mantis fight choice", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:mantis-fight-choice:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     const before = g.crew.filter((c) => c.side === "player").length;

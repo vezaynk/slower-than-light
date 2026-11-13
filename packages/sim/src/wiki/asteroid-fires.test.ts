@@ -15,7 +15,7 @@ function burning(g: Game) {
   return g.player.rooms.filter((r) => r.fire > 0);
 }
 
-describe("Large asteroid field", () => {
+describe("Asteroid field: explore", () => {
   it("the rock result deals 5 hull, a system bar, and 1-2 fires on one room", () => {
     let saw1 = false;
     let saw2 = false;

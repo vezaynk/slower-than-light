@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ROCK_STARSHIP_MINE";
-  b.name = "Rock live mine";
+  b.name = "Live mine";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rock live mine");
+  assert.equal(g.event?.title, "Live mine");
 }
 
 function gun(defId: string): WeaponInst {
@@ -45,7 +45,7 @@ function breaches(g: Game): number {
   return g.player.rooms.reduce((n, r) => n + r.breach, 0);
 }
 
-describe("Rock live mine", () => {
+describe("Live mine", () => {
   it("always bites down, then defusing pays medium scrap or opens the wires", () => {
     // Wiki citations:
     // > "Attempt evasive maneuvers." — [[Rock live mine]]
@@ -232,7 +232,7 @@ describe("Rock live mine", () => {
     assert.equal(choiceDisabled(low, "c:rock-live-mine:1"), "Needs Engines level 5");
     choose(low, "c:rock-live-mine:1");
     assert.equal(low.scrap, 10);
-    assert.match(low.event?.body ?? "", /live mine/);
+    assert.equal(low.event?.body, "Mine approaching.");
 
     const g = createGame(2);
     open(g);

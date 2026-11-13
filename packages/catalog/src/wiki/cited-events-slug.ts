@@ -26,45 +26,45 @@ export type CitedEventDef = {
 export const EXTRA_EVENTS: CitedEventDef[] = [
   // "Fight a Mantis ship (default rewards)." Mantis fight (Slug) has no choice. Arrival calls this fight. The printed sentence is the card body. unique=true.
   {
-    dest: "Mantis fight (Slug)",
+    dest: "Hostile Mantis ship (Slug sector)",
     slug: "mantis-fight-slug",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Mantis fight (Slug)]]
     // > "It is unique." — [[Mantis fight (Slug)]]
     // > "You intercept comm chatter from an incoming Mantis ship. \"Look. This ship appears not to be owned by the squishy ones. Maybe they won't smell so bad when we cut them open.\" They move in on your position." — [[Mantis fight (Slug)]]
     flag: "cited:mantis-fight-slug",
-    aliases: ["Mantis fight (Slug)"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: 'You intercept comm chatter from an incoming Mantis ship. "Look. This ship appears not to be owned by the squishy ones. Maybe they won\'t smell so bad when we cut them open." They move in on your position.',
+    body: "Hostile Mantis ship.",
     choices: [
       {
         id: "c:mantis-fight-slug:0",
         // Wiki citations:
         // > "Fight a Mantis ship (default rewards)." — [[Mantis fight (Slug)]]
-        label: "Fight a Mantis ship",
+        label: "Fight the Mantis ship.",
         // "Fight a Mantis ship (default rewards)."
         fx: [{ k: "fight", tier: "Mantis ship" }],
       },
     ],
   },
   {
-    dest: "Mantis fight choice in nebula",
+    dest: "Optional fight: Mantis ship in nebula",
     slug: "mantis-fight-choice-in-nebula",
     // Wiki citations:
     // > "This random event occurs in Uncharted Nebula." — [[Mantis fight choice in nebula]]
     // > "It is unique." — [[Mantis fight choice in nebula]]
     // > "Navigating the fog blind, you practically bump hulls with a Mantis ship. They hail you: \"Pah! This transgression will be overlooked. Nebula, very dangerous. Next time, humans all die.\"" — [[Mantis fight choice in nebula]]
     flag: "cited:mantis-fight-choice-in-nebula",
-    aliases: ["Mantis fight choice in nebula"],
+    aliases: [],
     sectors: ["Uncharted Nebula"],
-    body: 'Navigating the fog blind, you practically bump hulls with a Mantis ship. They hail you: "Pah! This transgression will be overlooked. Nebula, very dangerous. Next time, humans all die."',
+    body: "Mantis ship. Nebula.",
     choices: [
       {
         id: "c:mantis-fight-choice-in-nebula:0",
         // Wiki citations:
         // > "There won't be a next time. Open fire!" — [[Mantis fight choice in nebula]]
         // > "Fight a Mantis ship (default rewards)." — [[Mantis fight choice in nebula]]
-        label: "There won't be a next time. Open fire!",
+        label: "Fight the Mantis ship.",
         // "Fight a Mantis ship (default rewards)."
         fx: [{ k: "fight", tier: "Mantis ship" }],
       },
@@ -73,52 +73,52 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "This place is dangerous enough. Move on." — [[Mantis fight choice in nebula]]
         // > "Nothing happens." — [[Mantis fight choice in nebula]]
-        label: "This place is dangerous enough. Move on.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
   },
   // "Fight a Mantis ship (default rewards)." Mantis fight in nebula (Slug) has no choice. Arrival calls this fight. The printed sentence is the card body. nebula=true. unique=true. No nebula environment is added.
   {
-    dest: "Mantis fight in nebula (Slug)",
+    dest: "Hostile Mantis ship in nebula (Slug sector)",
     slug: "mantis-fight-in-nebula-slug",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Mantis fight in nebula (Slug)]]
     // > "It is unique." — [[Mantis fight in nebula (Slug)]]
     // > "The Mantis attack ship here looks to have been hunting Slugs on their home turf - a rare test of honor for the mightiest Mantis crews. Weapons up!" — [[Mantis fight in nebula (Slug)]]
     flag: "cited:mantis-fight-in-nebula-slug",
-    aliases: ["Mantis fight in nebula (Slug)"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "The Mantis attack ship here looks to have been hunting Slugs on their home turf - a rare test of honor for the mightiest Mantis crews. Weapons up!",
+    body: "Hostile Mantis ship. Nebula.",
     choices: [
       {
         id: "c:mantis-fight-in-nebula-slug:0",
         // Wiki citations:
         // > "Fight a Mantis ship (default rewards)." — [[Mantis fight in nebula (Slug)]]
-        label: "Fight a Mantis ship",
+        label: "Fight the Mantis ship.",
         // "Fight a Mantis ship (default rewards)."
         fx: [{ k: "fight", tier: "Mantis ship" }],
       },
     ],
   },
   {
-    dest: "Mantis ship attacking Slug ship",
+    dest: "Optional fight: Mantis ship or Slug ship",
     slug: "mantis-ship-attacking-slug-ship",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Mantis ship attacking Slug ship]]
     // > "It is unique." — [[Mantis ship attacking Slug ship]]
     // > "The distress call appears to be emanating from a Slug ship caught in open space by a Mantis raider. They contact you on emergency frequencies: \"Please, we'll give you all we have if you sssave ussss!\"" — [[Mantis ship attacking Slug ship]]
     flag: "cited:mantis-ship-attacking-slug-ship",
-    aliases: ["Mantis ship attacking Slug ship"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: 'The distress call appears to be emanating from a Slug ship caught in open space by a Mantis raider. They contact you on emergency frequencies: "Please, we\'ll give you all we have if you sssave ussss!"',
+    body: "Mantis ship attacking a Slug ship.",
     choices: [
       {
         id: "c:mantis-ship-attacking-slug-ship:0",
         // Wiki citations:
         // > "Attack the Mantis ship." — [[Mantis ship attacking Slug ship]]
         // > "Fight a Mantis Ship." — [[Mantis ship attacking Slug ship]]
-        label: "Attack the Mantis ship.",
+        label: "Fight the Mantis ship.",
         // "Fight a Mantis Ship."
         fx: [{ k: "fight", tier: "Mantis Ship" }],
       },
@@ -127,7 +127,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Attack the Slug ship." — [[Mantis ship attacking Slug ship]]
         // > "Fight a Slug ship." — [[Mantis ship attacking Slug ship]]
-        label: "Attack the Slug ship.",
+        label: "Fight the Slug ship.",
         // "Fight a Slug ship."
         fx: [{ k: "fight", tier: "Slug ship" }],
       },
@@ -136,51 +136,50 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Of all the species in the galaxy, these two deserve one another. You power up the jump drive." — [[Mantis ship attacking Slug ship]]
         // > "Nothing happens." — [[Mantis ship attacking Slug ship]]
-        label:
-          "Of all the species in the galaxy, these two deserve one another. You power up the jump drive.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
   },
   // "Fight a Pirate ship (default rewards)." Pirate fight (Slug) has no choice. Arrival calls this fight. One of the three printed intros. unique=false.
   {
-    dest: "Pirate fight (Slug)",
+    dest: "Hostile pirate ship (Slug sector)",
     slug: "pirate-fight-slug",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Pirate fight (Slug)]]
     // > "There appears to be a pirate ship nearby. Be on your guard; anyone trying to hunt in Slug territory is either formidable or deeply stupid, and in space, either can be dangerous." — [[Pirate fight (Slug)]]
     flag: "cited:pirate-fight-slug",
-    aliases: ["Pirate fight (Slug)"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "There appears to be a pirate ship nearby.",
+    body: "Hostile pirate ship.",
     choices: [
       {
         id: "c:pirate-fight-slug:0",
         // Wiki citations:
         // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Slug)]]
-        label: "Fight a Pirate ship",
+        label: "Fight the pirate ship.",
         // "Fight a Pirate ship (default rewards)."
         fx: [{ k: "fight", tier: "Pirate ship" }],
       },
     ],
   },
   {
-    dest: "Pirate fight choice in nebula",
+    dest: "Optional fight: pirate ship in nebula",
     slug: "pirate-fight-choice-in-nebula",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Pirate fight choice in nebula]]
     // > "It is unique." — [[Pirate fight choice in nebula]]
     // > "You're surprised to find a ship without Slug markings stranded all the way out here, and move in to provide assistance. When you see the pirate insignia on the hull you quickly reconsider." — [[Pirate fight choice in nebula]]
     flag: "cited:pirate-fight-choice-in-nebula",
-    aliases: ["Pirate fight choice in nebula"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "You're surprised to find a ship without Slug markings stranded all the way out here, and move in to provide assistance. When you see the pirate insignia on the hull you quickly reconsider.",
+    body: "Pirate ship. Nebula.",
     choices: [
       {
         id: "c:pirate-fight-choice-in-nebula:0",
         // Wiki citations:
         // > "Fight a Pirate ship (default rewards)." — [[Pirate fight choice in nebula]]
-        label: "Attack!",
+        label: "Fight the pirate ship.",
         // "Fight a Pirate ship (default rewards)."
         fx: [{ k: "fight", tier: "Pirate ship" }],
       },
@@ -189,50 +188,50 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Keep your distance and hope they haven't seen you yet." — [[Pirate fight choice in nebula]]
         // > "Nothing happens." — [[Pirate fight choice in nebula]]
-        label: "Keep your distance and hope they haven't seen you yet.",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
   },
   // "Fight a Rebel ship (default rewards)." Rebel fight (Slug) has no choice. Arrival calls this fight. One of the three printed intros. unique=false.
   {
-    dest: "Rebel fight (Slug)",
+    dest: "Hostile Rebel ship (Slug sector)",
     slug: "rebel-fight-slug",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Rebel fight (Slug)]]
     // > "As you arrive at the beacon, a hostile ship immediately registers on your scanners. You didn't expect to see Rebels extending their reach into Slug territory. Charge the weapons!" — [[Rebel fight (Slug)]]
     flag: "cited:rebel-fight-slug",
-    aliases: ["Rebel fight (Slug)"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "As you arrive at the beacon, a hostile ship immediately registers on your scanners.",
+    body: "Hostile Rebel ship.",
     choices: [
       {
         id: "c:rebel-fight-slug:0",
         // Wiki citations:
         // > "Fight a Rebel ship (default rewards)." — [[Rebel fight (Slug)]]
-        label: "Fight a Rebel ship",
+        label: "Fight the Rebel ship.",
         // "Fight a Rebel ship (default rewards)."
         fx: [{ k: "fight", tier: "Rebel ship" }],
       },
     ],
   },
   {
-    dest: "Slug Home Nebula surrender",
+    dest: "Hostile Slug ship: ship unlock",
     slug: "slug-home-nebula-surrender",
     // Wiki citations:
     // > "This random event occurs in Slug Home Nebula." — [[Slug Home Nebula surrender]]
     // > "It is unique." — [[Slug Home Nebula surrender]]
     // > "This is the Slug Cruiser ship unlocking event." — [[Slug Home Nebula surrender]]
     flag: "cited:slug-home-nebula-surrender",
-    aliases: ["Slug Home Nebula surrender"],
+    aliases: [],
     sectors: ["Slug Home Nebula"],
-    body: "This is the Slug Cruiser ship unlocking event.",
+    body: "Hostile Slug ship. Nebula.",
     choices: [
       {
         id: "c:slug-home-nebula-surrender:0",
         // Wiki citations:
         // > "Fight a Slug ship (default rewards)." — [[Slug Home Nebula surrender]]
-        label: "Fight a Slug ship",
+        label: "Fight the Slug ship.",
         // "Fight a Slug ship (default rewards)."
         fx: [{ k: "fight", tier: "Slug ship" }],
       },
@@ -241,66 +240,66 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Slug fight has no choice. Arrival calls this fight.
   // "Fight a Slug ship (default rewards)." unique=true.
   {
-    dest: "Slug fight",
+    dest: "Hostile Slug ship",
     slug: "slug-fight",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slug fight]]
     // > "It is unique." — [[Slug fight]]
     // > "It's rare for the Slugs to stay exposed in open space for long periods - the ship here may be lost, or just passing through, but either way he moves in to attack!" — [[Slug fight]]
     flag: "cited:slug-fight",
-    aliases: ["Slug fight"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "It's rare for the Slugs to stay exposed in open space for long periods - the ship here may be lost, or just passing through, but either way he moves in to attack!",
+    body: "Hostile Slug ship.",
     choices: [
       {
         id: "c:slug-fight:0",
         // Wiki citations:
         // > "Fight a Slug ship (default rewards)." — [[Slug fight]]
-        label: "Fight a Slug ship",
+        label: "Fight the Slug ship.",
         // "Fight a Slug ship (default rewards)."
         fx: [{ k: "fight", tier: "Slug ship" }],
       },
     ],
   },
   {
-    dest: "Slug fight in nebula",
+    dest: "Hostile Slug ship in nebula",
     // Arrival calls this fight. One of the five printed intros. No nebula environment is added.
     slug: "slug-fight-in-nebula",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slug fight in nebula]]
     // > "Your sensors are no match for the Slug's telepathic abilities - a ship you never even saw opens fire from astern!" — [[Slug fight in nebula]]
     flag: "cited:slug-fight-in-nebula",
-    aliases: ["Slug fight in nebula"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "Your sensors are no match for the Slug's telepathic abilities - a ship you never even saw opens fire from astern!",
+    body: "Hostile Slug ship. Nebula.",
     choices: [
       {
         id: "c:slug-fight-in-nebula:0",
         // Wiki citations:
         // > "Fight a Slug ship (default rewards)." — [[Slug fight in nebula]]
-        label: "Fight a Slug ship",
+        label: "Fight the Slug ship.",
         // "Fight a Slug ship (default rewards)."
         fx: [{ k: "fight", tier: "Slug ship" }],
       },
     ],
   },
   {
-    dest: "Slug fight in plasma storm",
+    dest: "Hostile Slug ship in plasma storm",
     // Arrival calls this fight. One of the four printed intros. The beacon stays outside a nebula.
     slug: "slug-fight-in-plasma-storm",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slug fight in plasma storm]]
     // > "The ion storm here threatens to deactivate your core systems, a fact made all the worse for the largely unaffected Slug ships circling like space-vultures." — [[Slug fight in plasma storm]]
     flag: "cited:slug-fight-in-plasma-storm",
-    aliases: ["Slug fight in plasma storm"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "The ion storm here threatens to deactivate your core systems, a fact made all the worse for the largely unaffected Slug ships circling like space-vultures.",
+    body: "Hostile Slug ship. Plasma storm.",
     choices: [
       {
         id: "c:slug-fight-in-plasma-storm:0",
         // Wiki citations:
         // > "Fight a Slug ship (default rewards)." — [[Slug fight in plasma storm]]
-        label: "Fight a Slug ship",
+        label: "Fight the Slug ship.",
         // "Fight a Slug ship (default rewards)."
         fx: [{ k: "fight", tier: "Slug ship" }],
       },
@@ -308,23 +307,23 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   {
     // Rebel fight chance in nebula. The chase, the doubled pursuit, and the scanner fights run in filler-events.ts.
-    dest: "Rebel fight chance in nebula",
+    dest: "Optional fight: hidden Rebel ship in nebula",
     slug: "rebel-fight-chance-in-nebula",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula, Uncharted Nebula." — [[Rebel fight chance in nebula]]
     // > "It is unique." — [[Rebel fight chance in nebula]]
     // > "You spot a rebel ship in the nebula ahead and stay off their radar. Try to engage?" — [[Rebel fight chance in nebula]]
     flag: "cited:rebel-fight-chance-in-nebula",
-    aliases: ["Rebel fight chance in nebula"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula", "Uncharted Nebula"],
-    body: "You spot a rebel ship in the nebula ahead and stay off their radar. Try to engage?",
+    body: "Rebel ship, unaware of you. Nebula.",
     choices: [
       {
         id: "c:rebel-fight-chance-in-nebula:0",
         // Wiki citations:
         // > "Stay hidden." — [[Rebel fight chance in nebula]]
         // > "Nothing happens." — [[Rebel fight chance in nebula]]
-        label: "Stay hidden.",
+        label: "Nothing happens.",
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
@@ -332,15 +331,20 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         id: "c:rebel-fight-chance-in-nebula:1",
         // Wiki citations:
         // > "Prepare to chase them!" — [[Rebel fight chance in nebula]]
-        label: "Prepare to chase them!",
+        label: "1 in 3: fight the Rebel ship. 1 in 3: nothing happens. 1 in 3: fleet advances 1.",
         // Chase. A Rebel ship, doubled pursuit, or nothing. No odds. INFERRED: equal.
-        fx: [{ k: "note", text: "A Rebel ship, doubled pursuit, or nothing." }],
+        fx: [
+          {
+            k: "note",
+            text: "1 in 3: fight the Rebel ship. 1 in 3: nothing happens. 1 in 3: fleet advances 1.",
+          },
+        ],
       },
       {
         id: "c:rebel-fight-chance-in-nebula:2",
         // Wiki citations:
         // > "Fight the Rebel ship (default rewards)." — [[Rebel fight chance in nebula]]
-        label: "Try to track them as you move to engage.",
+        label: "Fight the Rebel ship.",
         // "Fight a Rebel ship (default rewards)."
         fx: [{ k: "fight", tier: "Rebel ship" }],
       },
@@ -349,7 +353,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "(Long-ranged Scanner) Try to track them as you move to engage." — [[Rebel fight chance in nebula]]
         // > "Fight the Rebel ship (default rewards)." — [[Rebel fight chance in nebula]]
-        label: "Try to track them as you move to engage.",
+        label: "Fight the Rebel ship.",
         // "Fight a Rebel ship (default rewards)."
         fx: [{ k: "fight", tier: "Rebel ship" }],
       },
@@ -358,7 +362,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "(Lifeform Scanner) Use their life signatures to follow." — [[Rebel fight chance in nebula]]
         // > "Fight the Rebel ship (default rewards)." — [[Rebel fight chance in nebula]]
-        label: "Use their life signatures to follow.",
+        label: "Fight the Rebel ship.",
         // "Fight a Rebel ship (default rewards)."
         fx: [{ k: "fight", tier: "Rebel ship" }],
       },
@@ -367,22 +371,22 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     // Slocknog. The hire, the free rescue, and the leave run in filler-events.ts.
     // The page says the skills are shown and prints none, so none are stored.
-    dest: "Slocknog",
+    dest: "Hire: Slug crew",
     slug: "slocknog",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slocknog]]
     // > "It is unique." — [[Slocknog]]
     // > "You detect life signs on a nearby moon - a lone Slug marooned on its surface. \"Ah, a sssentient ssspecies, after all this time. I am Slocknog, a wandering hero ssseeking adventure. You may hire me for a ssmall sssum.\"" — [[Slocknog]]
     flag: "cited:slocknog",
-    aliases: ["Slocknog"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: 'You detect life signs on a nearby moon - a lone Slug marooned on its surface. "Ah, a sssentient ssspecies, after all this time. I am Slocknog, a wandering hero ssseeking adventure. You may hire me for a ssmall sssum."',
+    body: "Crew for hire: 1 Slug.",
     choices: [
       {
         id: "c:slocknog:0",
         // Wiki citations:
         // > "Hire Slocknog." — [[Slocknog]]
-        label: "Hire Slocknog.",
+        label: "Lose 55 scrap. Gain 1 Slug crew.",
         // "Hire Slocknog."
         fx: [{ k: "nothing" }],
       },
@@ -390,7 +394,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         id: "c:slocknog:1",
         // Wiki citations:
         // > "Ignore Slocknog." — [[Slocknog]]
-        label: "Ignore Slocknog.",
+        label: "More options.",
         // "Ignore Slocknog."
         fx: [{ k: "nothing" }],
       },
@@ -399,23 +403,23 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     // Slug ship boarding Rock ship. Engage, the back-down, and the ignore run in filler-events.ts.
     // The win scrap and the Rock freighter run in quests.ts. The arrival nebula stays unwired.
-    dest: "Slug ship boarding Rock ship",
+    dest: "Optional fight: Slug ship and Rock ship",
     slug: "slug-ship-boarding-rock-ship",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Slug ship boarding Rock ship]]
     // > "It is unique." — [[Slug ship boarding Rock ship]]
     // > "You arrive to find a Slug ship in the middle of boarding a disabled Rock freighter." — [[Slug ship boarding Rock ship]]
     flag: "cited:slug-ship-boarding-rock-ship",
-    aliases: ["Slug ship boarding Rock ship"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "You arrive to find a Slug ship in the middle of boarding a disabled Rock freighter.",
+    body: "Slug ship boarding a Rock ship. Nebula.",
     choices: [
       {
         id: "c:slug-ship-boarding-rock-ship:0",
         // Wiki citations:
         // > "Engage the Slug ship." — [[Slug ship boarding Rock ship]]
         // > "Fight a Slug ship." — [[Slug ship boarding Rock ship]]
-        label: "Engage the Slug ship.",
+        label: "1 in 2: nothing happens. 1 in 2: fight the Slug ship.",
         // "Fight a Slug ship."
         fx: [{ k: "fight", tier: "Slug ship" }],
       },
@@ -423,9 +427,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         id: "c:slug-ship-boarding-rock-ship:1",
         // Wiki citations:
         // > "Ignore them." — [[Slug ship boarding Rock ship]]
-        label: "Ignore them.",
+        label: "2 in 3: nothing happens. 1 in 3: fight a Rock ship.",
         // "Fight a Rock ship."
-        fx: [{ k: "note", text: "Nothing, or a Rock ship." }],
+        fx: [{ k: "note", text: "2 in 3: nothing happens. 1 in 3: fight a Rock ship." }],
       },
     ],
   },
@@ -433,42 +437,42 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   // Slug Controlled Nebula and Slug Home Nebula. nebula=true. unique=false. LRSmap=noship+nebula.
   // type=slug is the pirate bait, not the Slug hunt. That hail runs in filler-events.ts.
   {
-    dest: "Refugee (Slug)",
+    dest: "Refugee ship (Slug)",
     slug: "refugee-slug",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Refugee (Slug)]]
     flag: "cited:refugee-slug",
-    aliases: ["Refugee (Slug)"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "Your sensors have picked up a refugee ship drifting through the system, no doubt one of many fleeing the Rebel advance. It doesn't appear to have detected you... or else it is trying to avoid notice.",
+    body: "Refugee ship.",
     choices: [
       {
         id: "c:refugee-slug:0",
-        label: "Hail them.",
-        fx: [{ k: "note", text: "A trade, or a pirate ship using them as bait." }],
+        label: "1 in 2: trade. 1 in 2: fight a pirate ship.",
+        fx: [{ k: "note", text: "1 in 2: trade. 1 in 2: fight a pirate ship." }],
       },
-      { id: "c:refugee-slug:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+      { id: "c:refugee-slug:1", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
   // Refugee distress (Slug). Template:Drifting Refugee Ship, introtext=distress, type=slug.
   // Slug Controlled Nebula and Slug Home Nebula. distress=true. unique=false. LRSmap=noship.
   // type=slug is the pirate bait, not the Slug hunt. Not on the EventList distress beacon list.
   {
-    dest: "Refugee distress (Slug)",
+    dest: "Refugee ship distress (Slug)",
     slug: "refugee-distress-slug",
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Refugee distress (Slug)]]
     flag: "cited:refugee-distress-slug",
-    aliases: ["Refugee distress (Slug)"],
+    aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "You have encountered a refugee ship drifting in space. It looks as if it was fleeing the Rebel advance and ran out of fuel. Its distress beacon is active, but you're not sure anyone is on board.",
+    body: "Refugee ship.",
     choices: [
       {
         id: "c:refugee-distress-slug:0",
-        label: "Hail them.",
-        fx: [{ k: "note", text: "A trade, or a pirate ship using them as bait." }],
+        label: "1 in 2: trade. 1 in 2: fight a pirate ship.",
+        fx: [{ k: "note", text: "1 in 2: trade. 1 in 2: fight a pirate ship." }],
       },
-      { id: "c:refugee-distress-slug:1", label: "Ignore the refugees.", fx: [{ k: "nothing" }] },
+      { id: "c:refugee-distress-slug:1", label: "Nothing happens.", fx: [{ k: "nothing" }] },
     ],
   },
 ];

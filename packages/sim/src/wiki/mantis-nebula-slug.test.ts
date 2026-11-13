@@ -5,21 +5,21 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "The Mantis attack ship here looks to have been hunting Slugs on their home turf - a rare test of honor for the mightiest Mantis crews. Weapons up!";
+  "Hostile Mantis ship. Nebula.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.kind = "event";
   b.flag = "NEBULA_SLUG_MANTIS";
-  b.name = "Mantis fight in nebula (Slug)";
+  b.name = "Hostile Mantis ship in nebula (Slug sector)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   return b;
 }
 
-describe("Mantis fight in nebula (Slug)", () => {
+describe("Hostile Mantis ship in nebula (Slug sector)", () => {
   it("shows the printed sentence, including Weapons up, then fights a Mantis ship", () => {
     // Wiki citations:
     // > "The Mantis attack ship here looks to have been hunting Slugs on their home turf - a rare test of honor for the mightiest Mantis crews. Weapons up!" — [[Mantis fight in nebula (Slug)]]
@@ -49,7 +49,7 @@ describe("Mantis fight in nebula (Slug)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "NEBULA_SLUG_MANTIS";
-    dest.name = "Mantis fight in nebula (Slug)";
+    dest.name = "Hostile Mantis ship in nebula (Slug sector)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

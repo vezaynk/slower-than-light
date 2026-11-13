@@ -5,13 +5,13 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const HAIL =
-  'As soon as you jump into the system, you receive a hail from a nearby civilian Engi vessel. Their Captain appears on your screen: "Strange bug. Can you assist in debugging?"';
+  "Engi ship. Request: help with a crewmember.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "CONFUSED_MANTIS";
-  b.name = "Confused Mantis";
+  b.name = "Engi ship with Mantis crew";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -25,7 +25,7 @@ describe("Confused Mantis hail", () => {
     // > "Explain that you can't do any programming and leave." — [[Confused Mantis]]
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.title, "Confused Mantis");
+    assert.equal(g.event?.title, "Engi ship with Mantis crew");
     assert.equal(g.event?.body, HAIL);
     assert.deepEqual(
       g.event?.choices.map((c) => c.id),

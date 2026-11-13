@@ -94,12 +94,12 @@ function reach(want: string[], body: (seed: number) => string, max = 300) {
 describe("quests-b: opening cards", () => {
   it("runs every choice that is not a plain nothing", () => {
     for (const dest of [
-      "Asteroid belt distress",
-      "Capture the ship",
-      "Encrypted federation signal",
-      "Engi ship attacked by Mantis ship",
-      "Merchant's request",
-      "Nebula wreckage",
+      "Distress: ship in asteroid belt",
+      "Quest: capture a ship",
+      "Planet signal",
+      "Optional fight: Mantis ship (Engi distress)",
+      "Quest offer: merchant",
+      "Wreckage in nebula",
     ]) {
       const ev = allEvents().find((e) => e.dest === dest);
       assert.ok(ev, dest);
@@ -109,7 +109,7 @@ describe("quests-b: opening cards", () => {
   });
 });
 
-describe("Asteroid belt distress", () => {
+describe("Distress: ship in asteroid belt", () => {
   it("hail -> shield: one of three results; leaving can double the pursuit", () => {
     // Wiki citations:
     // > "You succeed in preventing them from being entirely destroyed, but your ship took a number of hits in the process." — [[Asteroid belt distress]]
@@ -117,7 +117,7 @@ describe("Asteroid belt distress", () => {
     // > "You try your best but one stray rock hits a key structure in their ship." — [[Asteroid belt distress]]
     // > "Rebel Fleet pursuit is doubled for 1 jump." — [[Asteroid belt distress]]
     reach(["saved", "lost", "rock"], (seed) => {
-      const g = atCited(createGame(seed), "Civilian Sector", "Asteroid belt distress");
+      const g = atCited(createGame(seed), "Civilian Sector", "Distress: ship in asteroid belt");
       choose(g, "c:asteroid-belt-distress:0");
       assert.deepEqual(ids(g), ["q:asteroid:shield", "q:asteroid:leave"]);
       const hull = g.player.hull;
@@ -138,7 +138,7 @@ describe("Asteroid belt distress", () => {
       return "rock";
     });
     reach(["double", "none"], (seed) => {
-      const g = atCited(createGame(seed), "Civilian Sector", "Asteroid belt distress");
+      const g = atCited(createGame(seed), "Civilian Sector", "Distress: ship in asteroid belt");
       choose(g, "c:asteroid-belt-distress:0");
       choose(g, "q:asteroid:leave");
       return g.pursuitDouble ? "double" : "none";
@@ -152,7 +152,7 @@ describe("Asteroid belt distress", () => {
     // > "(Teleporter) Offer to beam them aboard your ship." — [[Asteroid belt distress]]
     // > "You receive a crewmember." — [[Asteroid belt distress]]
     reach(["damage", "marker"], (seed) => {
-      const g = atCited(createGame(seed), "Civilian Sector", "Asteroid belt distress");
+      const g = atCited(createGame(seed), "Civilian Sector", "Distress: ship in asteroid belt");
       g.player.kits.drones = kit("drones", "DEFENSE_1");
       g.player.parts = 2;
       choose(g, "c:asteroid-belt-distress:0");
@@ -164,13 +164,13 @@ describe("Asteroid belt distress", () => {
       assert.ok(g.event!.body.startsWith(eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST2_1_text")));
       return "damage";
     });
-    const g = atCited(createGame(3), "Civilian Sector", "Asteroid belt distress");
+    const g = atCited(createGame(3), "Civilian Sector", "Distress: ship in asteroid belt");
     g.player.kits.drones = kit("drones", "DEFENSE_1");
     g.player.parts = 0;
     choose(g, "c:asteroid-belt-distress:0");
     assert.equal(choiceDisabled(g, "q:asteroid:defense"), "Need 1 drone parts");
     reach(["crew", "high", "medium", "repair"], (seed) => {
-      const g2 = atCited(createGame(seed), "Civilian Sector", "Asteroid belt distress");
+      const g2 = atCited(createGame(seed), "Civilian Sector", "Distress: ship in asteroid belt");
       g2.player.kits.teleporter = kit("teleporter");
       choose(g2, "c:asteroid-belt-distress:0");
       const crew = g2.crew.length;
@@ -190,7 +190,7 @@ describe("Asteroid belt distress", () => {
   it("a successful shield lights one or two fires", () => {
     const fires = new Set<number>();
     for (let seed = 1; seed <= 80 && fires.size < 2; seed++) {
-      const g = atCited(createGame(seed), "Civilian Sector", "Asteroid belt distress");
+      const g = atCited(createGame(seed), "Civilian Sector", "Distress: ship in asteroid belt");
       choose(g, "c:asteroid-belt-distress:0");
       choose(g, "q:asteroid:shield");
       if (!g.event!.body.startsWith(eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c6_text"))) continue;
@@ -202,7 +202,7 @@ describe("Asteroid belt distress", () => {
   });
 });
 
-describe("Capture the ship", () => {
+describe("Quest: capture a ship", () => {
   it("blue options are disabled without their gear; Teleporter -> agree adds the marker", () => {
     // Wiki citations:
     // > "(Teleporter) Offer to board their ship." — [[Capture the ship]]
@@ -210,7 +210,7 @@ describe("Capture the ship", () => {
     // > "(Bio Beam) Offer to 'remove' their crew. (Requires Anti-Bio Beam)" — [[Capture the ship]]
     // > "A quest marker is added to your map." — [[Capture the ship#Offer a solution]]
     // > "Fight a Pirate ship." — [[Capture the ship#Quest Marker]]
-    const g = atCited(createGame(4), "Civilian Sector", "Capture the ship");
+    const g = atCited(createGame(4), "Civilian Sector", "Quest: capture a ship");
     assert.equal(choiceDisabled(g, "c:capture-the-ship:2"), "Needs a Teleporter");
     assert.equal(choiceDisabled(g, "c:capture-the-ship:3"), "Needs a Fire Bomb");
     assert.equal(choiceDisabled(g, "c:capture-the-ship:4"), "Needs an Anti-Bio Beam");
@@ -223,11 +223,11 @@ describe("Capture the ship", () => {
     choose(g, "q:capture:agree");
     assert.ok(g.event!.body.includes(questAdded()));
     choose(g, "ack");
-    assert.ok(arrive(g, "capture-ship").includes("WITHOUT destroying the ship"));
+    assert.ok(arrive(g, "capture-ship").includes("do not destroy the ship"));
     // Capture the ship, Quest Marker: "Fight a Pirate ship."
     assert.equal(
       g.event!.choices.find((c) => c.id === "q:capture:fight")?.label,
-      "Fight a Pirate ship.",
+      "Fight the pirate ship.",
     );
     choose(g, "q:capture:fight");
     assert.equal(g.phase, "event");
@@ -248,7 +248,7 @@ describe("Capture the ship", () => {
     // > "You receive a weapon with high scrap." — [[Capture the ship#Quest Marker]]
     // > "Your ship takes 15 hull damage, 1 damage to a random system" — [[Capture the ship#Quest Marker]]
     const setup = () => {
-      const g = atCited(createGame(6), "Civilian Sector", "Capture the ship");
+      const g = atCited(createGame(6), "Civilian Sector", "Quest: capture a ship");
       g.player.kits.teleporter = kit("teleporter");
       choose(g, "c:capture-the-ship:2");
       choose(g, "q:capture:agree");
@@ -280,14 +280,14 @@ describe("Capture the ship", () => {
   });
 });
 
-describe("Encrypted federation signal", () => {
+describe("Planet signal", () => {
   it("the away party reaches all five results; the assist marker opens the Auto-ship fight", () => {
     // Wiki citations:
     // > "2-3 human boarders beam aboard your ship and you fight a Rebel ship (default rewards)." — [[Encrypted federation signal]]
     // > "A Hidden Federation Base quest marker is added to your map." — [[Encrypted federation signal]]
     // > "You find a small cache of supplies that were surely left for any loyal Federation ships in trouble." — [[Encrypted federation signal]]
     reach(["base", "assist", "cache", "trap", "empty"], (seed) => {
-      const g = atCited(createGame(seed), "Civilian Sector", "Encrypted federation signal");
+      const g = atCited(createGame(seed), "Civilian Sector", "Planet signal");
       choose(g, "c:encrypted-federation-signal:0");
       const trap = g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
       if (trap) {
@@ -352,7 +352,7 @@ describe("Encrypted federation signal", () => {
   });
 });
 
-describe("Engi ship attacked by Mantis ship", () => {
+describe("Optional fight: Mantis ship (Engi distress)", () => {
   it("a Mantis ship (page win, then contact) or a Mantis-crewed Engi ship with boarders", () => {
     // Wiki citations:
     // > "You fight a normal Mantis ship." — [[Engi ship attacked by Mantis ship]]
@@ -363,7 +363,7 @@ describe("Engi ship attacked by Mantis ship", () => {
       const g = atCited(
         createGame(seed),
         "Engi Controlled Sector",
-        "Engi ship attacked by Mantis ship",
+        "Optional fight: Mantis ship (Engi distress)",
       );
       choose(g, "c:engi-ship-attacked-by-mantis-ship:0");
       const mantisLead =
@@ -400,7 +400,7 @@ describe("Engi ship attacked by Mantis ship", () => {
       const g = atCited(
         createGame(seed),
         "Engi Controlled Sector",
-        "Engi ship attacked by Mantis ship",
+        "Optional fight: Mantis ship (Engi distress)",
       );
       choose(g, "q:engi-station:contact");
       const body = g.event!.body;
@@ -418,7 +418,7 @@ describe("Engi ship attacked by Mantis ship", () => {
           ? "fuel"
           : "empty";
     });
-    const g = atCited(createGame(2), "Engi Controlled Sector", "Engi ship attacked by Mantis ship");
+    const g = atCited(createGame(2), "Engi Controlled Sector", "Optional fight: Mantis ship (Engi distress)");
     g.player.hull = 5;
     choose(g, "q:engi-station:protocol");
     assert.equal(g.player.hull, 15);
@@ -431,26 +431,26 @@ describe("Engi ship attacked by Mantis ship", () => {
     // Wiki citations:
     // > "You receive a weapon with low scrap." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
     // > "You receive a drone schematic with low scrap." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
-    const w = atCited(createGame(3), "Engi Controlled Sector", "Engi ship attacked by Mantis ship");
+    const w = atCited(createGame(3), "Engi Controlled Sector", "Optional fight: Mantis ship (Engi distress)");
     const guns = w.player.weapons.length + (w.cargo ?? []).length;
     const scrap = w.scrap;
     choose(w, "q:engi-station:weapon");
     assert.ok(w.scrap > scrap);
     assert.equal(w.player.weapons.length + (w.cargo ?? []).length, guns + 1);
     assert.match(w.event!.body, /mounted\.|stowed in cargo\./);
-    const d = atCited(createGame(4), "Engi Controlled Sector", "Engi ship attacked by Mantis ship");
+    const d = atCited(createGame(4), "Engi Controlled Sector", "Optional fight: Mantis ship (Engi distress)");
     choose(d, "q:engi-station:drone");
     assert.match(d.event!.body, /schematic (fitted|stowed in cargo)\./);
   });
 });
 
-describe("Merchant's request", () => {
+describe("Quest offer: merchant", () => {
   it("delivery: 5 drone parts and a marker; the station pays for them (or is the research station)", () => {
     // Wiki citations:
     // > "You receive Drone parts gained: 5 and Merchant's Delivery quest marker is added to your map." — [[Merchant's request]]
     // > "You receive Scrap gained: 20-30 and lose Drone parts lost: 5." — [[Merchant's request#The station responds]]
     reach(["paltry", "station"], (seed) => {
-      const g = atCited(createGame(seed), "Civilian Sector", "Merchant's request");
+      const g = atCited(createGame(seed), "Civilian Sector", "Quest offer: merchant");
       choose(g, "c:merchant-s-request:0");
       if (ids(g)[0] !== "q:merchant:deliver") return "other";
       const parts = g.player.parts;
@@ -485,7 +485,7 @@ describe("Merchant's request", () => {
     // > "You receive a crewmember and Deliver to the Station quest marker is added to your map." — [[Merchant's request#Merchant's Investigation]]
     // > "You receive a drone schematic with medium scrap." — [[Merchant's request#Deliver to the Station quest marker]]
     reach(["remains", "crew", "pirate"], (seed) => {
-      const g = atCited(createGame(seed), "Civilian Sector", "Merchant's request");
+      const g = atCited(createGame(seed), "Civilian Sector", "Quest offer: merchant");
       choose(g, "c:merchant-s-request:0");
       if (ids(g)[0] !== "q:merchant:investigate") return "other";
       choose(g, "q:merchant:investigate");
@@ -538,17 +538,17 @@ describe("Merchant's request", () => {
   });
 });
 
-describe("Nebula wreckage", () => {
+describe("Wreckage in nebula", () => {
   it("Slug option needs a Slug; investigating reaches nothing / damage / survivor", () => {
     // Wiki citations:
     // > "(Slug Crew) Ask your Slug crew to scan for survivors." — [[Nebula wreckage]]
     // > "3× The wreckage is drifting faster than it first appeared." — [[Nebula wreckage]]
     // > "Your ship takes 5 hull damage" — [[Nebula wreckage]]
     // > "You spot a life form floating within the wreckage." — [[Nebula wreckage]]
-    const g = atCited(createGame(1), "Uncharted Nebula", "Nebula wreckage");
+    const g = atCited(createGame(1), "Uncharted Nebula", "Wreckage in nebula");
     assert.equal(choiceDisabled(g, "c:nebula-wreckage:0"), "Needs a Slug crewmember");
     reach(["nothing", "pummeled", "survivor"], (seed) => {
-      const g2 = atCited(createGame(seed), "Uncharted Nebula", "Nebula wreckage");
+      const g2 = atCited(createGame(seed), "Uncharted Nebula", "Wreckage in nebula");
       const hull = g2.player.hull;
       choose(g2, "c:nebula-wreckage:1");
       if (ids(g2)[0] === "q:nebula:assist") return "survivor";
@@ -565,7 +565,7 @@ describe("Nebula wreckage", () => {
     // > "You receive medium scrap with resources." — [[Nebula wreckage#Find a Zoltan ship]]
     // > "Fight a Zoltan ship (default rewards)." — [[Nebula wreckage#Find a Zoltan ship]]
     const setup = (seed: number) => {
-      const g = atCited(createGame(seed), "Uncharted Nebula", "Nebula wreckage");
+      const g = atCited(createGame(seed), "Uncharted Nebula", "Wreckage in nebula");
       g.crew.find((c) => c.side === "player")!.kin = "slug";
       choose(g, "c:nebula-wreckage:0");
       choose(g, "q:nebula:assist");

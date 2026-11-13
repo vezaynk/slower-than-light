@@ -5,13 +5,13 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const HAIL =
-  "A Zoltan academy sits docked just outside the beacon perimeter. They're happy to show you the fruits of their labor, and offer something to take home with you.";
+  "Free augment.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ZOLTAN_FREE_AUGMENT";
-  b.name = "Zoltan free augment";
+  b.name = "Free augment";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -24,7 +24,7 @@ describe("Zoltan free augment hail", () => {
     const g = createGame(1);
     const augments = g.augments.length;
     open(g);
-    assert.equal(g.event?.title, "Zoltan free augment");
+    assert.equal(g.event?.title, "Free augment");
     assert.equal(g.event?.body, HAIL);
     assert.deepEqual(
       g.event?.choices.map((c) => c.id),

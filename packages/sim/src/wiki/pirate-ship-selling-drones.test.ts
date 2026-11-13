@@ -11,11 +11,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "PIRATE_SALESMAN";
-  b.name = "Pirate ship selling drones";
+  b.name = "Trade: scrap for drone parts (pirate)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Pirate ship selling drones");
+  assert.equal(g.event?.title, "Trade: scrap for drone parts (pirate)");
 }
 
 function labels(g: Game): string[] {
@@ -29,7 +29,7 @@ function marks(g: Game): { fire: number; breach: number } {
   });
 }
 
-describe("Pirate ship selling drones", () => {
+describe("Trade: scrap for drone parts (pirate)", () => {
   it("hails into a dock that sells five drone parts for 25 scrap and does not sell a schematic", () => {
     const g = createGame(1);
     open(g);

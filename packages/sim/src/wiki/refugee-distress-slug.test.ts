@@ -11,11 +11,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "REFUGEE_DISTRESS_SLUG";
-  b.name = "Refugee distress (Slug)";
+  b.name = "Refugee ship distress (Slug)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Refugee distress (Slug)");
+  assert.equal(g.event?.title, "Refugee ship distress (Slug)");
 }
 
 function scraps(body: string): number[] {
@@ -28,21 +28,21 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Refugee distress (Slug)", () => {
+describe("Refugee ship distress (Slug)", () => {
   it("is a slug sector card with the distress intro", () => {
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Refugee distress (Slug)]]
-    const pages = citedPagesFor("SLUG_SECTOR").filter((p) => p.dest === "Refugee distress (Slug)");
+    const pages = citedPagesFor("SLUG_SECTOR").filter((p) => p.dest === "Refugee ship distress (Slug)");
     assert.equal(pages.length, 1);
     assert.deepEqual(pages[0]?.sectors, ["SLUG_SECTOR", "SLUG_HOME"]);
-    const home = citedPagesFor("SLUG_HOME").some((p) => p.dest === "Refugee distress (Slug)");
+    const home = citedPagesFor("SLUG_HOME").some((p) => p.dest === "Refugee ship distress (Slug)");
     assert.equal(home, true);
     const g = createGame(1);
     open(g);
-    assert.match(g.event?.body ?? "", /distress beacon is active/);
+    assert.equal(g.event?.body, "Refugee ship.");
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
-      ["Hail them.", "Ignore the refugees."],
+      ["1 in 2: trade. 1 in 2: fight a pirate ship.", "Nothing happens."],
     );
   });
 

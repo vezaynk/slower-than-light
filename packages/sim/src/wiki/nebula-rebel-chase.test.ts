@@ -14,14 +14,14 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_REBEL_CHASE";
-  b.name = "Rebel fight chance in nebula";
+  b.name = "Optional fight: hidden Rebel ship in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel fight chance in nebula");
+  assert.equal(g.event?.title, "Optional fight: hidden Rebel ship in nebula");
 }
 
-describe("Rebel fight chance in nebula", () => {
+describe("Optional fight: hidden Rebel ship in nebula", () => {
   it("staying hidden spends nothing", () => {
     // Wiki citations:
     // > "Stay hidden." — [[Rebel fight chance in nebula]]

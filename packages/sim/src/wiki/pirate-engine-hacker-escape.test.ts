@@ -8,11 +8,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "PIRATE_NO_ESCAPE";
-  b.name = "Pirate engine hacker";
+  b.name = "Hostile pirate ship: engine hack";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Pirate engine hacker");
+  assert.equal(g.event?.title, "Hostile pirate ship: engine hack");
 }
 
 describe("Pirate engine hacker escape", () => {

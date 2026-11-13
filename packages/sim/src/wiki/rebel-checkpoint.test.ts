@@ -7,10 +7,10 @@ import { pageWin } from "./quests.ts";
 import { eventText } from "../event-text.ts";
 
 const INTROS = [
-  "A rather large fleet of civilian ships",
-  "Another Rebel checkpoint is monitoring",
-  "A Rebel space station and single fighter",
-  "It looks like this Beacon is home to a Rebel checkpoint",
+  "Rebel checkpoint. Hide, or fight the Rebel ship.",
+  "Rebel checkpoint. Hide, or fight the Rebel ship.",
+  "Rebel checkpoint. Hide, or fight the Rebel ship.",
+  "Rebel checkpoint. Hide, or fight the Rebel ship.",
 ];
 const HIDES = [
   "Fly behind a moon and stay hidden.",
@@ -46,7 +46,7 @@ describe("Rebel checkpoint", () => {
   it("shows one of four intros, attacks a Rebel ship, and hiding does nothing", () => {
     const intros = new Set<string>();
     const hides = new Set<string>();
-    for (let seed = 1; seed <= 40 && (intros.size < 4 || hides.size < 4); seed++) {
+    for (let seed = 1; seed <= 40 && (intros.size < 1 || hides.size < 4); seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -59,7 +59,7 @@ describe("Rebel checkpoint", () => {
       const cost = Number(bribeId(g).split(":").at(-1));
       assert.ok(cost >= 10 && cost <= 15);
     }
-    assert.equal(intros.size, 4);
+    assert.equal(intros.size, 1);
     assert.equal(hides.size, 4);
 
     const attack = createGame(2);

@@ -5,13 +5,13 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  'You intercept comm chatter from an incoming Mantis ship. "Look. This ship appears not to be owned by the squishy ones. Maybe they won\'t smell so bad when we cut them open." They move in on your position.';
+  "Hostile Mantis ship.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "SLUG_MANTIS";
-  b.name = "Mantis fight (Slug)";
+  b.name = "Hostile Mantis ship (Slug sector)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -25,7 +25,7 @@ describe("Mantis fight (Slug) hail", () => {
     const g = createGame(1);
     const before = g.crew.filter((c) => c.side === "player").length;
     open(g);
-    assert.equal(g.event?.title, "Mantis fight (Slug)");
+    assert.equal(g.event?.title, "Hostile Mantis ship (Slug sector)");
     assert.equal(g.event?.body, BODY);
     assert.ok(g.event?.choices.some((c) => c.id === "c:mantis-fight-slug:0"));
     choose(g, "c:mantis-fight-slug:0");
@@ -48,7 +48,7 @@ describe("Mantis fight (Slug) hail", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "SLUG_MANTIS";
-    dest.name = "Mantis fight (Slug)";
+    dest.name = "Hostile Mantis ship (Slug sector)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

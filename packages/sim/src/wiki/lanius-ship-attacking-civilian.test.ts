@@ -19,11 +19,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_CIVILIAN";
-  b.name = "Lanius ship attacking civilian";
+  b.name = "Optional fight: Lanius ship and civilian";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Lanius ship attacking civilian");
+  assert.equal(g.event?.title, "Optional fight: Lanius ship and civilian");
 }
 
 function scraps(body: string): number[] {
@@ -36,7 +36,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Lanius ship attacking civilian", () => {
+describe("Optional fight: Lanius ship and civilian", () => {
   it("attacking starts a Lanius fight", () => {
     const g = createGame(1);
     open(g);

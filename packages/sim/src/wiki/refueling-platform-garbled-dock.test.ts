@@ -36,11 +36,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_FUELING_STATION";
-  b.name = "Refueling platform garbled broadcast";
+  b.name = "Refueling platform (Lanius)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Refueling platform garbled broadcast");
+  assert.equal(g.event?.title, "Refueling platform (Lanius)");
 }
 
 function docked(seed: number): Game {
@@ -91,7 +91,7 @@ describe("Refueling platform garbled broadcast dock", () => {
   it("offers dock on the opening card and keeps the sensor and blast-door buttons off it", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.find((c) => c.id === DOCK)?.label, "Dock with the platform");
+    assert.equal(g.event?.choices.find((c) => c.id === DOCK)?.label, "More options.");
     assert.equal(hasId(g, HAIL), true);
     for (const id of HIDDEN) assert.equal(hasId(g, id), false, id);
     choose(g, DOCK);

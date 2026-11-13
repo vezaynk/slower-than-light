@@ -5,23 +5,23 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "Sensors go wild as a nearby pulsar is detected. While you are attempting to recalibrate the FTL drive, a pirate sneaks up on your ship, weapons charging. Prepare for a fight!",
-  "You arrive to find a pulsar dominating the view screen. You see a small silhouette pass in front of the star. Before you can ponder what it is, warning signals go off. It appears to be a ship in a firing trajectory!",
-  "A small research station orbits a nearby pulsar. It appears largely abandoned, but you detect power signatures flaring up as soon as you're in scanning distance. A small combat ship launches from the station. Pirates!",
+  "Hostile pirate ship. Pulsar: ion pulses.",
+  "Hostile pirate ship. Pulsar: ion pulses.",
+  "Hostile pirate ship. Pulsar: ion pulses.",
 ];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "PIRATE_PULSAR";
-  b.name = "Pirate fight near pulsar";
+  b.name = "Hostile pirate ship near pulsar";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Pirate fight near pulsar");
+  assert.equal(g.event?.title, "Hostile pirate ship near pulsar");
 }
 
-describe("Pirate fight near pulsar", () => {
+describe("Hostile pirate ship near pulsar", () => {
   it("shows one of the three intros, and the fight choice starts a pirate combat", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight near pulsar]]
@@ -30,7 +30,7 @@ describe("Pirate fight near pulsar", () => {
     // > "A small research station orbits a nearby pulsar. It appears largely abandoned, but you detect power signatures flaring up as soon as you're in scanning distance. A small combat ship launches from the station. Pirates!" — [[Pirate fight near pulsar]]
     // > "Fight a Pirate ship (default rewards)." — [[Pirate fight near pulsar]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 40 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -38,7 +38,7 @@ describe("Pirate fight near pulsar", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:pirate-fight-near-pulsar:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);
@@ -59,7 +59,7 @@ describe("Pirate fight near pulsar", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "PIRATE_PULSAR";
-    dest.name = "Pirate fight near pulsar";
+    dest.name = "Hostile pirate ship near pulsar";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

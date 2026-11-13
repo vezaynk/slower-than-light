@@ -5,20 +5,20 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "You jump into a debris field that used to be a Zoltan cruiser. Unfortunately, its Engi escort takes you for the attacker and retaliates! They refuse all hails.";
+  "Hostile Engi ship.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ZOLTAN_ENGI";
-  b.name = "Engi fight";
+  b.name = "Hostile Engi ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Engi fight");
+  assert.equal(g.event?.title, "Hostile Engi ship");
 }
 
-describe("Engi fight", () => {
+describe("Hostile Engi ship", () => {
   it("shows the printed intro, and the fight choice starts an Engi combat", () => {
     // Wiki citations:
     // > "You jump into a debris field that used to be a Zoltan cruiser. Unfortunately, its Engi escort takes you for the attacker and retaliates! They refuse all hails." — [[Engi fight]]
@@ -47,7 +47,7 @@ describe("Engi fight", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "ZOLTAN_ENGI";
-    dest.name = "Engi fight";
+    dest.name = "Hostile Engi ship";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

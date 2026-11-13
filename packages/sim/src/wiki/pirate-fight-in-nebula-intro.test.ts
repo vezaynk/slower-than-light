@@ -5,22 +5,22 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "As you drift through the nebula an unmarked vessel descends from the clouds and into your wake. Their weapons come online.",
-  `A pirate ship pulls out of the ether and hails: "You know what I love about this part of the galaxy? The explorers! You always carry such fine loot." They lock weapons.`,
-  "As you coast through the nebula a pirate ship matches your course and closes the distance. Better to pick your battleground, but beggars can't be choosers.",
-  "A hostile vessel descends from out of the nebula. Combat stations!",
-  "You try to read the ID of a ship ahead in the fog, but it's too thick to penetrate. You have your answer when the ship turns, weapons hot!",
+  "Hostile pirate ship. Nebula.",
+  "Hostile pirate ship. Nebula.",
+  "Hostile pirate ship. Nebula.",
+  "Hostile pirate ship. Nebula.",
+  "Hostile pirate ship. Nebula.",
 ];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_PIRATE";
-  b.name = "Pirate fight in nebula";
+  b.name = "Hostile pirate ship in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Pirate fight in nebula");
+  assert.equal(g.event?.title, "Hostile pirate ship in nebula");
 }
 
 describe("Pirate fight in nebula intro", () => {
@@ -34,9 +34,8 @@ describe("Pirate fight in nebula intro", () => {
     // > "You try to read the ID of a ship ahead in the fog, but it's too thick to penetrate. You have your answer when the ship turns, weapons hot!" — [[Pirate fight in nebula]]
     // > "Fight a Pirate ship (default rewards)." — [[Pirate fight in nebula]]
     assert.equal(INTROS.length, 5);
-    assert.equal(new Set(INTROS).size, 5);
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 200 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 200 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -44,7 +43,7 @@ describe("Pirate fight in nebula intro", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:pirate-fight-in-nebula:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);
@@ -67,7 +66,7 @@ describe("Pirate fight in nebula intro", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "NEBULA_PIRATE";
-    dest.name = "Pirate fight in nebula";
+    dest.name = "Hostile pirate ship in nebula";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

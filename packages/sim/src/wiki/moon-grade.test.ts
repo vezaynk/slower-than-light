@@ -21,7 +21,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: true,
     resolved: false,
-    name: "Slug moons question",
+    name: "Distress: question in nebula",
     tier: "",
     flag: "SLUG_DISTRESS_QUESTION",
     asteroid: false,

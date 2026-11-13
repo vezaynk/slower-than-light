@@ -105,7 +105,10 @@ const PLASMA_STORM_FLAGS = new Set([
   // > "Despite being a plasma storm, this event only occurs at non-nebula beacons. Fleet pursuit will be the full amount, instead of the 80% that you would have when jumping from a nebula beacon in a Slug sector." — [[Slug fight in plasma storm#Trivia]]
   "STORM_SLUG_FIGHT",
 ]);
-const PLASMA_STORM_NAMES = new Set(["Rebel fight in plasma storm", "Slug fight in plasma storm"]);
+const PLASMA_STORM_NAMES = new Set([
+  "Hostile Rebel ship in plasma storm",
+  "Hostile Slug ship in plasma storm",
+]);
 
 function plasmaStormEvent(beacon: Pick<Beacon, "flag" | "name">): boolean {
   return PLASMA_STORM_FLAGS.has(beacon.flag) || PLASMA_STORM_NAMES.has(beacon.name);

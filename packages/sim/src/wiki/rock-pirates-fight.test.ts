@@ -5,23 +5,23 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "As a naturally warlike species with few inter-galactic diplomatic ties, the Rock people have garnered quite a reputation as fearsome pirates. You stumble across one of their ships and they promptly live up to type.",
-  "A Rock ship flies past your windows and you recognize outcast decorations on the hull. These must be pirates!",
-  "A motley collection of Rock ships are stationed around this beacon - they look to have resorted to a pirate's life. Defensive maneuvers!",
+  "Hostile Rock pirate ship.",
+  "Hostile Rock pirate ship.",
+  "Hostile Rock pirate ship.",
 ];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ROCK_PIRATE";
-  b.name = "Rock pirates fight";
+  b.name = "Hostile Rock pirate ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rock pirates fight");
+  assert.equal(g.event?.title, "Hostile Rock pirate ship");
 }
 
-describe("Rock pirates fight", () => {
+describe("Hostile Rock pirate ship", () => {
   it("shows one of the three intros, and the fight choice starts a Rock pirate combat", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Rock pirates fight]]
@@ -30,7 +30,7 @@ describe("Rock pirates fight", () => {
     // > "A motley collection of Rock ships are stationed around this beacon - they look to have resorted to a pirate's life. Defensive maneuvers!" — [[Rock pirates fight]]
     // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 40 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -38,7 +38,7 @@ describe("Rock pirates fight", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:rock-pirates-fight:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);
@@ -61,7 +61,7 @@ describe("Rock pirates fight", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "ROCK_PIRATE";
-    dest.name = "Rock pirates fight";
+    dest.name = "Hostile Rock pirate ship";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

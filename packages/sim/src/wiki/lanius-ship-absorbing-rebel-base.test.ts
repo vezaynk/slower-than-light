@@ -10,12 +10,12 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_GROUP_AUTO";
-  b.name = "Lanius ship absorbing rebel base";
+  b.name = "Lanius ships: fleet delay";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Lanius ship absorbing rebel base");
+  assert.equal(g.event?.title, "Lanius ships: fleet delay");
 }
 
 function resources(body: string): number {
@@ -24,7 +24,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Lanius ship absorbing rebel base", () => {
+describe("Lanius ships: fleet delay", () => {
   it("leaves them with nothing spent", () => {
     // Wiki citations:
     // > "Leave them alone." — [[Lanius ship absorbing rebel base]]

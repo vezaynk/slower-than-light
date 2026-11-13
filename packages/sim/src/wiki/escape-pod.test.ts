@@ -10,11 +10,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "MANTIS_CREW";
-  b.name = "Escape pod";
+  b.name = "Escape pod (Mantis)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Escape pod");
+  assert.equal(g.event?.title, "Escape pod (Mantis)");
   return g.event;
 }
 
@@ -22,7 +22,7 @@ function players(g: Game) {
   return g.crew.filter((c) => c.side === "player").length;
 }
 
-describe("Escape pod", () => {
+describe("Escape pod (Mantis)", () => {
   it("jettisoning the pod spends nothing", () => {
     // Wiki citations:
     // > "Jettison the pod." — [[Escape pod]]

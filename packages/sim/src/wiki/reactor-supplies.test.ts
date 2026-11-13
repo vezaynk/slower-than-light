@@ -5,7 +5,7 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon } from "../types.ts";
 import { fillerChoose, fillerEvent, pageForRow } from "./filler-events.ts";
 
-const INTROS = ["You look like a military vessel.", "You receive a message from a small convoy."];
+const INTROS = ["Offer: reactor upgrade for supplies."];
 
 const BUNDLES: { missiles: [number, number]; parts: [number, number]; fuel: [number, number] }[] = [
   { missiles: [3, 5], parts: [0, 2], fuel: [0, 0] },
@@ -22,7 +22,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Improve reactor for supplies",
+    name: "Trade: supplies for reactor",
     tier: "",
     flag: "filler:improve-reactor-for-supplies",
     asteroid: false,
@@ -41,9 +41,9 @@ function offer(g: ReturnType<typeof createGame>) {
   return { ev, id: agree.id, missiles: Number(m[1]), parts: Number(m[2]), fuel: Number(m[3]) };
 }
 
-describe("Improve reactor for supplies", () => {
+describe("Trade: supplies for reactor", () => {
   it("is a card an items draw can reach", () => {
-    assert.equal(pageForRow("Improve reactor for supplies")?.slug, "TRADER_UPGRADES_EXCHANGE");
+    assert.equal(pageForRow("Trade: supplies for reactor")?.slug, "TRADER_UPGRADES_EXCHANGE");
   });
 
   it("shows one printed intro and one printed bundle", () => {
@@ -69,7 +69,7 @@ describe("Improve reactor for supplies", () => {
       assert.match(row.ev.choices[0].label, /Agree to the trade/);
       assert.equal(row.ev.choices[1].id, "c:improve-reactor-for-supplies:1");
     }
-    assert.equal(seenIntro.size, 2);
+    assert.equal(seenIntro.size, 1);
     assert.equal(seenBundle.size, 3);
   });
 

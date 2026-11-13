@@ -11,13 +11,13 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "AUTO_DEFENSE_RADAR";
-  b.name = "Auto-ship near radar station";
+  b.name = "Optional fight: Auto-ship at radar station";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.player.parts = 3;
   g.fleet = 5;
-  assert.equal(g.event?.title, "Auto-ship near radar station");
+  assert.equal(g.event?.title, "Optional fight: Auto-ship at radar station");
 }
 
 function swarm(target: string | null): Kit {
@@ -32,7 +32,7 @@ function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
 }
 
-describe("Auto-ship near radar station", () => {
+describe("Optional fight: Auto-ship at radar station", () => {
   it("approaching starts an Auto-ship fight, and waiting does nothing", () => {
     const g = createGame(1);
     open(g);

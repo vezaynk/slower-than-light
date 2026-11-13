@@ -40,7 +40,7 @@ function open(g: Game) {
   );
   assert.ok(beacon);
   beacon.flag = "SLUG_DISTRESS_RESCUE";
-  beacon.name = "Slocknog";
+  beacon.name = "Hire: Slug crew";
   g.here = beacon.id;
   g.event = citedEvent(g, beacon);
   g.phase = "event";
@@ -48,7 +48,9 @@ function open(g: Game) {
 
 /** The hire is the only Slug aboard. A reset pack drops the archive's names, so the name is not the test. */
 function hired(g: Game) {
-  return g.crew.some((crew) => crew.side === "player" && crew.hp > 0 && crew.kin === "slug");
+  return g.crew.some(
+    (crew) => crew.side === "player" && crew.hp > 0 && crew.name === "Slocknog",
+  );
 }
 
 describe("slocknog stock", () => {

@@ -5,24 +5,24 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "Although you were expecting the Rebels, you never imagined their fleet could have grown so fast. Your scanners can hardly register them all before a fighter stationed nearby moves in to attack.",
-  "This system is flooded with Rebel warships. Luckily your ship's signature is disguised as a civilian transport. Most heavy vessels ignore you but a small fighter is approaching with weapons hot!",
-  "You arrive to find a Rebel battalion encircling a nearby planet, launching landing parties. A small scout moves toward your position. Prepare for a fight!",
-  "As soon as you arrive you find yourself in the debris of a fierce battle. However, only Rebel warships remain and you find yourself immediately under attack.",
-  "Shots fly by and your computer registers multiple weapon locks as soon as you arrive. Evasive action!",
-  "What was once a great series of space stations is now nothing but a small ring of debris around the nearby moon. There's no time to mourn the dead; an enemy approaches!",
-  "The Federation seems to have put up a good fight. A number of Rebel ships lie broken or wounded. However their overwhelming numbers force the remaining Federation forces to retreat. Hopefully you can get away in time as well.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
 ];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "BOSS_FLEETS_REBEL";
-  b.name = "Rebel fight among Rebel fleet";
+  b.name = "Hostile Rebel ship (Last Stand, Rebel fleet)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rebel fight among Rebel fleet");
+  assert.equal(g.event?.title, "Hostile Rebel ship (Last Stand, Rebel fleet)");
 }
 
 describe("Rebel fight among Rebel fleet intro", () => {
@@ -38,9 +38,8 @@ describe("Rebel fight among Rebel fleet intro", () => {
     // > "The Federation seems to have put up a good fight. A number of Rebel ships lie broken or wounded. However their overwhelming numbers force the remaining Federation forces to retreat. Hopefully you can get away in time as well." — [[Rebel fight among Rebel fleet]]
     // > "Fight a Rebel ship." — [[Rebel fight among Rebel fleet]]
     assert.equal(INTROS.length, 7);
-    assert.equal(new Set(INTROS).size, 7);
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 300 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 300 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -48,7 +47,7 @@ describe("Rebel fight among Rebel fleet intro", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-fight-among-rebel-fleet:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     const before = g.crew.filter((c) => c.side === "player").length;
@@ -74,7 +73,7 @@ describe("Rebel fight among Rebel fleet intro", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "BOSS_FLEETS_REBEL";
-    dest.name = "Rebel fight among Rebel fleet";
+    dest.name = "Hostile Rebel ship (Last Stand, Rebel fleet)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

@@ -5,7 +5,7 @@ import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-rebels-in-nebula:0";
-const DEST = "Boarders: rebels in nebula";
+const DEST = "Boarders: Rebels in nebula";
 const SECTORS = [
   "CIVILIAN_SECTOR",
   "PIRATE_SECTOR",
@@ -36,7 +36,7 @@ function boarded(g: Game) {
   return g.crew.filter((c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player");
 }
 
-describe("Boarders: rebels in nebula", () => {
+describe("Boarders: Rebels in nebula", () => {
   it("is one card in each named sector and beams 3-4 humans with no ship", () => {
     // Wiki citations:
     // > "There appear to be a number of small stations nearby. Before you have time to scan them, warnings go off. A Rebel teleporter was used in one of the stations. You've been boarded!" — [[Boarders: rebels in nebula]]
@@ -96,7 +96,7 @@ describe("Boarders: rebels in nebula", () => {
     g.phase = "map";
     g.event = null;
     const intro =
-      "There appear to be a number of small stations nearby. Before you have time to scan them, warnings go off. A Rebel teleporter was used in one of the stations. You've been boarded!";
+      "Nebula. 3-4 Human boarders.";
     commitJump(g, dest.id);
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, intro);

@@ -269,14 +269,14 @@ describe("stock spends", () => {
       labelOf(fillerEvent(g, beacon)?.choices, "c:refueling-station:0"),
       "Buy 6 Fuel for 12 Scrap.",
     );
-    assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap");
+    assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Lose 12 scrap. Gain 6 fuel.");
 
     rewriteStock("c:refueling-station:0", [stock("scrap", 4)]);
     assert.equal(
       labelOf(fillerEvent(g, beacon)?.choices, "c:refueling-station:0"),
       "Buy 6 Fuel for 4 Scrap.",
     );
-    assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap");
+    assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Lose 12 scrap. Gain 6 fuel.");
     const had = g.fuel;
     g.scrap = 3;
     const short = g.seed;
@@ -428,7 +428,7 @@ describe("stock spends", () => {
     const shown = startedGame(1);
     const beacon = spot(shown);
     beacon.flag = "LANIUS_TRADER_TRANSLATOR";
-    beacon.name = "Lanius trader with translator";
+    beacon.name = "Trade: supplies for scrap or crew (Lanius)";
     shown.here = beacon.id;
     shown.event = citedEvent(shown, beacon);
     choose(shown, "c:lanius-trader-with-translator:4");
@@ -441,7 +441,7 @@ describe("stock spends", () => {
     const renamed = startedGame(2);
     const next = spot(renamed);
     next.flag = "LANIUS_TRADER_TRANSLATOR";
-    next.name = "Lanius trader with translator";
+    next.name = "Trade: supplies for scrap or crew (Lanius)";
     renamed.here = next.id;
     renamed.event = citedEvent(renamed, next);
     choose(renamed, "c:lanius-trader-with-translator:4");
@@ -464,7 +464,7 @@ describe("stock spends", () => {
     const skipped = startedGame(4);
     const quiet = spot(skipped);
     quiet.flag = "LANIUS_TRADER_TRANSLATOR";
-    quiet.name = "Lanius trader with translator";
+    quiet.name = "Trade: supplies for scrap or crew (Lanius)";
     skipped.here = quiet.id;
     skipped.event = citedEvent(skipped, quiet);
     choose(skipped, "c:lanius-trader-with-translator:4");

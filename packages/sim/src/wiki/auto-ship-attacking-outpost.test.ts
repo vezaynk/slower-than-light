@@ -11,12 +11,12 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "AUTO_REFUEL_STATION";
-  b.name = "Auto-ship attacking outpost";
+  b.name = "Optional fight: Auto-ship and outpost";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Auto-ship attacking outpost");
+  assert.equal(g.event?.title, "Optional fight: Auto-ship and outpost");
 }
 
 function scraps(body: string): number[] {
@@ -27,7 +27,7 @@ function resourceLines(body: string): number {
   return [...body.matchAll(/(?:Fuel|Missiles|Drone parts): \d+/g)].length;
 }
 
-describe("Auto-ship attacking outpost", () => {
+describe("Optional fight: Auto-ship and outpost", () => {
   it("intervening starts an Auto-ship fight", () => {
     const g = createGame(1);
     open(g);

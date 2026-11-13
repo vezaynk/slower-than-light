@@ -12,11 +12,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_SLUG_OXYGEN";
-  b.name = "Slug hacker (oxygen)";
+  b.name = "Hostile Slug ship: oxygen hack";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Slug hacker (oxygen)");
+  assert.equal(g.event?.title, "Hostile Slug ship: oxygen hack");
 }
 
 describe("Slug hacker (oxygen) hacking", () => {
@@ -25,7 +25,7 @@ describe("Slug hacker (oxygen) hacking", () => {
     open(g);
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === "c:slug-hacker-oxygen:2" && c.label === "Counter the remote hacking.",
+        (c) => c.id === "c:slug-hacker-oxygen:2" && c.label === "Hacking offline. Oxygen restored.",
       ),
     );
     assert.equal(choiceDisabled(g, "c:slug-hacker-oxygen:2"), "Needs a Hacking system");

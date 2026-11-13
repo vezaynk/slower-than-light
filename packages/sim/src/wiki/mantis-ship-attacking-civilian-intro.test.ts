@@ -6,30 +6,29 @@ import { citedEvent } from "./cited-events.ts";
 import { eventText } from "../event-text.ts";
 
 const INTROS = [
-  "You spot a Mantis ship hunting in the distance.",
-  `A Mantis ship engaging a civilian hails you. Sparks fly about his cockpit as he yells, "Stay out of this human! Else you are next!"`,
-  "Local sensors pick up two ships engaged in a heated battle. It seems the Mantis military ship will surely defeat its prey.",
-  "A Mantis vessel flashes past your view-screen, weapons and engines at full. A tiny blip on the sensor readout marks its quarry.",
-  "You pick up a distress call from a civilian ship. It's being chased by a Mantis ship!",
+  "Mantis ship attacking a civilian ship.",
+  "Mantis ship attacking a civilian ship.",
+  "Mantis ship attacking a civilian ship.",
+  "Mantis ship attacking a civilian ship.",
+  "Mantis ship attacking a civilian ship.",
 ];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "MANTIS_CIVILIAN";
-  b.name = "Mantis ship attacking civilian";
+  b.name = "Optional fight: Mantis ship and civilian";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Mantis ship attacking civilian");
+  assert.equal(g.event?.title, "Optional fight: Mantis ship and civilian");
 }
 
 describe("Mantis ship attacking civilian intro", () => {
   it("shows one of the five printed intros, then aids or stays out", () => {
     assert.equal(INTROS.length, 5);
-    assert.equal(new Set(INTROS).size, 5);
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 200 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 200 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -38,7 +37,7 @@ describe("Mantis ship attacking civilian intro", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:mantis-ship-attacking-civilian:1"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     const before = g.crew.filter((c) => c.side === "player").length;

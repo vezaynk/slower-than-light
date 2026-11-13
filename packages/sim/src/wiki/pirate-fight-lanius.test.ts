@@ -5,25 +5,25 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  `An upgraded pirate ship sits among the remains of a number of Lanius ships. It hails you, "These punks think they can jus' waltz in here into our sector? Obnoxious, right? Well, I'm sure you know the routine, let's do this."`,
-  `The pirate ship patrolling this sector has been busy. The debris of several Rebel scouts and at least one civilian ship litter the area. "Welcome, welcome, there's room for one more!" The over-confident pirate hails you as he charges his weapons and moves in to attack.`,
-  "A pirate ship appears to be threatening a small refugee ship near the beacon. Upon seeing you jump in, it turns to approach. The civilian wastes no time and jumps away, but that appears only to harden the pirate's resolve.",
-  "Debris from a number of battleships are scattered around the beacon. As you approach the area a pirate ship thrusts itself through the hulks to attack. It must be using the metal to lure the Lanius into a trap.",
-  "The pirate sees you before you see him... prepare for a fight!",
+  "Hostile pirate ship.",
+  "Hostile pirate ship.",
+  "Hostile pirate ship.",
+  "Hostile pirate ship.",
+  "Hostile pirate ship.",
 ];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_PIRATE_FIGHT";
-  b.name = "Pirate fight (Lanius)";
+  b.name = "Hostile pirate ship (Lanius sector)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Pirate fight (Lanius)");
+  assert.equal(g.event?.title, "Hostile pirate ship (Lanius sector)");
 }
 
-describe("Pirate fight (Lanius)", () => {
+describe("Hostile pirate ship (Lanius sector)", () => {
   it("shows one of the five intros, and the fight choice starts a pirate combat", () => {
     // Wiki citations:
     // > "The intro text for this event varies, and could be any of the following:" — [[Pirate fight (Lanius)]]
@@ -34,7 +34,7 @@ describe("Pirate fight (Lanius)", () => {
     // > "The pirate sees you before you see him... prepare for a fight!" — [[Pirate fight (Lanius)]]
     // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Lanius)]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 80 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -42,7 +42,7 @@ describe("Pirate fight (Lanius)", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:pirate-fight-lanius:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);
@@ -62,7 +62,7 @@ describe("Pirate fight (Lanius)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "LANIUS_PIRATE_FIGHT";
-    dest.name = "Pirate fight (Lanius)";
+    dest.name = "Hostile pirate ship (Lanius sector)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

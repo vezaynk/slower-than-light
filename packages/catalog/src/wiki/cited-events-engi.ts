@@ -26,12 +26,12 @@ export type CitedEventDef = {
 export const EXTRA_EVENTS: CitedEventDef[] = [
   // "Fight a Mantis ship (default rewards)." Mantis fight (Engi) has no choice. Arrival calls this fight. One of the four printed intros. unique=false.
   {
-    dest: "Mantis fight (Engi)",
+    dest: "Hostile Mantis ship (Engi sector)",
     slug: "mantis-fight-engi",
     // Wiki citations:
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Mantis fight (Engi)]]
     flag: "cited:mantis-fight-engi",
-    aliases: ["Mantis fight (Engi)"],
+    aliases: [],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
     body: "",
     choices: [
@@ -39,19 +39,19 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         id: "c:mantis-fight-engi:0",
         // Wiki citations:
         // > "Fight a Mantis ship (default rewards)." — [[Mantis fight (Engi)]]
-        label: "Fight a Mantis ship",
+        label: "Fight the Mantis ship.",
         // "Fight a Mantis ship (default rewards)."
         fx: [{ k: "fight", tier: "Mantis ship" }],
       },
     ],
   },
   {
-    dest: "Mantis fight choice",
+    dest: "Optional fight: Mantis ship",
     slug: "mantis-fight-choice",
     // Wiki citations:
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis fight choice]]
     flag: "cited:mantis-fight-choice",
-    aliases: ["Mantis fight choice"],
+    aliases: [],
     sectors: [
       "Engi Controlled Sector",
       "Engi Homeworlds",
@@ -65,7 +65,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Attack the ship." — [[Mantis fight choice]]
         // > "Fight a Mantis ship (default rewards)." — [[Mantis fight choice]]
-        label: "Attack the ship",
+        label: "Fight the Mantis ship.",
         // "Fight a Mantis ship (default rewards)."
         fx: [{ k: "fight", tier: "Mantis ship" }],
       },
@@ -75,7 +75,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "Attempt to remain concealed." — [[Mantis fight choice]]
         // > "You power down non-essential systems and wait for the FTL drive to charge. They either don't want to fight or have failed to notice your ship, the latter being more likely." — [[Mantis fight choice]]
         // > "Nothing happens." — [[Mantis fight choice]]
-        label: "Attempt to remain concealed",
+        label: "1 in 3: nothing happens. 2 in 3: fight the Mantis ship.",
         // "You power down non-essential systems and wait for the FTL drive to charge. They either don't want to fight or have failed to notice your ship, the latter being more likely."
         fx: [{ k: "nothing" }],
       },
@@ -85,19 +85,19 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // > "(Cloaking) Cloak to stay hidden." — [[Mantis fight choice]]
         // > "You cloak and shut down non-essential systems. In a short time the Mantis ship jumps away, no doubt in search of prey." — [[Mantis fight choice]]
         // > "Nothing happens." — [[Mantis fight choice]]
-        label: "Cloak to stay hidden.",
+        label: "2 in 3: nothing happens. 1 in 3: fight the Mantis ship.",
         // "You cloak and shut down non-essential systems. In a short time the Mantis ship jumps away, no doubt in search of prey."
         fx: [{ k: "nothing" }],
       },
     ],
   },
   {
-    dest: "Mantis ship attacking civilian",
+    dest: "Optional fight: Mantis ship and civilian",
     slug: "mantis-ship-attacking-civilian",
     // Wiki citations:
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis ship attacking civilian]]
     flag: "cited:mantis-ship-attacking-civilian",
-    aliases: ["Mantis ship attacking civilian"],
+    aliases: [],
     sectors: [
       "Engi Controlled Sector",
       "Engi Homeworlds",
@@ -111,7 +111,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Aid the civilian ship." — [[Mantis ship attacking civilian]]
         // > "Fight the Mantis Ship." — [[Mantis ship attacking civilian]]
-        label: "Aid the civilian ship",
+        label: "Fight the Mantis ship.",
         // "Fight the Mantis Ship."
         fx: [{ k: "fight", tier: "Mantis ship" }],
       },
@@ -120,7 +120,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Stay out of it." — [[Mantis ship attacking civilian]]
         // > "Nothing happens." — [[Mantis ship attacking civilian]]
-        label: "Stay out of it",
+        label: "Nothing happens.",
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
@@ -128,21 +128,21 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Fight a Pirate ship (default rewards)." Pirate fight (Engi) has no choice. Arrival calls this fight. The printed sentence is the card body. unique=false.
   {
-    dest: "Pirate fight (Engi)",
+    dest: "Hostile pirate ship (Engi sector)",
     slug: "pirate-fight-engi",
     // Wiki citations:
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Pirate fight (Engi)]]
     // > "There must have been rich pickings for pirates around here up until war broke out. The pirate you encounter here looks worn down, but hungry. You'll have to fight!" — [[Pirate fight (Engi)]]
     flag: "cited:pirate-fight-engi",
-    aliases: ["Pirate fight (Engi)"],
+    aliases: [],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
-    body: "There must have been rich pickings for pirates around here up until war broke out. The pirate you encounter here looks worn down, but hungry. You'll have to fight!",
+    body: "Hostile pirate ship.",
     choices: [
       {
         id: "c:pirate-fight-engi:0",
         // Wiki citations:
         // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Engi)]]
-        label: "Fight a Pirate ship",
+        label: "Fight the pirate ship.",
         // "Fight a Pirate ship (default rewards)."
         fx: [{ k: "fight", tier: "Pirate ship" }],
       },
@@ -150,21 +150,21 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   // "Fight a Rebel ship (default rewards)." Rebel fight (Engi) has no choice. Arrival calls this fight. The printed sentence is the card body. unique=false.
   {
-    dest: "Rebel fight (Engi)",
+    dest: "Hostile Rebel ship (Engi sector)",
     slug: "rebel-fight-engi",
     // Wiki citations:
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Rebel fight (Engi)]]
     // > "The rebel fighter here would seem to suggest elements of the rebel fleet are already making incursions on Engi space. You move to engage." — [[Rebel fight (Engi)]]
     flag: "cited:rebel-fight-engi",
-    aliases: ["Rebel fight (Engi)"],
+    aliases: [],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
-    body: "The rebel fighter here would seem to suggest elements of the rebel fleet are already making incursions on Engi space. You move to engage.",
+    body: "Hostile Rebel ship.",
     choices: [
       {
         id: "c:rebel-fight-engi:0",
         // Wiki citations:
         // > "Fight a Rebel ship (default rewards)." — [[Rebel fight (Engi)]]
-        label: "Fight a Rebel ship",
+        label: "Fight the Rebel ship.",
         // "Fight a Rebel ship (default rewards)."
         fx: [{ k: "fight", tier: "Rebel ship" }],
       },
@@ -172,22 +172,22 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   },
   {
     // Confused Mantis. The branches, Robert Smith, and the engine upgrade run in filler-events.ts.
-    dest: "Confused Mantis",
+    dest: "Engi ship with Mantis crew",
     slug: "confused-mantis",
     // Wiki citations:
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Confused Mantis]]
     // > "It is unique." — [[Confused Mantis]]
     // > "As soon as you jump into the system, you receive a hail from a nearby civilian Engi vessel. Their Captain appears on your screen: \"Strange bug. Can you assist in debugging?\"" — [[Confused Mantis]]
     flag: "cited:confused-mantis",
-    aliases: ["Confused Mantis"],
+    aliases: [],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
-    body: 'As soon as you jump into the system, you receive a hail from a nearby civilian Engi vessel. Their Captain appears on your screen: "Strange bug. Can you assist in debugging?"',
+    body: "Engi ship. Request: help with a crewmember.",
     choices: [
       {
         id: "c:confused-mantis:0",
         // Wiki citations:
         // > "Listen to their problem." — [[Confused Mantis]]
-        label: "Listen to their problem.",
+        label: "More options.",
         // "Listen to their problem."
         fx: [{ k: "nothing" }],
       },
@@ -196,7 +196,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Explain that you can't do any programming and leave." — [[Confused Mantis]]
         // > "Nothing happens." — [[Confused Mantis]]
-        label: "Explain that you can't do any programming and leave.",
+        label: "Nothing happens.",
         // "Explain that you can't do any programming and leave."
         fx: [{ k: "nothing" }],
       },
@@ -205,27 +205,27 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
   {
     // Mantis fugitive. The sabotage, the bounty, and the Engi fight run in filler-events.ts.
     // The thanked crewmember is not named, so that grant stays unwired.
-    dest: "Mantis fugitive",
+    dest: "Mantis boarder: fight or hand over",
     slug: "mantis-fugitive",
     // Wiki citations:
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis fugitive]]
     // > "It is unique." — [[Mantis fugitive]]
     // > "You arrive just in time to see an unusually well-armed Engi ship destroying a small pirate craft. A teleporter signal is detected...intruder on deck!" — [[Mantis fugitive]]
     flag: "cited:mantis-fugitive",
-    aliases: ["Mantis fugitive"],
+    aliases: [],
     sectors: [
       "Engi Controlled Sector",
       "Engi Homeworlds",
       "Mantis Controlled Sector",
       "Mantis Homeworlds",
     ],
-    body: "You arrive just in time to see an unusually well-armed Engi ship destroying a small pirate craft. A teleporter signal is detected...intruder on deck!",
+    body: "Armed Engi ship. 1 Mantis boarder.",
     choices: [
       {
         id: "c:mantis-fugitive:0",
         // Wiki citations:
         // > "Side with the fugitive and fight the Engi ship." — [[Mantis fugitive]]
-        label: "Side with the fugitive and fight the Engi ship.",
+        label: "Fight the Engi ship.",
         // "Side with the fugitive and fight the Engi ship."
         fx: [{ k: "fight", tier: "Engi ship" }],
       },
@@ -233,9 +233,15 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         id: "c:mantis-fugitive:1",
         // Wiki citations:
         // > "Agree to offer up the Mantis in exchange for a bounty." — [[Mantis fugitive]]
-        label: "Agree to offer up the Mantis in exchange for a bounty.",
+        label:
+          "1 in 3: gain high scrap. 1 in 3: gain high scrap, take hull damage. 1 in 3: fight the Engi ship.",
         // "Agree to offer up the Mantis in exchange for a bounty."
-        fx: [{ k: "note", text: "High scrap, hull and fire, or a boarder and an Engi ship." }],
+        fx: [
+          {
+            k: "note",
+            text: "1 in 3: gain high scrap. 1 in 3: gain high scrap, take hull damage. 1 in 3: fight the Engi ship.",
+          },
+        ],
       },
     ],
   },

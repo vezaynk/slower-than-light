@@ -12,11 +12,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ROCK_MANTIS_HUNTER";
-  b.name = "Mantis ship with Rock body parts";
+  b.name = "Optional fight: Mantis hunter";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Mantis ship with Rock body parts");
+  assert.equal(g.event?.title, "Optional fight: Mantis hunter");
 }
 
 describe("Mantis ship with Rock body parts Rock crew", () => {
@@ -29,7 +29,7 @@ describe("Mantis ship with Rock body parts Rock crew", () => {
       g.event?.choices.some(
         (c) =>
           c.id === "c:mantis-ship-with-rock-body-parts:2" &&
-          c.label === "Put your Rock crewmember on the comm.",
+          c.label === "Fight. Enemy engines offline.",
       ),
     );
     assert.equal(

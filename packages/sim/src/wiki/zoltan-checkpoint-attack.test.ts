@@ -9,11 +9,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ZOLTAN_CREW_SCAN";
-  b.name = "Zoltan security checkpoint";
+  b.name = "Zoltan checkpoint";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Zoltan security checkpoint");
+  assert.equal(g.event?.title, "Zoltan checkpoint");
 }
 
 describe("Zoltan security checkpoint attack", () => {

@@ -10,18 +10,18 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ROCK_ATHIEST";
-  b.name = "Rock atheists";
+  b.name = "Rock crew offer";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Rock atheists");
+  assert.equal(g.event?.title, "Rock crew offer");
 }
 
 function rocks(g: Game): number {
   return g.crew.filter((c) => c.side === "player" && c.kin === "rock").length;
 }
 
-describe("Rock atheists", () => {
+describe("Rock crew offer", () => {
   it("telling them their god sent them starts a Rock fight after one of the two lines", () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 20 && seen.size < 2; seed++) {

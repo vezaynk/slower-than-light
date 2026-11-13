@@ -12,6 +12,20 @@ function slugOf(title: string): string {
     .replace(/^-|-$/g, "");
 }
 
+const TITLES = [
+  "Asteroid belt distress",
+  "Capture the ship",
+  "Encrypted federation signal",
+  "Engi ship attacked by Mantis ship",
+  "Merchant's request",
+  "Nebula wreckage",
+];
+
+/** A row's dest is its functional title; its slug is the wiki page title's slug. */
+function titleOf(ev: { slug: string }): string {
+  return TITLES.find((t) => slugOf(t) === ev.slug) ?? ev.slug;
+}
+
 describe("quests-b pages", () => {
   it("each page's sectors are its {{Locations}} line, and ids follow the table format", () => {
     // Wiki citations:
@@ -21,7 +35,7 @@ describe("quests-b pages", () => {
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Engi ship attacked by Mantis ship]]
     // > "This random event occurs in Civilian Sector, Engi Controlled Sector, Engi Homeworlds, Pirate Controlled Sector, Rebel Controlled Sector, Rebel Stronghold." — [[Merchant's request]]
     // > "This random event occurs in Slug Controlled Nebula, Uncharted Nebula." — [[Nebula wreckage]]
-    const want = new Set(EXTRA_EVENTS.map((e) => e.dest));
+    const want = new Set(EXTRA_EVENTS.map((e) => titleOf(e)));
     const pages = new Map<string, string>();
     for (const line of readFileSync(DUMP, "utf8").split("\n")) {
       if (!line) continue;
@@ -30,20 +44,20 @@ describe("quests-b pages", () => {
     }
     assert.equal(pages.size, 6);
     for (const ev of EXTRA_EVENTS) {
-      const m = pages.get(ev.dest)!.match(/\{\{Locations\|([^}]+)\}\}/)!;
+      const m = pages.get(titleOf(ev))!.match(/\{\{Locations\|([^}]+)\}\}/)!;
       const names = m[1]
         .split("|")
         .map((s) => s.trim())
         .filter((s) => s && !s.includes("="));
-      assert.deepEqual(ev.sectors, names, ev.dest);
-      assert.equal(ev.slug, slugOf(ev.dest));
+      assert.deepEqual(ev.sectors, names, titleOf(ev));
+      assert.equal(slugOf(titleOf(ev)), ev.slug);
       assert.equal(ev.flag, `cited:${ev.slug}`);
       ev.choices.forEach((c, i) => assert.equal(c.id, `c:${ev.slug}:${i}`));
     }
   });
 
   it("classifies as the event lists say (distress / neutral)", () => {
-    const cls = Object.fromEntries(EXTRA_EVENTS.map((e) => [e.dest, classifyEvent(e)]));
+    const cls = Object.fromEntries(EXTRA_EVENTS.map((e) => [titleOf(e), classifyEvent(e)]));
     assert.equal(cls["Asteroid belt distress"], "distress");
     for (const d of [
       "Capture the ship",

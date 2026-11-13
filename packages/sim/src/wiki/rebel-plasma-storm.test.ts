@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { choose, commitJump, createGame, sparePower, startCombat, syncIonStorm } from "../sim.ts";
 import { citedFleetAdvance, ionStormBeacon } from "./cited-sectors.ts";
 
-describe("Rebel fight in plasma storm", () => {
+describe("Hostile Rebel ship in plasma storm", () => {
   it("storms a non-nebula beacon and keeps the full fleet step", () => {
     const g = createGame(4);
     const beacon = g.beacons.find(
@@ -12,7 +12,7 @@ describe("Rebel fight in plasma storm", () => {
     assert.ok(beacon);
     beacon.kind = "event";
     beacon.flag = "STORM_REBEL";
-    beacon.name = "Rebel fight in plasma storm";
+    beacon.name = "Hostile Rebel ship in plasma storm";
     beacon.col = 5;
     g.here = beacon.id;
     g.fleet = 1;
@@ -59,14 +59,14 @@ describe("Rebel fight in plasma storm", () => {
     assert.equal(ionStormBeacon(beacon, g), false);
     beacon.kind = "exit";
     beacon.flag = "STORM_REBEL";
-    beacon.name = "Rebel fight in plasma storm";
+    beacon.name = "Hostile Rebel ship in plasma storm";
     assert.equal(ionStormBeacon(beacon, g), false);
   });
 
   it("starts the Rebel ship on arrival from the intro card", () => {
     // The page has no choice. The printed sentence, then "Fight a Rebel ship." plasmastorm=true. unique=true.
     const BODY =
-      "You arrive in the middle of a plasma storm. Despite the harsh conditions, a Rebel scout seems to be waiting for you.";
+      "Hostile Rebel ship. Plasma storm.";
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);
@@ -74,7 +74,7 @@ describe("Rebel fight in plasma storm", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "STORM_REBEL";
-    dest.name = "Rebel fight in plasma storm";
+    dest.name = "Hostile Rebel ship in plasma storm";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

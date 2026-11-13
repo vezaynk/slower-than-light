@@ -66,7 +66,7 @@ export const SECTOR_TYPES: SectorType[] = [
     group: "civilian",
     notes: [
       "Only once per game, and only at sector 3 or higher.",
-      "The beacon list places 1 Engi fleet discussion event, 2-3 stores, and 1 quest.",
+      "The beacon list places 1 Engi crew quest event, 2-3 stores, and 1 quest.",
       "Crew bought or received as a crew-kill reward, common to rare: Engi rarity 1, Human 3, Zoltan 4. Rarity only affects store assortment probability.",
     ],
   },
@@ -79,7 +79,7 @@ export const SECTOR_TYPES: SectorType[] = [
     group: "civilian",
     notes: [
       "Can occur multiple times per game.",
-      "The beacon list places 1 Zoltan research facility event, 2 stores, 0-1 quests, and 2-6 nebula spaces.",
+      "The beacon list places 1 Zoltan crew scan event, 2 stores, 0-1 quests, and 2-6 nebula spaces.",
       "Crew bought or received as a crew-kill reward, common to rare: Zoltan rarity 1, Human 2, Engi, Mantis, Rockmen, and Slug 3. Rarity only affects store assortment probability.",
     ],
   },
@@ -92,7 +92,7 @@ export const SECTOR_TYPES: SectorType[] = [
     group: "civilian",
     notes: [
       "Only once per game, and only at sector 3 or higher.",
-      "The beacon list places 1 Zoltan research facility event, 1 Unarmed Zoltan transport event, 2 stores, 0-1 quests, and 2-6 nebula spaces.",
+      "The beacon list places 1 Zoltan crew scan event, 1 unarmed Zoltan transport event, 2 stores, 0-1 quests, and 2-6 nebula spaces.",
       "Crew bought or received as a crew-kill reward, common to rare: Zoltan rarity 1, Human 2, Engi, Mantis, Rockmen, and Slug 3. Rarity only affects store assortment probability.",
     ],
   },
@@ -131,7 +131,7 @@ export const SECTOR_TYPES: SectorType[] = [
     group: "hostile",
     notes: [
       "Only once per game, and only at sector 3 or higher.",
-      "The beacon list places 1 Legendary thief KazaaakplethKilik event and 1-2 stores.",
+      "The beacon list places 1 armored Mantis ship fight and 1-2 stores.",
       "Crew bought or received as a crew-kill reward, common to rare: Mantis rarity 1, Human 2, Engi 3, Rockmen 4. Rarity only affects store assortment probability.",
     ],
   },
@@ -170,7 +170,7 @@ export const SECTOR_TYPES: SectorType[] = [
     group: "hostile",
     notes: [
       "Only once per game, and only at sector 5 or higher.",
-      "The beacon list places 1 Rebel shipyard event, 1-2 stores, 0-2 quests, and 0-5 nebula spaces.",
+      "The beacon list places 1 second-flagship event, 1-2 stores, 0-2 quests, and 0-5 nebula spaces.",
       "Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Engi and Mantis 2, Rockmen 3, Zoltan 5. Rarity only affects store assortment probability.",
     ],
   },
@@ -198,7 +198,7 @@ export const SECTOR_TYPES: SectorType[] = [
     notes: [
       "Only once per game, and only at sector 5 or higher.",
       "Crystal Lockdown Bombs can be found or bought here, at an average rarity (2).",
-      "The beacon list places 1 Ancient device event, 1 Rock war vessel encounter event, 2 stores, and 0-1 quests.",
+      "The beacon list places 1 device event (scrap or wormhole), 1 Rock ship unlock quest event, 2 stores, and 0-1 quests.",
       "Crew bought or received as a crew-kill reward, common to rare: Rockmen rarity 1, Human 2, Zoltan 3. Rarity only affects store assortment probability.",
     ],
   },
@@ -211,7 +211,7 @@ export const SECTOR_TYPES: SectorType[] = [
     group: "nebula",
     notes: [
       "Can occur multiple times per game, and only at sector 4 or higher.",
-      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%, because the fleet was prepared for the nebula.",
+      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%.",
       "The beacon list gives 0-1 stores and 2 nebula stores.",
       "Crew bought or received as a crew-kill reward, common to rare: Slug and Human rarity 2, Engi, Mantis, Zoltan, and Rockmen 4. Rarity only affects store assortment probability.",
     ],
@@ -225,8 +225,8 @@ export const SECTOR_TYPES: SectorType[] = [
     group: "nebula",
     notes: [
       "Only once per game, and only at sector 4 or higher.",
-      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%, because the fleet was prepared for the nebula.",
-      "The beacon list places 1 Slug Home Nebula surrender event, 0-1 stores, and 2 nebula stores.",
+      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%.",
+      "The beacon list places 1 Slug ship unlock fight, 0-1 stores, and 2 nebula stores.",
       "Crew bought or received as a crew-kill reward, common to rare: Slug and Human rarity 2, Engi, Mantis, Zoltan, and Rockmen 4. Rarity only affects store assortment probability.",
     ],
   },
@@ -239,7 +239,7 @@ export const SECTOR_TYPES: SectorType[] = [
     group: "nebula",
     notes: [
       "Can occur multiple times per game.",
-      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%, because the fleet was prepared for the nebula.",
+      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%.",
       "In normal circumstances the sector has 1-2 stores. Map generation leaves about 0.8% with no stores at all.",
       "The beacon list also shows 0-1 stores and 1 nebula store.",
       "Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Slug 3, Engi, Mantis, Zoltan, and Rockmen 4. Rarity only affects store assortment probability.",
@@ -253,8 +253,8 @@ export const SECTOR_TYPES: SectorType[] = [
     name: "Hidden Crystal Worlds",
     group: "hidden",
     notes: [
-      "Only once per game, and only through the Ancient device event. It is not technically part of the map.",
-      "It is a standalone sector, separate from Rock Homeworlds. The Rebels keep following you through it.",
+      "Only once per game, and only through the device event's wormhole. It is not technically part of the map.",
+      "It is a standalone sector, separate from Rock Homeworlds. The fleet keeps advancing through it.",
       "Exiting sends you to a random sector after the Rock Homeworlds. That next sector may not be connected to the Rock Homeworlds.",
       "Stores and crew-kill rewards offer only crystal weapons, including the Lockdown Bomb. Only Crystal crew can be bought or received as a crew-kill reward.",
       "The beacon list gives 2-3 stores.",

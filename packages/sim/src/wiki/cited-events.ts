@@ -494,7 +494,8 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
     // > "As you drift closer, you are contacted by a Slug marooned on the moon's surface." — [[Slug moons question]]
     // > "How many moons are there in orbit here?" — [[Slug moons question]]
     const n = Number(ask[1]);
-    const title = ctx.g.beacons.find((b) => b.id === ctx.g.here)?.name ?? "Slug moons question";
+    const title =
+      ctx.g.beacons.find((b) => b.id === ctx.g.here)?.name ?? "Distress: question in nebula";
     ctx.g.event = {
       title,
       body: eventText(SLUG_MOON_QUESTION),
@@ -564,7 +565,7 @@ function zoltanMoonDrone(): string {
 }
 
 function zoltanMoonTitle(g: Game): string {
-  return g.beacons.find((b) => b.id === g.here)?.name ?? "Zoltan odd moon";
+  return g.beacons.find((b) => b.id === g.here)?.name ?? "Moon scan";
 }
 
 function zoltanOddCard(title: string): GameEvent {
@@ -1496,7 +1497,7 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     const b = ctx.g.beacons.find((x) => x.id === ctx.g.here);
     if (!b) return false;
     b.flag = "ROCK_SLUG_ARGUMENT";
-    b.name = "Rock and Slug standoff";
+    b.name = "Rock and Slug ships: debt";
     b.kind = "nebula";
     const card = citedEvent(ctx.g, b);
     if (!card) return false;

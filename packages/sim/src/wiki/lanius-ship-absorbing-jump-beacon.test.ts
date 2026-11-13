@@ -10,11 +10,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "LANIUS_BEACON_EATER";
-  b.name = "Lanius ship absorbing jump beacon";
+  b.name = "Lanius ship at jump beacon";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Lanius ship absorbing jump beacon");
+  assert.equal(g.event?.title, "Lanius ship at jump beacon");
 }
 
 function drone(kind: string): Kit {
@@ -56,16 +56,16 @@ function assertLaniusFight(g: Game) {
   assert.ok(escape >= 20 && escape <= 40);
 }
 
-describe("Lanius ship absorbing jump beacon", () => {
+describe("Lanius ship at jump beacon", () => {
   it("is one Abandoned Sector card", () => {
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius ship absorbing jump beacon]]
     const pages = citedPagesFor("LANIUS_SECTOR").filter(
-      (e) => e.dest === "Lanius ship absorbing jump beacon",
+      (e) => e.dest === "Lanius ship at jump beacon",
     );
     assert.equal(pages.length, 1);
     assert.equal(
-      citedPagesFor("CIVILIAN_SECTOR").some((e) => e.dest === "Lanius ship absorbing jump beacon"),
+      citedPagesFor("CIVILIAN_SECTOR").some((e) => e.dest === "Lanius ship at jump beacon"),
       false,
     );
   });
@@ -75,7 +75,7 @@ describe("Lanius ship absorbing jump beacon", () => {
     // > "You detect a damaged vessel docked with the jump beacon. It appears the Lanius are absorbing metal from the beacon, risking destroying it and becoming stranded." — [[Lanius ship absorbing jump beacon]]
     const g = createGame(1);
     open(g);
-    assert.match(g.event?.body ?? "", /damaged vessel docked with the jump beacon/);
+    assert.equal(g.event?.body, "Damaged Lanius ship docked with the beacon.");
     assert.deepEqual(
       g.event?.choices.map((c) => c.id),
       [

@@ -5,13 +5,13 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "There are few more vicious beasts in the galaxy than a Slug with his back to the wall. The faltering ship armed with fire-weapons uses a remote hacking tool to try and disable your door system - they're going to burn you out!";
+  "Hostile Slug ship. Doors hacked.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_SLUG_DOORS";
-  b.name = "Slug hacker (doors)";
+  b.name = "Hostile Slug ship: door hack";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -21,7 +21,7 @@ describe("Slug hacker (doors) opening", () => {
   it("prints the burn-you-out sentence and keeps the continue choice", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.title, "Slug hacker (doors)");
+    assert.equal(g.event?.title, "Hostile Slug ship: door hack");
     assert.equal(g.event?.body, BODY);
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

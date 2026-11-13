@@ -14,20 +14,20 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Sell drone parts for scrap",
+    name: "Trade: drone parts for scrap",
     tier: "",
     flag: "SELL_DRONES_STATION",
     asteroid: false,
   };
 }
 
-describe("Sell drone parts for scrap", () => {
+describe("Trade: drone parts for scrap", () => {
   it("opens on the printed damaged-station line", () => {
     const g = createGame(1);
     const ev = citedEvent(g, beacon());
     assert.equal(
       ev?.body,
-      "You see a civilian space station with heavy damage. You receive a message, \"We've been hit hard by the war. We need more drone parts to speed up our repairs. We'll buy some from you if you have extra.\"",
+      "Station buying drone parts.",
     );
   });
 

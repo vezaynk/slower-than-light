@@ -31,7 +31,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "REBEL_HELPERS";
-  b.name = "Rebel ship supplying civilians";
+  b.name = "Optional fight: Rebel supply ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
@@ -78,7 +78,10 @@ describe("Rebel ship supplying civilians supplies", () => {
     open(g0);
     assert.equal(
       g0.event?.choices.some(
-        (c) => c.id === WAIT && c.label === "Wait and steal the supplies from the civilians",
+        (c) =>
+          c.id === WAIT &&
+          c.label ===
+            "1 in 4: gain drone parts. 1 in 4: nothing happens. 1 in 4: gain scrap. 1 in 4: take 2 system damage.",
       ),
       true,
     );

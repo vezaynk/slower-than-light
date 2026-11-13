@@ -10,11 +10,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "CRYSTAL_AUTO";
-  b.name = "Auto-ship fight (Crystal)";
+  b.name = "Hostile Auto-ship (Crystal sector)";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Auto-ship fight (Crystal)");
+  assert.equal(g.event?.title, "Hostile Auto-ship (Crystal sector)");
 }
 
 function scraps(body: string): number[] {
@@ -27,7 +27,7 @@ function resources(body: string): number {
   ).length;
 }
 
-describe("Auto-ship fight (Crystal)", () => {
+describe("Hostile Auto-ship (Crystal sector)", () => {
   it("a destroyed ship pays medium scrap with resources, and a crew kill does not", () => {
     const destroyed = createGame(1);
     open(destroyed);
@@ -68,7 +68,7 @@ describe("Auto-ship fight (Crystal)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "CRYSTAL_AUTO";
-    dest.name = "Auto-ship fight (Crystal)";
+    dest.name = "Hostile Auto-ship (Crystal sector)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;
@@ -79,7 +79,7 @@ describe("Auto-ship fight (Crystal)", () => {
     g.event = null;
     commitJump(g, dest.id);
     const intro =
-      "The Rebels must have sent their automated scouts to find you. One jumps in and immediately moves to attack.";
+      "Hostile Auto-ship.";
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, intro);
     assert.equal(g.log.includes(intro), false);

@@ -5,20 +5,20 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "You're surprised to find a ship without Slug markings stranded all the way out here, and move in to provide assistance. When you see the pirate insignia on the hull you quickly reconsider.";
+  "Pirate ship. Nebula.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "NEBULA_SLUG_PIRATE";
-  b.name = "Pirate fight choice in nebula";
+  b.name = "Optional fight: pirate ship in nebula";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, "Pirate fight choice in nebula");
+  assert.equal(g.event?.title, "Optional fight: pirate ship in nebula");
 }
 
-describe("Pirate fight choice in nebula", () => {
+describe("Optional fight: pirate ship in nebula", () => {
   it("shows both sentences, attacking starts a pirate fight, and keeping distance does nothing", () => {
     // Wiki citations:
     // > "You're surprised to find a ship without Slug markings stranded all the way out here, and move in to provide assistance. When you see the pirate insignia on the hull you quickly reconsider." — [[Pirate fight choice in nebula]]

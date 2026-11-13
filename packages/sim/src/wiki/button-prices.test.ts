@@ -67,7 +67,7 @@ describe("named button prices", () => {
       "append",
     );
     const g = createGame(1);
-    park(g, "ROCK_SLUG_ARGUMENT", "Rock and Slug standoff");
+    park(g, "ROCK_SLUG_ARGUMENT", "Rock and Slug ships: debt");
     g.event = citedEvent(g, beacon(g));
     choose(g, "c:rock-and-slug-standoff:0");
     assert.equal(
@@ -79,7 +79,7 @@ describe("named button prices", () => {
     assert.equal(g.scrap, 32);
 
     const forged = createGame(2);
-    park(forged, "ROCK_SLUG_ARGUMENT", "Rock and Slug standoff");
+    park(forged, "ROCK_SLUG_ARGUMENT", "Rock and Slug ships: debt");
     forged.event = citedEvent(forged, beacon(forged));
     choose(forged, "c:rock-and-slug-standoff:0");
     forged.scrap = 100;
@@ -103,7 +103,7 @@ describe("named button prices", () => {
       "append",
     );
     const g = createGame(1);
-    park(g, "ROCK_SLUG_ARGUMENT", "Rock and Slug standoff");
+    park(g, "ROCK_SLUG_ARGUMENT", "Rock and Slug ships: debt");
     g.event = citedEvent(g, beacon(g));
     choose(g, "c:rock-and-slug-standoff:0");
     const ids = g.event?.choices.map((choice) => choice.id) ?? [];
@@ -134,7 +134,7 @@ describe("named button prices", () => {
     let refused = false;
     for (let seed = 1; seed <= 40 && (!paid || !refused); seed++) {
       const g = createGame(seed);
-      park(g, "ROCK_SLUG_ARGUMENT", "Rock and Slug standoff");
+      park(g, "ROCK_SLUG_ARGUMENT", "Rock and Slug ships: debt");
       g.event = citedEvent(g, beacon(g));
       choose(g, "c:rock-and-slug-standoff:0");
       g.scrap = 40;
@@ -180,7 +180,7 @@ describe("named button prices", () => {
     let seen = false;
     for (let seed = 1; seed <= 40 && !seen; seed++) {
       const g = createGame(seed);
-      park(g, "ROCK_SLUG_ARGUMENT", "Rock and Slug standoff");
+      park(g, "ROCK_SLUG_ARGUMENT", "Rock and Slug ships: debt");
       g.event = citedEvent(g, beacon(g));
       choose(g, "c:rock-and-slug-standoff:0");
       g.scrap = 40;
@@ -204,7 +204,7 @@ describe("named button prices", () => {
       "append",
     );
     const g = createGame(1);
-    const here = park(g, "filler:friendly-ship-out-of-fuel", "Friendly ship out of fuel");
+    const here = park(g, "filler:friendly-ship-out-of-fuel", "Fuel request");
     g.event = fillerEvent(g, here);
     assert.equal(g.event?.choices[0]?.id, "s:friendly-ship-out-of-fuel:give:3");
     assert.equal(g.event?.choices[1]?.id, page.choices[1]?.id);
@@ -213,7 +213,7 @@ describe("named button prices", () => {
     assert.equal(g.fuel, 2);
 
     const short = createGame(2);
-    const shortHere = park(short, "filler:friendly-ship-out-of-fuel", "Friendly ship out of fuel");
+    const shortHere = park(short, "filler:friendly-ship-out-of-fuel", "Fuel request");
     short.event = fillerEvent(short, shortHere);
     short.fuel = 2;
     const shortBody = short.event?.body;
@@ -222,11 +222,7 @@ describe("named button prices", () => {
     assert.equal(short.event?.body, shortBody);
 
     const forged = createGame(3);
-    const forgedHere = park(
-      forged,
-      "filler:friendly-ship-out-of-fuel",
-      "Friendly ship out of fuel",
-    );
+    const forgedHere = park(forged, "filler:friendly-ship-out-of-fuel", "Fuel request");
     forged.event = fillerEvent(forged, forgedHere);
     forged.fuel = 20;
     const forgedBody = forged.event?.body;
@@ -236,7 +232,7 @@ describe("named button prices", () => {
 
     loadPack({ events: [{ ...page, prices: undefined }] }, "append");
     const quiet = createGame(4);
-    const quietHere = park(quiet, "filler:friendly-ship-out-of-fuel", "Friendly ship out of fuel");
+    const quietHere = park(quiet, "filler:friendly-ship-out-of-fuel", "Fuel request");
     quiet.event = fillerEvent(quiet, quietHere);
     assert.equal(
       quiet.event?.choices.some((choice) =>

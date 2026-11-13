@@ -7,7 +7,7 @@ import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-humans-abandoned:0";
 const BODY =
-  'An image of some weak and hungry humans comes onto your screen. "Those metal bastards think they can just absorb half of our engines and leave us here to die? I hope you understand the need to take your ship by force."';
+  "3-4 Human boarders.";
 
 function beacon(): Beacon {
   return {
@@ -18,7 +18,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Boarders: Humans (Abandoned)",
+    name: "Boarders: Humans (Lanius sector)",
     tier: "",
     flag: "LANIUS_PIRATE_BOARDERS",
     asteroid: false,
@@ -29,10 +29,10 @@ function boarded(g: Game) {
   return g.crew.filter((c) => c.side === "enemy" && c.kin === "human" && c.aboard === "player");
 }
 
-describe("Boarders: Humans (Abandoned)", () => {
+describe("Boarders: Humans (Lanius sector)", () => {
   it("is one Abandoned Sector card and beams 3-4 humans with no ship", () => {
     const pages = citedPagesFor("LANIUS_SECTOR").filter(
-      (e) => e.dest === "Boarders: Humans (Abandoned)",
+      (e) => e.dest === "Boarders: Humans (Lanius sector)",
     );
     assert.equal(pages.length, 1);
     assert.deepEqual([...pages[0].sectors], ["LANIUS_SECTOR"]);
@@ -63,7 +63,7 @@ describe("Boarders: Humans (Abandoned)", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "LANIUS_PIRATE_BOARDERS";
-    dest.name = "Boarders: Humans (Abandoned)";
+    dest.name = "Boarders: Humans (Lanius sector)";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;

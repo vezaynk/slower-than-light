@@ -11,12 +11,12 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "AUTO_WARNING";
-  b.name = "Auto-ship warning";
+  b.name = "Fleeing Auto-ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Auto-ship warning");
+  assert.equal(g.event?.title, "Fleeing Auto-ship");
 }
 
 function scraps(body: string): number[] {
@@ -32,7 +32,7 @@ function resources(body: string): number {
 const FTL =
   eventText("ship_REBEL_AUTO_WARNING_escape_text");
 
-describe("Auto-ship warning", () => {
+describe("Fleeing Auto-ship", () => {
   it("shows the FTL warning, then starts a running Auto-ship on a 40 second timer that doubles pursuit", () => {
     const g = createGame(1);
     open(g);
@@ -98,7 +98,7 @@ describe("Auto-ship warning", () => {
     assert.ok(dest);
     dest.kind = "event";
     dest.flag = "AUTO_WARNING";
-    dest.name = "Auto-ship warning";
+    dest.name = "Fleeing Auto-ship";
     dest.resolved = false;
     dest.tier = "";
     dest.col = 20;
@@ -133,13 +133,13 @@ describe("Auto-ship warning", () => {
 });
 
 const INTROS = [
-  "You discover one of the Rebel's autonomous scouts. The ship's AI wastes no time in engaging your ship.",
+  "Hostile Auto-ship.",
   `Your ship is hailed: "This is an automated message. Resisting our takeover is pointless. Prepare to die." It appears this Rebel ship is run by an AI.`,
-  "A Rebel autonomous scout is exploring this beacon. You attempt to hide behind a nearby moon, but the ship finds you and begins its assault.",
-  "The AI of a nearby small Rebel scout immediately identifies you as a threat and engages.",
-  "A Rebel ship moves in to engage. You attempt to open communications, but realize the futility of that action when you see the ship is run by an AI.",
-  "This must be one of the Rebels' unmanned scout ships. Looks like there's no way around a fight.",
-  "Another unmanned ship patrols this area. You prepare the ship for combat.",
-  "This beacon is being patrolled by a unmanned scout. A fight is unavoidable.",
-  "A small shuttle appears on the local radar. Turns out it is a Rebel automated scout!",
+  "Hostile Auto-ship.",
+  "Hostile Auto-ship.",
+  "Hostile Auto-ship.",
+  "Hostile Auto-ship.",
+  "Hostile Auto-ship.",
+  "Hostile Auto-ship.",
+  "Hostile Auto-ship.",
 ];

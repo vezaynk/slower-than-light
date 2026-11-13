@@ -10,11 +10,11 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ZOLTAN_RIFT_FIGHT";
-  b.name = eventText("event_ZOLTAN_RIFT_SUCCESS_text");
+  b.name = "Choose your fight";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
-  assert.equal(g.event?.title, eventText("event_ZOLTAN_RIFT_SUCCESS_text"));
+  assert.equal(g.event?.title, "Choose your fight");
 }
 
 describe("Zoltan wise man Mantis", () => {

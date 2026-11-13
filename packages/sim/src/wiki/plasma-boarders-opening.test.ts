@@ -6,7 +6,7 @@ import { mediumScrapBand } from "../content.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "You find two heavily damaged ships floating nearby, the remains of a battle. You begin to harvest some usable debris when you hear the sounds of someone beaming aboard followed by the shouts of a boarding party.";
+  "Plasma storm. 3-4 Human boarders.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

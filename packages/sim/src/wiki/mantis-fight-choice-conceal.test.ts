@@ -10,7 +10,7 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "MANTIS_FIGHT_CHOICE";
-  b.name = "Mantis fight choice";
+  b.name = "Optional fight: Mantis ship";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";

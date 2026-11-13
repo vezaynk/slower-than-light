@@ -18,7 +18,7 @@ function beacon(): Beacon {
     kind: "event",
     visited: false,
     resolved: false,
-    name: "Asteroid mining colony",
+    name: "Trade: missiles for rewards",
     tier: "",
     flag: "filler:asteroid-mining-colony",
     asteroid: false,
@@ -30,9 +30,9 @@ function lead(body: string, id: string): boolean {
   return body.split("\n\n")[0] === eventText(id);
 }
 
-describe("Asteroid mining colony", () => {
+describe("Trade: missiles for rewards", () => {
   it("is a card an items draw can reach", () => {
-    assert.equal(pageForRow("Asteroid mining colony")?.slug, "HELP_MINERS");
+    assert.equal(pageForRow("Trade: missiles for rewards")?.slug, "HELP_MINERS");
   });
 
   it("offers a launch only for a missile weapon, and that launch changes nothing", () => {

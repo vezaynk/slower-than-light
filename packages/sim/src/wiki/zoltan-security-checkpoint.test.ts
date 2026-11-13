@@ -11,12 +11,12 @@ function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
   b.flag = "ZOLTAN_CREW_SCAN";
-  b.name = "Zoltan security checkpoint";
+  b.name = "Zoltan checkpoint";
   g.here = b.id;
   g.event = citedEvent(g, b);
   g.phase = "event";
   g.fleet = 5;
-  assert.equal(g.event?.title, "Zoltan security checkpoint");
+  assert.equal(g.event?.title, "Zoltan checkpoint");
 }
 
 function kit(id: Kit["id"]): Kit {
@@ -38,7 +38,7 @@ function boarders(g: Game): number {
     .length;
 }
 
-describe("Zoltan security checkpoint", () => {
+describe("Zoltan checkpoint", () => {
   it("attacking starts a Zoltan fight, and the blue options stay closed", () => {
     // Wiki citations:
     // > "You don't have time for this nonsense. Attack!" — [[Zoltan security checkpoint]]

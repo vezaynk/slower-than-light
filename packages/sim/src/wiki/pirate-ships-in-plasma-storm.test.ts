@@ -56,8 +56,7 @@ describe("Optional fight: pirate ships in plasma storm", () => {
 
     const fuel = createGame(2);
     open(fuel);
-    const fuelLead =
-      eventText("event_STORM_ZOLTAN_SUPPLY_CHOICE_c1_text");
+    const fuelLead = eventText("event_STORM_ZOLTAN_SUPPLY_CHOICE_c1_text");
     choose(fuel, "c:pirate-ships-in-plasma-storm:0");
     assert.equal(fuel.phase, "event");
     assert.equal(fuel.event?.choices[0]?.id, "ship-resume");
@@ -83,8 +82,7 @@ describe("Optional fight: pirate ships in plasma storm", () => {
 
     const ammo = createGame(3);
     open(ammo);
-    const ammoLead =
-      eventText("event_STORM_ZOLTAN_SUPPLY_CHOICE_c2_text");
+    const ammoLead = eventText("event_STORM_ZOLTAN_SUPPLY_CHOICE_c2_text");
     choose(ammo, "c:pirate-ships-in-plasma-storm:1");
     assert.equal(ammo.phase, "event");
     assert.equal(ammo.event?.choices[0]?.id, "ship-resume");
@@ -120,7 +118,12 @@ describe("Optional fight: pirate ships in plasma storm", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "pirate-ships-in-plasma-storm", deadCrew), true);
       const body = g.event?.body ?? "";
-      assert.match(body, deadCrew ? textRe("ship_STORM_PIRATE_SUPPLY_FUEL_deadCrew_text") : textRe("ship_STORM_PIRATE_SUPPLY_FUEL_destroyed_text"));
+      assert.match(
+        body,
+        deadCrew
+          ? textRe("ship_STORM_PIRATE_SUPPLY_FUEL_deadCrew_text")
+          : textRe("ship_STORM_PIRATE_SUPPLY_FUEL_destroyed_text"),
+      );
       const scrap = scraps(body);
       assert.equal(scrap.length, 1, body);
       const fuel = amount(body, "Fuel");
@@ -157,7 +160,12 @@ describe("Optional fight: pirate ships in plasma storm", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "pirate-ships-in-plasma-storm-ammo", deadCrew), true);
       const body = g.event?.body ?? "";
-      assert.match(body, deadCrew ? textRe("ship_STORM_PIRATE_SUPPLY_AMMO_deadCrew_text") : textRe("ship_STORM_PIRATE_SUPPLY_AMMO_destroyed_text"));
+      assert.match(
+        body,
+        deadCrew
+          ? textRe("ship_STORM_PIRATE_SUPPLY_AMMO_deadCrew_text")
+          : textRe("ship_STORM_PIRATE_SUPPLY_AMMO_destroyed_text"),
+      );
       const scrap = scraps(body);
       assert.equal(scrap.length, 1, body);
       const missiles = amount(body, "Missiles");

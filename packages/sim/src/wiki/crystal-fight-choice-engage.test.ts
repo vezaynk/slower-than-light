@@ -23,8 +23,7 @@ describe("Crystal fight choice engage", () => {
     // > "Fight a Crystal ship (default rewards)." — [[Crystal fight choice]]
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_CRYSTAL_REBEL_CRYSTAL2_c1_text");
+    const lead = eventText("event_CRYSTAL_REBEL_CRYSTAL2_c1_text");
     choose(g, "c:crystal-fight-choice:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

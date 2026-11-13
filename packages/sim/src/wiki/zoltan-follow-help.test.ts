@@ -25,8 +25,7 @@ describe("Zoltan ship follows Mantis ship help", () => {
     const hp = kinOf("mantis").hp;
     const g = createGame(1);
     open(g);
-    const told =
-      eventText("event_ZOLTAN_DISTRESS_MANTIS_c2_text");
+    const told = eventText("event_ZOLTAN_DISTRESS_MANTIS_c2_text");
     choose(g, "c:zoltan-ship-follows-mantis-ship:1");
     assert.equal(g.phase, "event");
     assert.ok(g.event?.body?.includes(told));

@@ -101,7 +101,9 @@ describe("Distress: question in nebula", () => {
     const scrap = g.scrap;
     const n = moons(g.event?.body ?? "");
     choose(g, g.event?.choices[0]?.id ?? "");
-    assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_LIST_1_c1_text")));
+    assert.ok(
+      (g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_LIST_1_c1_text")),
+    );
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
       ["Five.", "Six.", "Seven.", "Eleven."],
@@ -153,7 +155,9 @@ describe("Distress: question in nebula", () => {
       fuels.add(fuel);
       parts.add(spent);
       assert.equal(g.crew.filter((c) => c.kin === "slug").length, gels);
-      assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_FALSE_text")));
+      assert.ok(
+        (g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_FALSE_text")),
+      );
     }
     assert.deepEqual(
       [...fuels].sort((a, b) => a - b),
@@ -179,6 +183,8 @@ describe("Distress: question in nebula", () => {
     assert.equal(g.scrap, 10);
     assert.equal(g.fuel, 1);
     assert.equal(g.player.parts, 0);
-    assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_LIST_1_c1_text")));
+    assert.ok(
+      (g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_LIST_1_c1_text")),
+    );
   });
 });

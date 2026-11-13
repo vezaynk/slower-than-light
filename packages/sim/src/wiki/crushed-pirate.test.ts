@@ -123,7 +123,7 @@ describe("Distress: ship stuck in asteroids", () => {
       open(g);
       fillerChoose(g, "c:crushed-pirate:0");
       const body = g.event?.body ?? "";
-      if ((body).includes(eventText("event_DISTRESS_TRAPPED_MINER_SHOOT_1_text"))) {
+      if (body.includes(eventText("event_DISTRESS_TRAPPED_MINER_SHOOT_1_text"))) {
         shock = true;
         assert.equal(g.player.hull, hull - 2);
         const applied = systemDamage(g) - broken;
@@ -136,7 +136,7 @@ describe("Distress: ship stuck in asteroids", () => {
         assert.equal(g.fuel, 16);
       } else {
         freed = true;
-        assert.ok((body).includes(eventText("event_DISTRESS_TRAPPED_MINER_SHOOT_2_text")));
+        assert.ok(body.includes(eventText("event_DISTRESS_TRAPPED_MINER_SHOOT_2_text")));
         assert.equal(g.player.hull, hull);
         const got = reward(body);
         assert.ok(got.scrap >= 12 && got.scrap <= 19);
@@ -156,17 +156,27 @@ describe("Distress: ship stuck in asteroids", () => {
       fillerChoose(g, "c:crushed-pirate:1");
       if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight = true;
-        assert.ok((g.event?.body ?? "").includes(eventText("event_DISTRESS_TRAPPED_MINER_LOOT_2_text")));
-        assert.equal((g.log.join(" ")).includes(eventText("event_DISTRESS_TRAPPED_MINER_LOOT_2_text")), false);
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_DISTRESS_TRAPPED_MINER_LOOT_2_text")),
+        );
+        assert.equal(
+          g.log.join(" ").includes(eventText("event_DISTRESS_TRAPPED_MINER_LOOT_2_text")),
+          false,
+        );
         assert.equal(g.player.hull, hull);
         choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
         assert.ok(g.enemy);
         assert.equal(g.player.hull, hull);
-        assert.equal((g.log.join(" ")).includes(eventText("event_DISTRESS_TRAPPED_MINER_LOOT_2_text")), false);
+        assert.equal(
+          g.log.join(" ").includes(eventText("event_DISTRESS_TRAPPED_MINER_LOOT_2_text")),
+          false,
+        );
       } else {
         loot = true;
-        assert.ok((g.event?.body ?? "").includes(eventText("event_DISTRESS_TRAPPED_MINER_LOOT_1_text")));
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_DISTRESS_TRAPPED_MINER_LOOT_1_text")),
+        );
         const got = reward(g.event?.body ?? "");
         assert.ok(got.scrap >= 12 && got.scrap <= 19);
         lowPair(got);
@@ -184,7 +194,7 @@ describe("Distress: ship stuck in asteroids", () => {
     open(g);
     fillerChoose(g, "c:crushed-pirate:2");
     const body = g.event?.body ?? "";
-    assert.ok((body).includes(eventText("event_DISTRESS_TRAPPED_MINER_c3_text")));
+    assert.ok(body.includes(eventText("event_DISTRESS_TRAPPED_MINER_c3_text")));
     assert.equal(g.player.hull, hull);
     assert.equal(g.player.weapons.length, weapons);
     const got = reward(body);
@@ -222,7 +232,7 @@ describe("Distress: ship stuck in asteroids", () => {
       open(stocked);
       fillerChoose(stocked, "c:crushed-pirate:3");
       const body = stocked.event?.body ?? "";
-      assert.ok((body).includes(eventText("event_DISTRESS_TRAPPED_MINER_c4_text")));
+      assert.ok(body.includes(eventText("event_DISTRESS_TRAPPED_MINER_c4_text")));
       assert.equal(stocked.player.hull, hull2);
       const got = reward(body);
       assert.ok(got.scrap >= 12 && got.scrap <= 19);

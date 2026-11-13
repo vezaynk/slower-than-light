@@ -89,7 +89,10 @@ describe("filler lists", () => {
       { lists: [{ id: "ember-list", entries: [{ id: "REFUEL_STATION", unique: false }] }] },
       "append",
     );
-    assert.deepEqual(drawFiller(createGame(1), "ember-list", []), pageForRow("Trade: scrap for fuel"));
+    assert.deepEqual(
+      drawFiller(createGame(1), "ember-list", []),
+      pageForRow("Trade: scrap for fuel"),
+    );
   });
 
   it("reads an appended empty beacon and falls back to Civilian", () => {
@@ -238,10 +241,10 @@ describe("filler lists", () => {
     assert.deepEqual(
       labels.map((row) => (row.k === "label" ? row.text : "")),
       [
-        "Fly behind a moon and stay hidden.",
-        "Shut down all non-vital systems and stay hidden.",
-        "Stay quiet and hope they don't notice you.",
-        "Stay out of their way and charge your FTL drive.",
+        "Hide. Nothing happens.",
+        "Hide. Nothing happens.",
+        "Hide. Nothing happens.",
+        "Hide. Nothing happens.",
       ],
     );
     const moons = eventDef("SLUG_DISTRESS_QUESTION")?.rolls ?? [];
@@ -310,9 +313,9 @@ describe("filler lists", () => {
         ["c:no-fuel-refugee-trading:missiles", "c:no-fuel-refugee-trading:arm-no"],
       ],
     );
-    assert.match(cards[0]?.body ?? "", /offers to split its remaining fuel/);
-    assert.match(cards[1]?.body ?? "", /its hull looks damaged/);
-    assert.match(cards[2]?.body ?? "", /bad need of armaments/);
+    assert.match(cards[0]?.body ?? "", /It shares fuel/);
+    assert.match(cards[1]?.body ?? "", /scrap for fuel/);
+    assert.match(cards[2]?.body ?? "", /missiles for fuel/);
 
     const page = eventDef("NO_FUEL_REFUGEE");
     assert.ok(page);
@@ -350,7 +353,7 @@ describe("filler lists", () => {
     const beacon = g.beacons[0];
     assert.ok(beacon);
     beacon.flag = "filler:refueling-station";
-    assert.equal(fillerEvent(g, beacon)?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap.");
+    assert.equal(fillerEvent(g, beacon)?.choices[0]?.label, "Lose 12 scrap. Gain 6 fuel.");
     beacon.flag = "filler:pirate-ship-distress-trap";
     assert.equal(fillerEvent(g, beacon)?.choices[0]?.label, "Fight the pirate ship.");
     beacon.flag = "filler:friendly-ship-out-of-fuel";

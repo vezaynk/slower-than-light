@@ -20,8 +20,7 @@ describe("The Mercenary fight", () => {
   it("fighting shows the printed lead-in on the card and fights a pirate ship", () => {
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_MERCENARY_c3_text");
+    const lead = eventText("event_MERCENARY_c3_text");
     choose(g, "c:the-mercenary:1");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

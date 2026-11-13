@@ -23,8 +23,7 @@ describe("Optional fight: Mantis hunter", () => {
     // > "Fight the Mantis ship (default rewards)." — [[Mantis ship with Rock body parts]]
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_ROCK_MANTIS_HUNTER_c1_text");
+    const lead = eventText("event_ROCK_MANTIS_HUNTER_c1_text");
     choose(g, "c:mantis-ship-with-rock-body-parts:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

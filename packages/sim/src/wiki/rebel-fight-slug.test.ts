@@ -4,11 +4,7 @@ import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const INTROS = [
-  "Hostile Rebel ship.",
-  "Hostile Rebel ship.",
-  "Hostile Rebel ship.",
-];
+const INTROS = ["Hostile Rebel ship.", "Hostile Rebel ship.", "Hostile Rebel ship."];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

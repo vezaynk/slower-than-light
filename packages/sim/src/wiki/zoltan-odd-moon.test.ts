@@ -184,7 +184,9 @@ describe("Moon scan", () => {
         choose(again, "c:zoltan-odd-moon:boom");
         assert.equal(again.missiles, 0);
         assert.equal(again.scrap, scrap);
-        assert.ok((again.event?.body ?? "").includes(eventText("event_ZOLTAN_ODD_MOON_CHECK_4_text")));
+        assert.ok(
+          (again.event?.body ?? "").includes(eventText("event_ZOLTAN_ODD_MOON_CHECK_4_text")),
+        );
         dry = true;
       }
     }

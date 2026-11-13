@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import {
   archivePhrase,
+  clearArchivePhrases,
   eventDef,
   fillerList,
   loadPack,
@@ -364,6 +365,7 @@ describe("a fuel list loaded by the wait", () => {
 
   it("reads the nothing page's button from the archive continue phrase", () => {
     resetPackForTests();
+    clearArchivePhrases();
     const warnings: string[] = [];
     const restore = onPackWarning((message) => warnings.push(message));
     try {

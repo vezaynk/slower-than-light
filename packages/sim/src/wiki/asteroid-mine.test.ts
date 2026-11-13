@@ -14,9 +14,7 @@ describe("Large asteroid field mining", () => {
     const g = startedGame(4);
     const page = allEvents().find((event) => event.dest === "Asteroid field: explore");
     assert.ok(
-      page?.choices.some(
-        (choice) => choice.id === MINE && choice.label === "Gain high scrap.",
-      ),
+      page?.choices.some((choice) => choice.id === MINE && choice.label === "Gain high scrap."),
     );
     assert.equal(choiceDisabled(g, MINE), "Needs a Scrap Recovery Arm");
     const scrap = g.scrap;
@@ -44,7 +42,7 @@ describe("Large asteroid field mining", () => {
     assert.equal(g.player.hull, 30);
     assert.ok(g.player.rooms.every((room) => room.fire === 0 && room.breach === 0));
     assert.equal(g.phase, "event");
-    assert.ok((g.event!.body).includes(eventText("event_ASTEROID_EXPLORE_c3_text")));
+    assert.ok(g.event!.body.includes(eventText("event_ASTEROID_EXPLORE_c3_text")));
     assert.match(g.event!.body, /Scrap: /);
   });
 });

@@ -95,8 +95,7 @@ describe("Boarders: Rebels in nebula", () => {
     g.sector = 1;
     g.phase = "map";
     g.event = null;
-    const intro =
-      "Nebula. 3-4 Human boarders.";
+    const intro = "Nebula. 3-4 Human boarders.";
     commitJump(g, dest.id);
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, intro);

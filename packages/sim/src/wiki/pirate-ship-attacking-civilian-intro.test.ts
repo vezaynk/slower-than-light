@@ -69,7 +69,10 @@ describe("Pirate ship attacking civilian intro", () => {
     open(stay);
     choose(stay, "c:pirate-ship-attacking-civilian:1");
     assert.equal(stay.phase, "event");
-    assert.match(stay.event?.body ?? "", textRe("event_PIRATE_CIVILIAN_BEACON_c2_text", "event_PIRATE_CIVILIAN_c2_text"));
+    assert.match(
+      stay.event?.body ?? "",
+      textRe("event_PIRATE_CIVILIAN_BEACON_c2_text", "event_PIRATE_CIVILIAN_c2_text"),
+    );
     assert.equal(stay.scrap, 10);
   });
 });

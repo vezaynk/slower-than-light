@@ -139,7 +139,7 @@ describe("packed stock counts", () => {
 
 describe("stock labels", () => {
   it("prints the campaign sentence and keeps the same button when that sentence is already there", () => {
-    const buy = { id: "q:lanius-translator:buy", label: "Purchase the translator for 40 scrap." };
+    const buy = { id: "q:lanius-translator:buy", label: "Lose 40 scrap. Gain 1 Lanius crew." };
     const once = stampStockLabels([buy]);
     assert.equal(once[0], buy);
     assert.equal(stampStockLabels(once)[0], buy);
@@ -157,77 +157,71 @@ describe("stock labels", () => {
     const rows: [string, string, StockKind, number, string][] = [
       [
         "q:lanius-translator:buy",
-        "Purchase the translator for 40 scrap.",
+        "Lose 40 scrap. Gain 1 Lanius crew.",
         "scrap",
         7,
-        "Purchase the translator for 7 scrap.",
+        "Lose 7 scrap. Gain 1 Lanius crew.",
       ],
       [
         "s:zoltan-raft:hire",
-        "Offer to hire him for 40 scrap.",
+        "Lose 40 scrap. Gain 1 crew.",
         "scrap",
         7,
-        "Offer to hire him for 7 scrap.",
+        "Lose 7 scrap. Gain 1 crew.",
       ],
-      ["q:engi-distress:scrap", "Give them 25 scrap.", "scrap", 7, "Give them 7 scrap."],
+      ["q:engi-distress:scrap", "Lose 25 scrap.", "scrap", 7, "Lose 7 scrap."],
       [
         "c:no-fuel-slug-fuel-trader:pay",
-        "Pay 15 scrap for 5 fuel.",
+        "Lose 15 scrap. Gain 5 fuel.",
         "scrap",
         4,
-        "Pay 4 scrap for 5 fuel.",
+        "Lose 4 scrap. Gain 5 fuel.",
       ],
       [
         "c:no-fuel-refugee-trading:trade",
-        "Trade 10 scrap for 3 fuel.",
+        "Lose 10 scrap. Gain 3 fuel.",
         "scrap",
         4,
-        "Trade 4 scrap for 3 fuel.",
+        "Lose 4 scrap. Gain 3 fuel.",
       ],
       [
         "c:no-fuel-refugee-trading:better",
-        "Accept it. 6 fuel for 10 scrap.",
+        "Lose 10 scrap. Gain 6 fuel.",
         "scrap",
         4,
-        "Accept it. 6 fuel for 4 scrap.",
+        "Lose 4 scrap. Gain 6 fuel.",
       ],
+      ["c:slug-repair-station:scrap50", "Lose 50 scrap.", "scrap", 7, "Lose 7 scrap."],
+      ["c:slug-repair-station:fuel", "Lose 15 fuel.", "fuel", 3, "Lose 3 fuel."],
       [
-        "c:slug-repair-station:scrap50",
-        "Give them the 50 scrap they demand.",
+        "c:refueling-station:0",
+        "Lose 12 scrap. Gain 6 fuel.",
         "scrap",
-        7,
-        "Give them the 7 scrap they demand.",
+        4,
+        "Lose 4 scrap. Gain 6 fuel.",
       ],
-      [
-        "c:slug-repair-station:fuel",
-        "Give them the 15 fuel they demand.",
-        "fuel",
-        3,
-        "Give them the 3 fuel they demand.",
-      ],
-      ["c:refueling-station:0", "Buy 6 Fuel for 12 Scrap.", "scrap", 4, "Buy 6 Fuel for 4 Scrap."],
       [
         "c:asteroid-mining-colony:1",
-        "Give them the requested 5 missiles.",
+        "Lose 5 missiles. A reward follows.",
         "missiles",
         7,
-        "Give them the requested 7 missiles.",
+        "Lose 7 missiles. A reward follows.",
       ],
       [
         "c:asteroid-mining-colony:2",
-        "Give them 15 missiles.",
+        "Lose 15 missiles. A reward follows.",
         "missiles",
         7,
-        "Give them 7 missiles.",
+        "Lose 7 missiles. A reward follows.",
       ],
       [
         "q:station:fuel4",
-        "Give them the requested 4 fuel.",
+        "Lose 4 fuel. Gain medium scrap.",
         "fuel",
         3,
-        "Give them the requested 3 fuel.",
+        "Lose 3 fuel. Gain medium scrap.",
       ],
-      ["q:station:fuel1", "Give them 1 fuel.", "fuel", 3, "Give them 3 fuel."],
+      ["q:station:fuel1", "Lose 1 fuel.", "fuel", 3, "Lose 3 fuel."],
     ];
     for (const [id, campaign, kind, n, next] of rows) {
       assert.equal(stampStockLabels([{ id, label: "old" }])[0]?.label, campaign, id);
@@ -245,7 +239,7 @@ describe("stock labels", () => {
   it("drops the supplies button unless scrap, missiles, and fuel are all packed", () => {
     assert.equal(
       stampStockLabels([{ id: "q:engi-distress:supplies", label: "old" }])[0]?.label,
-      "Give them 40 scrap, 2 missiles and 2 fuel.",
+      "Lose 40 scrap, 2 missiles, and 2 fuel.",
     );
     rewriteStock("q:engi-distress:supplies", [stock("scrap", 4), stock("fuel", 1)]);
     assert.equal(stampStockLabels([{ id: "q:engi-distress:supplies", label: "old" }]).length, 0);
@@ -256,7 +250,7 @@ describe("stock labels", () => {
     ]);
     assert.equal(
       stampStockLabels([{ id: "q:engi-distress:supplies", label: "old" }])[0]?.label,
-      "Give them 4 scrap, 1 missiles and 1 fuel.",
+      "Lose 4 scrap, 1 missiles, and 1 fuel.",
     );
   });
 });
@@ -268,14 +262,14 @@ describe("stock spends", () => {
     beacon.flag = "filler:refueling-station";
     assert.equal(
       labelOf(fillerEvent(g, beacon)?.choices, "c:refueling-station:0"),
-      "Buy 6 Fuel for 12 Scrap.",
+      "Lose 12 scrap. Gain 6 fuel.",
     );
     assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Lose 12 scrap. Gain 6 fuel.");
 
     rewriteStock("c:refueling-station:0", [stock("scrap", 4)]);
     assert.equal(
       labelOf(fillerEvent(g, beacon)?.choices, "c:refueling-station:0"),
-      "Buy 6 Fuel for 4 Scrap.",
+      "Lose 4 scrap. Gain 6 fuel.",
     );
     assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Lose 12 scrap. Gain 6 fuel.");
     const had = g.fuel;
@@ -314,12 +308,12 @@ describe("stock spends", () => {
     beacon.flag = "filler:asteroid-mining-colony";
     assert.equal(
       labelOf(fillerEvent(shown, beacon)?.choices, "c:asteroid-mining-colony:1"),
-      "Give them the requested 5 missiles.",
+      "Lose 5 missiles. A reward follows.",
     );
     rewriteStock("c:asteroid-mining-colony:1", [stock("missiles", 7)]);
     assert.equal(
       labelOf(fillerEvent(shown, beacon)?.choices, "c:asteroid-mining-colony:1"),
-      "Give them the requested 7 missiles.",
+      "Lose 7 missiles. A reward follows.",
     );
     const paid = startedGame(2);
     paid.missiles = 7;
@@ -370,10 +364,10 @@ describe("stock spends", () => {
   it("pays the Engi gift and the supply bundle from the packed rows", () => {
     const shown = startedGame(1);
     assert.equal(pageWin(shown, "engi-distress-rebel-fight", false), true);
-    assert.equal(labelOf(shown.event?.choices, "q:engi-distress:scrap"), "Give them 25 scrap.");
+    assert.equal(labelOf(shown.event?.choices, "q:engi-distress:scrap"), "Lose 25 scrap.");
     assert.equal(
       labelOf(shown.event?.choices, "q:engi-distress:supplies"),
-      "Give them 40 scrap, 2 missiles and 2 fuel.",
+      "Lose 40 scrap, 2 missiles, and 2 fuel.",
     );
 
     const paid = startedGame(2);
@@ -449,7 +443,7 @@ describe("stock spends", () => {
     choose(shown, "c:lanius-trader-with-translator:4");
     assert.equal(
       labelOf(shown.event?.choices, "q:lanius-translator:buy"),
-      "Purchase the translator for 40 scrap.",
+      "Lose 40 scrap. Gain 1 Lanius crew.",
     );
 
     rewriteStock("q:lanius-translator:buy", [stock("scrap", 7)]);
@@ -462,7 +456,7 @@ describe("stock spends", () => {
     choose(renamed, "c:lanius-trader-with-translator:4");
     assert.equal(
       labelOf(renamed.event?.choices, "q:lanius-translator:buy"),
-      "Purchase the translator for 7 scrap.",
+      "Lose 7 scrap. Gain 1 Lanius crew.",
     );
 
     resetPackForTests();
@@ -503,7 +497,7 @@ describe("stock spends", () => {
     assert.equal(pageWin(shown, "zoltan-retake-the-ship", false), true);
     assert.equal(
       labelOf(shown.event?.choices, "s:zoltan-raft:hire"),
-      "Offer to hire him for 40 scrap.",
+      "Lose 40 scrap. Gain 1 crew.",
     );
 
     rewriteStock("s:zoltan-raft:hire", undefined);
@@ -563,7 +557,7 @@ describe("stock spends", () => {
     const card = citedEvent(g, beacon);
     assert.equal(
       labelOf(card?.choices, "c:no-fuel-slug-fuel-trader:pay"),
-      "Pay 15 scrap for 5 fuel.",
+      "Lose 15 scrap. Gain 5 fuel.",
     );
     const slugLabel = labelOf(card?.choices, "c:no-fuel-slug-fuel-trader:slug");
     assert.ok(slugLabel);
@@ -572,7 +566,7 @@ describe("stock spends", () => {
     const renamed = citedEvent(g, beacon);
     assert.equal(
       labelOf(renamed?.choices, "c:no-fuel-slug-fuel-trader:pay"),
-      "Pay 4 scrap for 5 fuel.",
+      "Lose 4 scrap. Gain 5 fuel.",
     );
     assert.equal(labelOf(renamed?.choices, "c:no-fuel-slug-fuel-trader:slug"), slugLabel);
 
@@ -685,8 +679,8 @@ describe("stock spends", () => {
       const card = questEvent(g, beacon);
       if (!card?.choices.some((choice) => choice.id === "q:station:fuel4")) continue;
       found = true;
-      assert.equal(labelOf(card.choices, "q:station:fuel4"), "Give them the requested 4 fuel.");
-      assert.equal(labelOf(card.choices, "q:station:fuel1"), "Give them 1 fuel.");
+      assert.equal(labelOf(card.choices, "q:station:fuel4"), "Lose 4 fuel. Gain medium scrap.");
+      assert.equal(labelOf(card.choices, "q:station:fuel1"), "Lose 1 fuel.");
     }
     assert.equal(found, true);
 

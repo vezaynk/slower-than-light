@@ -244,11 +244,20 @@ function asteroidCard(g: Game) {
   // {{Blue Option|Defense Drone|...}} / {{Blue Option|Repair Drone|...}}, each [1 drone part]. INFERRED: "Repair Drone"
   // is the System Repair drone ("REPAIR"): it is sent "to fix their Shields", a system.
   if (hasDrone(g, ["DEFENSE_1", "DEFENSE_2"]))
-    choices.push({ id: "q:asteroid:defense", label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c3_choice") });
+    choices.push({
+      id: "q:asteroid:defense",
+      label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c3_choice"),
+    });
   if (hasDrone(g, ["REPAIR"]))
-    choices.push({ id: "q:asteroid:repair", label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c4_choice") });
+    choices.push({
+      id: "q:asteroid:repair",
+      label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c4_choice"),
+    });
   if (hasTeleporter(g))
-    choices.push({ id: "q:asteroid:teleport", label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c5_choice") });
+    choices.push({
+      id: "q:asteroid:teleport",
+      label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c5_choice"),
+    });
   // {{Blue Option|Rock Armor|...|shortreq=Rock Plating}}. Rock Plating is fitted as "ROCK_ARMOR" (extras/augments.ts).
   if (g.augments.includes("ROCK_ARMOR"))
     choices.push({
@@ -273,19 +282,16 @@ function asteroidDrone(g: Game, id: string) {
     if (damageHull(g, 4)) return;
     const sys = systemHit(g);
     const fire = roomHit(g);
-    result(
-      g,
-      eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST2_1_text"),
-      scrapOnly(g, "medium"),
-      ["Hull damage: 4.", sys, fire, grantRandomItem(g, "weapon")],
-    );
+    result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST2_1_text"), scrapOnly(g, "medium"), [
+      "Hull damage: 4.",
+      sys,
+      fire,
+      grantRandomItem(g, "weapon"),
+    ]);
   } else {
-    result(
-      g,
-      eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST2_2_text"),
-      undefined,
-      [addQuest(g, "fed-base")],
-    );
+    result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST2_2_text"), undefined, [
+      addQuest(g, "fed-base"),
+    ]);
   }
 }
 
@@ -298,14 +304,10 @@ function captureOffer(g: Game) {
   // > "Offer a solution." — [[Capture the ship]]
   // > "Agree to capture the ship." — [[Capture the ship#Offer a solution]]
   // > "A quest marker is added to your map." — [[Capture the ship#Offer a solution]]
-  card(
-    g,
-    eventText("event_QUEST_CREWDEAD_CONTINUE_text"),
-    [
-      { id: "q:capture:agree", label: eventText("event_QUEST_CREWDEAD_CONTINUE_c1_choice") },
-      { id: "q:capture:decline", label: eventText("event_QUEST_CREWDEAD_CONTINUE_c2_choice") },
-    ],
-  );
+  card(g, eventText("event_QUEST_CREWDEAD_CONTINUE_text"), [
+    { id: "q:capture:agree", label: eventText("event_QUEST_CREWDEAD_CONTINUE_c1_choice") },
+    { id: "q:capture:decline", label: eventText("event_QUEST_CREWDEAD_CONTINUE_c2_choice") },
+  ]);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -319,31 +321,21 @@ const ENGI_PAGE_ENGI = "engi-ship-attacked-by-mantis-ship-engi";
 function engiContact(g: Game) {
   const r = pick(g, ["crew", "fuel", "empty", "request"] as const);
   if (r === "crew") {
-    result(
-      g,
-      eventText("event_SAVE_ENGI_STATION_4_text"),
-      rollStandard(g, "low"),
-      [crew(g, "Engi")],
-    );
+    result(g, eventText("event_SAVE_ENGI_STATION_4_text"), rollStandard(g, "low"), [
+      crew(g, "Engi"),
+    ]);
   } else if (r === "fuel") {
     // Rewards, "Fuel only": medium (2-4) fuel.
-    result(
-      g,
-      eventText("event_SAVE_ENGI_STATION_2_text"),
-      {
-        tier: "medium",
-        scrap: 0,
-        eligible: 0,
-        fuel: rollFuel("q:engi-station:contact", (lo, hi) => between(g, [lo, hi])),
-        missiles: 0,
-        parts: 0,
-      },
-    );
+    result(g, eventText("event_SAVE_ENGI_STATION_2_text"), {
+      tier: "medium",
+      scrap: 0,
+      eligible: 0,
+      fuel: rollFuel("q:engi-station:contact", (lo, hi) => between(g, [lo, hi])),
+      missiles: 0,
+      parts: 0,
+    });
   } else if (r === "empty") {
-    result(
-      g,
-      eventText("event_SAVE_ENGI_STATION_1_text"),
-    );
+    result(g, eventText("event_SAVE_ENGI_STATION_1_text"));
   } else {
     const choices: Choice[] = [
       { id: "q:engi-station:fuel", label: eventText("event_SAVE_ENGI_STATION_3_c1_choice") },
@@ -356,11 +348,7 @@ function engiContact(g: Game) {
         id: "q:engi-station:protocol",
         label: eventText("event_SAVE_ENGI_STATION_3_c4_choice"),
       });
-    card(
-      g,
-      eventText("event_SAVE_ENGI_STATION_3_text"),
-      choices,
-    );
+    card(g, eventText("event_SAVE_ENGI_STATION_3_text"), choices);
   }
 }
 
@@ -388,53 +376,34 @@ function payParts(g: Game, id: string): string | null {
 function investigateCargo(g: Game) {
   const r = pick(g, ["note", "weapon", "supplies"] as const);
   if (r === "note") {
-    result(
-      g,
-      eventText("event_MERCHANT_INVESTIGATE_CARGO_LIST_1_text"),
-      undefined,
-      [addQuest(g, "merchant-station")],
-    );
+    result(g, eventText("event_MERCHANT_INVESTIGATE_CARGO_LIST_1_text"), undefined, [
+      addQuest(g, "merchant-station"),
+    ]);
   } else if (r === "weapon") {
     // "You receive a weapon." Not named: a random one, as Rewards, "Weapon": "A random weapon & T scrap." (no scrap here).
-    result(
-      g,
-      eventText("event_MERCHANT_INVESTIGATE_CARGO_LIST_2_text"),
-      undefined,
-      [grantRandomItem(g, "weapon")],
-    );
+    result(g, eventText("event_MERCHANT_INVESTIGATE_CARGO_LIST_2_text"), undefined, [
+      grantRandomItem(g, "weapon"),
+    ]);
   } else {
-    result(
-      g,
-      eventText("event_MERCHANT_INVESTIGATE_CARGO_LIST_3_text"),
-      rollStandard(g, "high"),
-    );
+    result(g, eventText("event_MERCHANT_INVESTIGATE_CARGO_LIST_3_text"), rollStandard(g, "high"));
   }
 }
 
 /** Research station with no response, as the Merchant's Delivery "station doesn't respond" subevent ({{:...}} include). */
 function researchStation(g: Game, intro: string) {
   // The include lists the Anti-Personnel Drone beside dock and leave. Lifeform Scanner stays on the standalone card.
-  card(
-    g,
-    `${intro}\n\n${eventText("event_MERCHANT_DELIVER_LIST_1_text")}`,
-    [
-      { id: "q:research:dock", label: eventText("event_MERCHANT_DELIVER_LIST_1_c1_choice") },
-      { id: "q:research:leave", label: eventText("event_MERCHANT_DELIVER_LIST_1_c2_choice") },
-      { id: "q:research:drone", label: eventText("event_MERCHANT_DELIVER_LIST_1_c3_choice") },
-    ],
-  );
+  card(g, `${intro}\n\n${eventText("event_MERCHANT_DELIVER_LIST_1_text")}`, [
+    { id: "q:research:dock", label: eventText("event_MERCHANT_DELIVER_LIST_1_c1_choice") },
+    { id: "q:research:leave", label: eventText("event_MERCHANT_DELIVER_LIST_1_c2_choice") },
+    { id: "q:research:drone", label: eventText("event_MERCHANT_DELIVER_LIST_1_c3_choice") },
+  ]);
 }
 
-const APD_TEAR =
-  "event_STATION_SICK_DRONE_LIST_1_text";
-const APD_MOB =
-  "event_STATION_SICK_DRONE_LIST_2_text";
-const APD_CAMERAS =
-  "event_STATION_SICK_DRONE_LIST_3_text";
-const SCAN_CLEAR =
-  "event_STATION_SICK_SCANNER_2_text";
-const SCAN_LIFE =
-  "event_STATION_SICK_SCANNER_1_text";
+const APD_TEAR = "event_STATION_SICK_DRONE_LIST_1_text";
+const APD_MOB = "event_STATION_SICK_DRONE_LIST_2_text";
+const APD_CAMERAS = "event_STATION_SICK_DRONE_LIST_3_text";
+const SCAN_CLEAR = "event_STATION_SICK_SCANNER_2_text";
+const SCAN_LIFE = "event_STATION_SICK_SCANNER_1_text";
 
 /** Dock with the station. Three results and no odds. INFERRED: equal. Shared with Merchant's Delivery. */
 function researchDock(g: Game) {
@@ -446,11 +415,7 @@ function researchDock(g: Game) {
     // > "You receive medium drone parts and scrap." — [[Research station with no response]]
     const offer = scrapOnly(g, "medium");
     offer.parts = 1;
-    result(
-      g,
-      eventText("event_STATION_SICK_LIST_1_text"),
-      offer,
-    );
+    result(g, eventText("event_STATION_SICK_LIST_1_text"), offer);
   } else if (r === "survivor") {
     // Wiki citations:
     // > "You dock with the station and see a frantic person banging on the airlock door. Once inside your ship, he drops to the floor saying, \"My... friends... They've gone insane... They're coming!\" You hand him a blaster and turn to see a number of people charging toward the ship." — [[Research station with no response]]
@@ -458,18 +423,16 @@ function researchDock(g: Game) {
     // > "Prepare for a fight!" — [[Research station with no response]]
     // > "(Medbay) Have the advanced medbay analyze their condition. (Requires level 3 Medbay)" — [[Research station with no response]]
     const joined = crew(g, randomRace(g));
-    const choices: Choice[] = [{ id: "q:research:brace", label: eventText("event_STATION_SICK_LIST_2_c1_choice") }];
+    const choices: Choice[] = [
+      { id: "q:research:brace", label: eventText("event_STATION_SICK_LIST_2_c1_choice") },
+    ];
     // {{Blue Option|Medbay|Have the advanced medbay analyze their condition.|level=3}}
     if (medbay(g) >= 3)
       choices.push({
         id: "q:research:antidote",
         label: eventText("event_STATION_SICK_LIST_2_c2_choice"),
       });
-    card(
-      g,
-      `${eventText("event_STATION_SICK_LIST_2_text")}\n\n${joined}`,
-      choices,
-    );
+    card(g, `${eventText("event_STATION_SICK_LIST_2_text")}\n\n${joined}`, choices);
   } else {
     // Wiki citations:
     // > "As you explore the base, crazed screams are heard. Your team retreats back to your ship with a number of armed scientists in pursuit. One of your team starts to cough and falls in a spasm onto the floor." — [[Research station with no response]]
@@ -481,19 +444,21 @@ function researchDock(g: Game) {
       { id: "q:research:drag", label: eventText("event_STATION_SICK_LIST_3_c1_choice") },
     ];
     if (hasTeleporter(g))
-      choices.push({ id: "q:research:beam", label: eventText("event_STATION_SICK_LIST_3_c2_choice") });
+      choices.push({
+        id: "q:research:beam",
+        label: eventText("event_STATION_SICK_LIST_3_c2_choice"),
+      });
     if (medbay(g) >= 2)
-      choices.push({ id: "q:research:medbay", label: eventText("event_STATION_SICK_LIST_3_c3_choice") });
+      choices.push({
+        id: "q:research:medbay",
+        label: eventText("event_STATION_SICK_LIST_3_c3_choice"),
+      });
     if (medbay(g) >= 3)
       choices.push({
         id: "q:research:cure",
         label: eventText("event_STATION_SICK_LIST_3_c4_choice"),
       });
-    card(
-      g,
-      eventText("event_STATION_SICK_LIST_3_text"),
-      choices,
-    );
+    card(g, eventText("event_STATION_SICK_LIST_3_text"), choices);
   }
 }
 
@@ -577,7 +542,11 @@ function zoltanCard(g: Game, lead: string) {
     { id: "q:abadoth:explain", label: eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c1_choice") },
   ];
   // {{Blue Option|Engi Crew|Say ABADOTH.}}
-  if (hasEngi(g)) choices.push({ id: "q:abadoth:engi", label: eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c2_choice") });
+  if (hasEngi(g))
+    choices.push({
+      id: "q:abadoth:engi",
+      label: eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c2_choice"),
+    });
   choices.push(
     { id: "q:abadoth:anodyne", label: eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c3_choice") },
     { id: "q:abadoth:abadoth", label: eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c4_choice") },
@@ -587,8 +556,7 @@ function zoltanCard(g: Game, lead: string) {
   card(g, lead ? `${lead}\n\n${body}` : body, choices);
 }
 
-const ZOLTAN_FIGHT =
-  "event_SECRET_WORD_ABADOTH_CONCLUSION_c1_text";
+const ZOLTAN_FIGHT = "event_SECRET_WORD_ABADOTH_CONCLUSION_c1_text";
 /** "Fight a Zoltan ship (default rewards)": no PAGE_WINS row, so winCombat pays the default salvage. */
 function zoltanFight(g: Game) {
   // Wiki citations:
@@ -597,11 +565,7 @@ function zoltanFight(g: Game) {
 }
 /** The thanks page by ftl.dat id: c4 (Say ABADOTH) or c2 (the Engi crew's recall, which carries the same thanks). */
 function zoltanThanks(g: Game, id: string) {
-  result(
-    g,
-    eventText(id),
-    rollStandard(g, "medium"),
-  );
+  result(g, eventText(id), rollStandard(g, "medium"));
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -627,8 +591,7 @@ export const PART_B: QuestPart = {
     },
     // Merchant's request, "Merchant's Delivery": the station doesn't respond / responds.
     "merchant-delivery": (g) => {
-      const intro =
-        eventText("event_MERCHANT_DELIVER_text");
+      const intro = eventText("event_MERCHANT_DELIVER_text");
       if (rand(g) < 0.5) {
         researchStation(g, intro);
         return;
@@ -639,22 +602,20 @@ export const PART_B: QuestPart = {
       ];
       // {{Blue Option|Mind Control|...}} (the Mind Control system is the "mind" kit); {{Blue Option|Weapons|...|level=6+}}.
       if ((g.player.kits.mind?.level ?? 0) > 0)
-        choices.push({ id: "q:merchant:mind", label: eventText("event_MERCHANT_DELIVER_LIST_2_c3_choice") });
+        choices.push({
+          id: "q:merchant:mind",
+          label: eventText("event_MERCHANT_DELIVER_LIST_2_c3_choice"),
+        });
       if ((g.player.systems.weapons?.level ?? 0) >= 6)
         choices.push({
           id: "q:merchant:weapons",
           label: eventText("event_MERCHANT_DELIVER_LIST_2_c4_choice"),
         });
-      card(
-        g,
-        `${intro}\n\n${eventText("event_MERCHANT_DELIVER_LIST_2_text")}`,
-        choices,
-      );
+      card(g, `${intro}\n\n${eventText("event_MERCHANT_DELIVER_LIST_2_text")}`, choices);
     },
     // Merchant's request, "Merchant's Investigation": three results.
     "merchant-investigation": (g) => {
-      const intro =
-        eventText("event_MERCHANT_INVESTIGATE_text");
+      const intro = eventText("event_MERCHANT_INVESTIGATE_text");
       const r = pick(g, ["remains", "crew", "pirate"] as const);
       if (r === "remains") {
         result(
@@ -667,15 +628,17 @@ export const PART_B: QuestPart = {
               id: "q:merchant:cargo-deliver",
               label: eventText("event_MERCHANT_INVESTIGATE_LIST_1_c1_choice"),
             },
-            { id: "q:merchant:cargo-take", label: eventText("event_MERCHANT_INVESTIGATE_LIST_1_c2_choice") },
+            {
+              id: "q:merchant:cargo-take",
+              label: eventText("event_MERCHANT_INVESTIGATE_LIST_1_c2_choice"),
+            },
           ],
         );
       } else if (r === "crew") {
         const choices: Choice[] = [
           {
             id: "q:merchant:promise",
-            label:
-              eventText("event_MERCHANT_INVESTIGATE_LIST_2_c1_choice"),
+            label: eventText("event_MERCHANT_INVESTIGATE_LIST_2_c1_choice"),
           },
           {
             id: "q:merchant:cargo-drop",
@@ -687,19 +650,13 @@ export const PART_B: QuestPart = {
             id: "q:merchant:cargo-beam",
             label: eventText("event_MERCHANT_INVESTIGATE_LIST_2_c3_choice"),
           });
-        card(
-          g,
-          `${intro}\n\n${eventText("event_MERCHANT_INVESTIGATE_LIST_2_text")}`,
-          choices,
-        );
+        card(g, `${intro}\n\n${eventText("event_MERCHANT_INVESTIGATE_LIST_2_text")}`, choices);
       } else {
         // An arrival must leave a card (sim.ts eventFor falls through when questEvent returns no event), so the fight
         // starts from a button. Merchant's request, Merchant's Investigation: "Fight a Pirate ship."
-        card(
-          g,
-          `${intro}\n\n${eventText("event_MERCHANT_INVESTIGATE_LIST_3_text")}`,
-          [{ id: "q:merchant:pirate", label: "Fight a Pirate ship." }],
-        );
+        card(g, `${intro}\n\n${eventText("event_MERCHANT_INVESTIGATE_LIST_3_text")}`, [
+          { id: "q:merchant:pirate", label: "Fight a Pirate ship." },
+        ]);
       }
     },
     // Merchant's request, "Deliver to the Station quest marker": "a drone schematic with medium scrap". Rewards,
@@ -707,12 +664,9 @@ export const PART_B: QuestPart = {
     "merchant-station": (g) => {
       // Wiki citations:
       // > "You receive a drone schematic with medium scrap." — [[Merchant's request#Deliver to the Station quest marker]]
-      result(
-        g,
-        eventText("event_MERCHANT_INVESTIGATE_DELIVER_text"),
-        scrapOnly(g, "medium"),
-        [grantRandomItem(g, "drone")],
-      );
+      result(g, eventText("event_MERCHANT_INVESTIGATE_DELIVER_text"), scrapOnly(g, "medium"), [
+        grantRandomItem(g, "drone"),
+      ]);
     },
     // Nebula wreckage, "Quest Marker".
     abadoth: (g) => {
@@ -725,14 +679,9 @@ export const PART_B: QuestPart = {
         });
       choices.push({
         id: "q:abadoth:scan",
-        label:
-          eventText("event_SECRET_WORD_ABADOTH_c2_choice"),
+        label: eventText("event_SECRET_WORD_ABADOTH_c2_choice"),
       });
-      card(
-        g,
-        eventText("event_SECRET_WORD_ABADOTH_text"),
-        choices,
-      );
+      card(g, eventText("event_SECRET_WORD_ABADOTH_text"), choices);
     },
   },
 
@@ -759,18 +708,11 @@ export const PART_B: QuestPart = {
         );
       } else if (r === "lost") {
         if (damageHull(g, 4)) return;
-        result(
-          g,
-          eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST1_3_text"),
-          scrapOnly(g, "low"),
-          ["Hull damage: 4."],
-        );
+        result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST1_3_text"), scrapOnly(g, "low"), [
+          "Hull damage: 4.",
+        ]);
       } else {
-        result(
-          g,
-          eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST1_2_text"),
-          scrapOnly(g, "low"),
-        );
+        result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST1_2_text"), scrapOnly(g, "low"));
       }
     },
     "q:asteroid:leave": (g) => {
@@ -778,12 +720,9 @@ export const PART_B: QuestPart = {
       // > "Rebel Fleet pursuit is doubled for 1 jump." — [[Asteroid belt distress]]
       // > "Nothing happens." — [[Asteroid belt distress]]
       if (rand(g) < 0.5) {
-        result(
-          g,
-          eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST4_1_text"),
-          undefined,
-          [doublePursuit(g)],
-        );
+        result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST4_1_text"), undefined, [
+          doublePursuit(g),
+        ]);
       } else {
         result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST4_2_text"));
       }
@@ -796,71 +735,45 @@ export const PART_B: QuestPart = {
       // > "Take them to the nearby planet, where they're from." — [[Asteroid belt distress]]
       if (rand(g) < 0.5) {
         // "You receive a crewmember." Race not named: INFERRED random.
-        result(
-          g,
-          eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST3_1_text"),
-          undefined,
-          [crew(g, randomRace(g))],
-        );
+        result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST3_1_text"), undefined, [
+          crew(g, randomRace(g)),
+        ]);
       } else {
-        card(
-          g,
-          eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST3_2_text"),
-          [{ id: "q:asteroid:home", label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST3_2_c1_choice") }],
-        );
+        card(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST3_2_text"), [
+          {
+            id: "q:asteroid:home",
+            label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST3_2_c1_choice"),
+          },
+        ]);
       }
     },
     // Template:ReturnSurvivor|Asteroid belt distress: three results.
     "q:asteroid:home": (g) => {
       const r = pick(g, ["rich", "modest", "repair"] as const);
       if (r === "rich") {
-        result(
-          g,
-          eventText("event_FAMILY_RETURN_1_text"),
-          scrapOnly(g, "high"),
-        );
+        result(g, eventText("event_FAMILY_RETURN_1_text"), scrapOnly(g, "high"));
       } else if (r === "modest") {
-        result(
-          g,
-          eventText("event_FAMILY_RETURN_2_text"),
-          scrapOnly(g, "medium"),
-        );
+        result(g, eventText("event_FAMILY_RETURN_2_text"), scrapOnly(g, "medium"));
       } else {
-        result(
-          g,
-          eventText("event_FAMILY_RETURN_3_text"),
-          undefined,
-          [repair(g, 10)],
-        );
+        result(g, eventText("event_FAMILY_RETURN_3_text"), undefined, [repair(g, 10)]);
       }
     },
     "q:asteroid:rock": (g) => {
       // Wiki citations:
       // > "You receive medium fuel and scrap." — [[Asteroid belt distress]]
-      result(
-        g,
-        eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c6_text"),
-        fuelAndScrap(g, "medium"),
-      );
+      result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c6_text"), fuelAndScrap(g, "medium"));
     },
 
     // ---- Capture the ship ----
     "c:capture-the-ship:0": (g) => {
-      result(
-        g,
-        eventText("event_QUEST_CREWDEAD_START_2_c1_text"),
-      );
+      result(g, eventText("event_QUEST_CREWDEAD_START_2_c1_text"));
     },
-    "c:capture-the-ship:1": (g) =>
-      result(g, eventText("event_QUEST_CREWDEAD_START_2_c2_text")),
+    "c:capture-the-ship:1": (g) => result(g, eventText("event_QUEST_CREWDEAD_START_2_c2_text")),
     "c:capture-the-ship:2": (g) => captureOffer(g),
     "c:capture-the-ship:3": (g) => captureOffer(g),
     "c:capture-the-ship:4": (g) => captureOffer(g),
     "q:capture:decline": (g) => {
-      result(
-        g,
-        eventText("event_QUEST_CREWDEAD_CONTINUE_c2_text"),
-      );
+      result(g, eventText("event_QUEST_CREWDEAD_CONTINUE_c2_text"));
     },
     // PIRATE_QUEST_CREWDEAD, {{SurrenderEscape(alt)|no|...}}. INVENTED: the log line (the page prints none).
     "q:capture:fight": (g) => {
@@ -885,12 +798,9 @@ export const PART_B: QuestPart = {
       // > "You find a small cache of supplies that were surely left for any loyal Federation ships in trouble." — [[Encrypted federation signal]]
       const r = pick(g, ["base", "assist", "cache", "trap", "empty"] as const);
       if (r === "base") {
-        result(
-          g,
-          eventText("event_FEDERATION_PLANET_SIGNAL_LIST_1_text"),
-          undefined,
-          [addQuest(g, "fed-base")],
-        );
+        result(g, eventText("event_FEDERATION_PLANET_SIGNAL_LIST_1_text"), undefined, [
+          addQuest(g, "fed-base"),
+        ]);
       } else if (r === "assist") {
         // "medium (fuel: 2-4 ; missiles: 2-4 ; drone parts: 1) resources with some scrap" (Rewards#Stuff).
         result(
@@ -900,11 +810,7 @@ export const PART_B: QuestPart = {
           [addQuest(g, "fed-assist")],
         );
       } else if (r === "cache") {
-        result(
-          g,
-          eventText("event_FEDERATION_PLANET_SIGNAL_LIST_4_text"),
-          rollStandard(g, "high"),
-        );
+        result(g, eventText("event_FEDERATION_PLANET_SIGNAL_LIST_4_text"), rollStandard(g, "high"));
       } else if (r === "trap") {
         // Wiki citations:
         // > "2-3 human boarders beam aboard your ship and you fight a Rebel ship (default rewards)." — [[Encrypted federation signal]]
@@ -916,10 +822,7 @@ export const PART_B: QuestPart = {
         );
         humanBoarders(g, 2, 3);
       } else {
-        result(
-          g,
-          eventText("event_FEDERATION_PLANET_SIGNAL_LIST_3_text"),
-        );
+        result(g, eventText("event_FEDERATION_PLANET_SIGNAL_LIST_3_text"));
       }
     },
 
@@ -929,21 +832,11 @@ export const PART_B: QuestPart = {
       // > "You fight a normal Mantis ship." — [[Engi ship attacked by Mantis ship]]
       // > "1-2 mantis boarders beam aboard your ship and you fight a mantis-controlled Engi ship (default rewards)." — [[Engi ship attacked by Mantis ship]]
       if (rand(g) < 0.5) {
-        noRun(
-          g,
-          eventText("event_ENGI_STATION_DISTRESS_LIST_2_text"),
-          "Mantis ship",
-          ENGI_PAGE,
-        );
+        noRun(g, eventText("event_ENGI_STATION_DISTRESS_LIST_2_text"), "Mantis ship", ENGI_PAGE);
       } else {
         // "1-2 mantis boarders beam aboard your ship and you fight a mantis-controlled Engi ship (default rewards)."
         // ENGI_MANTIS_CONTROLLED, {{SurrenderEscape(alt)|no|...}}. INFERRED: its crew are Mantis.
-        noRun(
-          g,
-          eventText("event_ENGI_STATION_DISTRESS_LIST_1_text"),
-          "Engi ship",
-          ENGI_PAGE_ENGI,
-        );
+        noRun(g, eventText("event_ENGI_STATION_DISTRESS_LIST_1_text"), "Engi ship", ENGI_PAGE_ENGI);
         const hp = crewDef("mantis").hp;
         for (const c of g.crew) {
           if (c.side !== "enemy") continue;
@@ -979,34 +872,34 @@ export const PART_B: QuestPart = {
       // Wiki citations:
       // > "(Engi Crew) Threat unresolved. Current Mission imperative: Protocol 52.34." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
       // > "You receive a weapon with low scrap, your ship receives 10 repairs and a Hidden Federation Base quest marker is added to your map." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
-      result(
-        g,
-        eventText("event_SAVE_ENGI_STATION_3_c4_text"),
-        scrapOnly(g, "low"),
-        [grantRandomItem(g, "weapon"), repair(g, 10), addQuest(g, "fed-base")],
-      );
+      result(g, eventText("event_SAVE_ENGI_STATION_3_c4_text"), scrapOnly(g, "low"), [
+        grantRandomItem(g, "weapon"),
+        repair(g, 10),
+        addQuest(g, "fed-base"),
+      ]);
     },
 
     // ---- Merchant's request ----
     "c:merchant-s-request:0": (g) => {
       if (rand(g) < 0.5) {
-        card(
-          g,
-          eventText("event_MERCHANT_REQUEST_LIST_1_text"),
-          [
-            { id: "q:merchant:deliver", label: eventText("event_MERCHANT_REQUEST_LIST_1_c1_choice") },
-            { id: "q:merchant:deliver-no", label: eventText("event_MERCHANT_REQUEST_LIST_1_c2_choice") },
-          ],
-        );
+        card(g, eventText("event_MERCHANT_REQUEST_LIST_1_text"), [
+          { id: "q:merchant:deliver", label: eventText("event_MERCHANT_REQUEST_LIST_1_c1_choice") },
+          {
+            id: "q:merchant:deliver-no",
+            label: eventText("event_MERCHANT_REQUEST_LIST_1_c2_choice"),
+          },
+        ]);
       } else {
-        card(
-          g,
-          eventText("event_MERCHANT_REQUEST_LIST_2_text"),
-          [
-            { id: "q:merchant:investigate", label: eventText("event_MERCHANT_REQUEST_LIST_1_c1_choice") },
-            { id: "q:merchant:investigate-no", label: eventText("event_MERCHANT_REQUEST_LIST_1_c2_choice") },
-          ],
-        );
+        card(g, eventText("event_MERCHANT_REQUEST_LIST_2_text"), [
+          {
+            id: "q:merchant:investigate",
+            label: eventText("event_MERCHANT_REQUEST_LIST_1_c1_choice"),
+          },
+          {
+            id: "q:merchant:investigate-no",
+            label: eventText("event_MERCHANT_REQUEST_LIST_1_c2_choice"),
+          },
+        ]);
       }
     },
     // "You receive 5 drone parts and Merchant's Delivery quest marker is added to your map."
@@ -1014,20 +907,14 @@ export const PART_B: QuestPart = {
       // Wiki citations:
       // > "You receive Drone parts gained: 5 and Merchant's Delivery quest marker is added to your map." — [[Merchant's request]]
       g.player.parts += PARTS_OWED;
-      result(
-        g,
-        eventText("event_MERCHANT_REQUEST_LIST_1_c1_text"),
-        undefined,
-        [`Drone parts: ${PARTS_OWED}.`, addQuest(g, "merchant-delivery")],
-      );
+      result(g, eventText("event_MERCHANT_REQUEST_LIST_1_c1_text"), undefined, [
+        `Drone parts: ${PARTS_OWED}.`,
+        addQuest(g, "merchant-delivery"),
+      ]);
     },
-    "q:merchant:deliver-no": (g) =>
-      result(g, eventText("event_MERCHANT_REQUEST_LIST_1_c2_text")),
+    "q:merchant:deliver-no": (g) => result(g, eventText("event_MERCHANT_REQUEST_LIST_1_c2_text")),
     "q:merchant:investigate-no": (g) => {
-      result(
-        g,
-        eventText("event_MERCHANT_REQUEST_LIST_2_c2_text"),
-      );
+      result(g, eventText("event_MERCHANT_REQUEST_LIST_2_c2_text"));
     },
     // "You receive 20-30 scrap and lose 5 drone parts."
     "q:merchant:paltry": (g) => {
@@ -1035,17 +922,16 @@ export const PART_B: QuestPart = {
       // > "You receive Scrap gained: 20-30 and lose Drone parts lost: 5." — [[Merchant's request#The station responds]]
       const parts = payParts(g, "q:merchant:paltry");
       if (!parts) return;
-      result(g, eventText("event_MERCHANT_DELIVER_LIST_2_c1_text"), printedScrap(g, "paltry"), [parts]);
+      result(g, eventText("event_MERCHANT_DELIVER_LIST_2_c1_text"), printedScrap(g, "paltry"), [
+        parts,
+      ]);
     },
     "q:merchant:refuse": (g) => {
       if (rand(g) < 0.5) fullPriceCard(g, eventText("event_MERCHANT_DELIVER_BLUFF_LIST_1_text"));
       else result(g, eventText("event_MERCHANT_DELIVER_BLUFF_LIST_2_text"));
     },
     "q:merchant:mind": (g) => {
-      fullPriceCard(
-        g,
-        eventText("event_MERCHANT_DELIVER_LIST_2_c3_text"),
-      );
+      fullPriceCard(g, eventText("event_MERCHANT_DELIVER_LIST_2_c3_text"));
     },
     // "You receive 40-55 scrap and lose 5 drone parts." The page prints no text for it.
     "q:merchant:full": (g) => {
@@ -1067,16 +953,10 @@ export const PART_B: QuestPart = {
         parts: 0,
       };
       offer.fuel = rollFuel("q:merchant:weapons", (lo, hi) => between(g, [lo, hi]));
-      result(
-        g,
-        eventText("event_MERCHANT_DELIVER_LIST_2_c4_text"),
-        offer,
-        [parts],
-      );
+      result(g, eventText("event_MERCHANT_DELIVER_LIST_2_c4_text"), offer, [parts]);
     },
     // JELLY_PIRATE_MERCHANT, {{SurrenderEscape(alt)|no|...}}. INVENTED: the log line.
-    "q:merchant:pirate": (g) =>
-      noRun(g, "", "Pirate ship", "quest-merchant-pirate"),
+    "q:merchant:pirate": (g) => noRun(g, "", "Pirate ship", "quest-merchant-pirate"),
     "q:merchant:cargo-deliver": (g) => paid(g, undefined, [addQuest(g, "merchant-station")]),
     "q:merchant:cargo-take": (g) => investigateCargo(g),
     "q:merchant:cargo-drop": (g) => investigateCargo(g),
@@ -1085,12 +965,10 @@ export const PART_B: QuestPart = {
     "q:merchant:promise": (g) => {
       // Wiki citations:
       // > "You receive a crewmember and Deliver to the Station quest marker is added to your map." — [[Merchant's request#Merchant's Investigation]]
-      result(
-        g,
-        eventText("event_MERCHANT_INVESTIGATE_LIST_2_c1_text"),
-        undefined,
-        [crew(g, randomRace(g)), addQuest(g, "merchant-station")],
-      );
+      result(g, eventText("event_MERCHANT_INVESTIGATE_LIST_2_c1_text"), undefined, [
+        crew(g, randomRace(g)),
+        addQuest(g, "merchant-station"),
+      ]);
     },
 
     // ---- Research station with no response (Merchant's Delivery and the standalone card) ----
@@ -1118,12 +996,9 @@ export const PART_B: QuestPart = {
       // Wiki citations:
       // > "You hold them off while retreating into the med-bay. Its advanced systems determine that an alien neurotoxin is the cause of their frenzy. It synthesizes an antidote and releases it into the room. After a time, the scientists recover. One offers their services as thanks for saving them." — [[Research station with no response]]
       // > "You receive a crewmember with 1 skill in repair and medium scrap." — [[Research station with no response]]
-      result(
-        g,
-        eventText("event_STATION_SICK_LIST_2_c2_text"),
-        scrapOnly(g, "medium"),
-        [crew(g, randomRace(g), "repair")],
-      );
+      result(g, eventText("event_STATION_SICK_LIST_2_c2_text"), scrapOnly(g, "medium"), [
+        crew(g, randomRace(g), "repair"),
+      ]);
     },
     // "You lose a crewmember, who becomes an enemy, and 3-4 human boarders beam aboard your ship."
     "q:research:drag": (g) => {
@@ -1133,9 +1008,7 @@ export const PART_B: QuestPart = {
       turnCoat(g);
       humanBoarders(g, 3, 4, "human boarders beam aboard.");
       beginBoarding(g);
-      showEventLines(g, [
-        eventText("event_STATION_SICK_LIST_3_c1_text"),
-      ]);
+      showEventLines(g, [eventText("event_STATION_SICK_LIST_3_c1_text")]);
     },
     // Teleporter: "lose a crewmember, who becomes an enemy." No extra boarders. Last crew stays (the card remains).
     "q:research:beam": (g) => {
@@ -1143,8 +1016,7 @@ export const PART_B: QuestPart = {
       // > "(Teleporter) Use your Teleporter to retrieve your crew." — [[Research station with no response]]
       // > "You beam your away team back to the ship and disengage from the station. Although the ship is safe, the infected crew member quickly becomes frenzied and attacks." — [[Research station with no response]]
       // > "You lose a crewmember, who becomes an enemy." — [[Research station with no response]]
-      const text =
-        eventText("event_STATION_SICK_LIST_3_c2_text");
+      const text = eventText("event_STATION_SICK_LIST_3_c2_text");
       if (!turnCoat(g)) {
         result(g, text);
         return;
@@ -1159,21 +1031,16 @@ export const PART_B: QuestPart = {
       // > "You hold him down and the medbay is able to stop whatever neurotoxin was on the ship from fully infecting your crew. Once he recovers, you prepare to fight off the scientists, who are beyond help." — [[Research station with no response]]
       humanBoarders(g, 3, 4, "human boarders beam aboard.");
       beginBoarding(g);
-      showEventLines(g, [
-        eventText("event_STATION_SICK_LIST_3_c3_text"),
-      ]);
+      showEventLines(g, [eventText("event_STATION_SICK_LIST_3_c3_text")]);
     },
     "q:research:cure": (g) => {
       // Wiki citations:
       // > "(Medbay) Have the Advanced Medbay analyze their condition. (Requires level 3 Medbay)" — [[Research station with no response]]
       // > "You hold them off while retreating into the med-bay. Its advanced systems determine that an alien neurotoxin is driving your crew member insane. It synthesizes an antidote and releases it into the ship. After a time, the frenzied scientists recover and one offers to help out as thanks for saving them." — [[Research station with no response]]
       // > "You receive a crewmember." — [[Research station with no response]]
-      result(
-        g,
-        eventText("event_STATION_SICK_LIST_3_c4_text"),
-        undefined,
-        [crew(g, randomRace(g))],
-      );
+      result(g, eventText("event_STATION_SICK_LIST_3_c4_text"), undefined, [
+        crew(g, randomRace(g)),
+      ]);
     },
 
     // ---- Nebula wreckage ----
@@ -1181,11 +1048,7 @@ export const PART_B: QuestPart = {
       // Wiki citations:
       // > "(Slug Crew) Ask your Slug crew to scan for survivors." — [[Nebula wreckage]]
       if (!hasSlug(g)) return;
-      card(
-        g,
-        eventText("event_NEBULA_BATTLEFIELD_c1_text"),
-        survivorChoices(),
-      );
+      card(g, eventText("event_NEBULA_BATTLEFIELD_c1_text"), survivorChoices());
     },
     "c:nebula-wreckage:1": (g) => {
       // Wiki citations:
@@ -1199,18 +1062,13 @@ export const PART_B: QuestPart = {
         ["survivor", 1],
       ] as ["nothing" | "pummeled" | "survivor", number][]);
       if (r === "nothing") {
-        result(
-          g,
-          eventText("event_BATTLEFIELD_INVESTIGAGE_2_text"),
-        );
+        result(g, eventText("event_BATTLEFIELD_INVESTIGAGE_2_text"));
       } else if (r === "pummeled") {
         if (damageHull(g, 5)) return;
-        result(
-          g,
-          eventText("event_BATTLEFIELD_INVESTIGAGE_1_text"),
-          undefined,
-          ["Hull damage: 5.", roomHit(g)],
-        );
+        result(g, eventText("event_BATTLEFIELD_INVESTIGAGE_1_text"), undefined, [
+          "Hull damage: 5.",
+          roomHit(g),
+        ]);
       } else {
         card(g, eventText("event_BATTLEFIELD_INVESTIGAGE_5_text"), survivorChoices());
       }
@@ -1222,41 +1080,34 @@ export const PART_B: QuestPart = {
       ];
       // {{Blue Option|Advanced Medbay|...|level=2+}}, {{Blue Option|Clonebay|...}}.
       if (medbay(g) >= 2)
-        choices.push({ id: "q:nebula:medbay", label: eventText("event_BATTLEFIELD_SURVIVOR_c2_choice") });
+        choices.push({
+          id: "q:nebula:medbay",
+          label: eventText("event_BATTLEFIELD_SURVIVOR_c2_choice"),
+        });
       if (hasClonebay(g))
-        choices.push({ id: "q:nebula:clone", label: eventText("event_BATTLEFIELD_SURVIVOR_c3_choice") });
-      card(
-        g,
-        eventText("event_BATTLEFIELD_SURVIVOR_text"),
-        choices,
-      );
+        choices.push({
+          id: "q:nebula:clone",
+          label: eventText("event_BATTLEFIELD_SURVIVOR_c3_choice"),
+        });
+      card(g, eventText("event_BATTLEFIELD_SURVIVOR_text"), choices);
     },
     // "You receive a crewmember." Race not named: INFERRED random.
     "q:nebula:medbay": (g) => {
-      result(
-        g,
-        eventText("event_BATTLEFIELD_SURVIVOR_c2_text"),
-        undefined,
-        [crew(g, randomRace(g))],
-      );
+      result(g, eventText("event_BATTLEFIELD_SURVIVOR_c2_text"), undefined, [
+        crew(g, randomRace(g)),
+      ]);
     },
     "q:nebula:clone": (g) => {
-      result(
-        g,
-        eventText("event_BATTLEFIELD_SURVIVOR_c3_text"),
-        undefined,
-        [crew(g, randomRace(g))],
-      );
+      result(g, eventText("event_BATTLEFIELD_SURVIVOR_c3_text"), undefined, [
+        crew(g, randomRace(g)),
+      ]);
     },
     "q:abadoth:slug": (g) => zoltanCard(g, ""),
     "q:abadoth:scan": (g) => {
       // Wiki citations:
       // > "Rebel Fleet pursuit is doubled for 1 jump and you find a Zoltan ship." — [[Nebula wreckage#Quest Marker]]
       const line = doublePursuit(g);
-      zoltanCard(
-        g,
-        `${eventText("event_SECRET_WORD_ABADOTH_c2_text")}\n\n${line}`,
-      );
+      zoltanCard(g, `${eventText("event_SECRET_WORD_ABADOTH_c2_text")}\n\n${line}`);
     },
     "q:abadoth:explain": (g) => {
       // Wiki citations:
@@ -1270,8 +1121,7 @@ export const PART_B: QuestPart = {
       // > "You receive medium scrap with resources." — [[Nebula wreckage#Find a Zoltan ship]]
       zoltanThanks(g, "event_SECRET_WORD_ABADOTH_CONCLUSION_c4_text");
     },
-    "q:abadoth:engi": (g) =>
-      zoltanThanks(g, "event_SECRET_WORD_ABADOTH_CONCLUSION_c2_text"),
+    "q:abadoth:engi": (g) => zoltanThanks(g, "event_SECRET_WORD_ABADOTH_CONCLUSION_c2_text"),
   },
 
   disabled: (_g, _id) => {
@@ -1300,19 +1150,14 @@ export const PART_B: QuestPart = {
       // > "You receive a weapon with high scrap." — [[Capture the ship#Quest Marker]]
       // > "The explosion rocks the pirate ship and a brilliant light begins to shine from the wreckage." — [[Capture the ship#Quest Marker]]
       if (deadCrew) {
-        result(
-          g,
-          eventText("ship_PIRATE_QUEST_CREWDEAD_deadCrew_text"),
-          scrapOnly(g, "high"),
-          [grantRandomItem(g, "weapon")],
-        );
+        result(g, eventText("ship_PIRATE_QUEST_CREWDEAD_deadCrew_text"), scrapOnly(g, "high"), [
+          grantRandomItem(g, "weapon"),
+        ]);
         return;
       }
-      card(
-        g,
-        eventText("ship_PIRATE_QUEST_CREWDEAD_destroyed_text"),
-        [{ id: "q:capture:blast", label: "Continue" }],
-      );
+      card(g, eventText("ship_PIRATE_QUEST_CREWDEAD_destroyed_text"), [
+        { id: "q:capture:blast", label: "Continue" },
+      ]);
     },
     // Engi ship attacked by Mantis ship: destroyed -> medium, deadCrew -> high scrap with resources, then "Attempt to
     // contact the Engi". The mantis-controlled Engi ship pays the default rewards (no row).
@@ -1328,18 +1173,19 @@ export const PART_B: QuestPart = {
         "high",
         eventText("ship_MANTIS_ENGI_STATION_destroyed_text"),
         eventText("ship_MANTIS_ENGI_STATION_deadCrew_text"),
-        [{ id: "q:engi-station:contact", label: eventText("ship_MANTIS_ENGI_STATION_destroyed_c1_choice") }],
+        [
+          {
+            id: "q:engi-station:contact",
+            label: eventText("ship_MANTIS_ENGI_STATION_destroyed_c1_choice"),
+          },
+        ],
       )(g, deadCrew),
     // Merchant's Investigation: {{Winning|destroyed/deadCrew=true}} -> medium scrap with resources.
     // Wiki citations:
     // > "Fight a Pirate ship." — [[Merchant's request#Merchant's Investigation]]
     // > "You receive medium scrap with resources." — [[Merchant's request#Merchant's Investigation]]
     "quest-merchant-pirate": (g, deadCrew) =>
-      std(
-        "medium",
-        "medium",
-        eventText("ship_JELLY_PIRATE_MERCHANT_destroyed_text"),
-      )(g, deadCrew),
+      std("medium", "medium", eventText("ship_JELLY_PIRATE_MERCHANT_destroyed_text"))(g, deadCrew),
   },
 
   gotAway: {},

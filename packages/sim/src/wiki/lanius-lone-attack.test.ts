@@ -18,8 +18,7 @@ function open(g: Game) {
 
 describe("Optional fight: unarmed Lanius ship", () => {
   it("attacking shows the lead-in card and starts a Lanius ship fight", () => {
-    const lead =
-      eventText("event_LANIUS_SCARED_CIVILIAN_c1_text");
+    const lead = eventText("event_LANIUS_SCARED_CIVILIAN_c1_text");
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-lone-ship:0");

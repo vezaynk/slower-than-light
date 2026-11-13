@@ -6,8 +6,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerEvent } from "./filler-events.ts";
 
-const LEAD =
-  eventText("event_ROGUE_REBEL_c4_text");
+const LEAD = eventText("event_ROGUE_REBEL_c4_text");
 const PIN = "c:rebel-fight-chance:3";
 
 function open(g: Game) {
@@ -30,9 +29,7 @@ describe("Rebel fight chance Advanced Sensors", () => {
     const g = createGame(1);
     g.player.systems.sensors.level = 2;
     open(g);
-    assert.ok(
-      g.event?.choices.some((c) => c.id === PIN && c.label === "Fight the Rebel ship."),
-    );
+    assert.ok(g.event?.choices.some((c) => c.id === PIN && c.label === "Fight the Rebel ship."));
     assert.equal(choiceDisabled(g, PIN), "Needs Sensors level 3");
     choose(g, PIN);
     assert.equal(g.phase, "event");

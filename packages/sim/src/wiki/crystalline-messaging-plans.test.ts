@@ -6,14 +6,11 @@ import { citedEvent } from "./cited-events.ts";
 import { eventText } from "../event-text.ts";
 
 const PLANS = "c:crystalline-ship-messaging-about-rebels";
-const OUTRUN =
-  eventText("event_CRYSTAL_REQUEST_c1_c1_text");
-const CRUISE =
-  eventText("event_CRYSTAL_REQUEST_LIST_1_text");
+const OUTRUN = eventText("event_CRYSTAL_REQUEST_c1_c1_text");
+const CRUISE = eventText("event_CRYSTAL_REQUEST_LIST_1_text");
 const LIE = eventText("event_CRYSTAL_REQUEST_LIST_2_text");
 const BUOY = eventText("event_CRYSTAL_REQUEST_c1_c3_text");
-const APOLOGY =
-  eventText("event_CRYSTAL_REQUEST_c1_c4_text");
+const APOLOGY = eventText("event_CRYSTAL_REQUEST_c1_c4_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -45,7 +42,10 @@ describe("Crystalline ship messaging about Rebels flight plans", () => {
       g.event?.choices.map((c) => [c.id, c.label]),
       [
         [`${PLANS}:0`, "Gain high scrap. Fleet advances 1."],
-        [`${PLANS}:1`, "1 in 2: gain high scrap, fleet delayed 1. 1 in 2: fight and 1-2 Crystal boarders."],
+        [
+          `${PLANS}:1`,
+          "1 in 2: gain high scrap, fleet delayed 1. 1 in 2: fight and 1-2 Crystal boarders.",
+        ],
         [`${PLANS}:2`, "Gain high scrap. Fleet delayed 1."],
         [`${PLANS}:3`, "Nothing happens."],
       ],

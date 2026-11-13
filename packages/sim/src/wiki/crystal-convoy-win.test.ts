@@ -42,10 +42,7 @@ describe("Crystal fight with surrender offer (hull repairs) reward", () => {
       true,
     );
     const body = destroyed.event?.body ?? "";
-    assert.match(
-      body,
-      textRe("ship_CRYSTAL_CONVOY_destroyed_text"),
-    );
+    assert.match(body, textRe("ship_CRYSTAL_CONVOY_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -64,10 +61,7 @@ describe("Crystal fight with surrender offer (hull repairs) reward", () => {
     const killedHull = killed.player.hull;
     assert.equal(pageWin(killed, "crystal-fight-with-surrender-offer-hull-repairs", true), true);
     const killedBody = killed.event?.body ?? "";
-    assert.match(
-      killedBody,
-      textRe("ship_CRYSTAL_CONVOY_deadCrew_text"),
-    );
+    assert.match(killedBody, textRe("ship_CRYSTAL_CONVOY_deadCrew_text"));
     const medium = scraps(killedBody);
     assert.equal(medium.length, 1, killedBody);
     assert.ok(medium[0]! >= 12 && medium[0]! <= 19, killedBody);

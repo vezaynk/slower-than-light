@@ -40,7 +40,14 @@ describe("Crystal ship attacking Federation loyalists reward", () => {
     const augments = destroyed.augments.length;
     assert.equal(pageWin(destroyed, "crystal-ship-attacking-federation-loyalists", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, textRe("ship_CRYSTAL_CONVOY_destroyed_text", "ship_CRYSTAL_FED_destroyed_text", "ship_CRYSTAL_HUNTER_destroyed_text"));
+    assert.match(
+      body,
+      textRe(
+        "ship_CRYSTAL_CONVOY_destroyed_text",
+        "ship_CRYSTAL_FED_destroyed_text",
+        "ship_CRYSTAL_HUNTER_destroyed_text",
+      ),
+    );
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -61,7 +68,11 @@ describe("Crystal ship attacking Federation loyalists reward", () => {
     const killedBody = killed.event?.body ?? "";
     assert.match(
       killedBody,
-      textRe("ship_CRYSTAL_CONVOY_deadCrew_text", "ship_CRYSTAL_FED_deadCrew_text", "ship_CRYSTAL_HUNTER_deadCrew_text"),
+      textRe(
+        "ship_CRYSTAL_CONVOY_deadCrew_text",
+        "ship_CRYSTAL_FED_deadCrew_text",
+        "ship_CRYSTAL_HUNTER_deadCrew_text",
+      ),
     );
     const high = scraps(killedBody);
     assert.equal(high.length, 1, killedBody);

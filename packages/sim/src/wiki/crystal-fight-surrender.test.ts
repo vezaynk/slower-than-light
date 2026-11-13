@@ -121,7 +121,9 @@ describe("Crystal fight surrender", () => {
         if (!seen.has("decline")) {
           choose(g, "s:crystal-fight:no");
           seen.add("decline");
-          assert.ok((g.event?.body ?? "").includes(eventText("event_CRYSTAL_SHIP_SURRENDER_7_c2_text")));
+          assert.ok(
+            (g.event?.body ?? "").includes(eventText("event_CRYSTAL_SHIP_SURRENDER_7_c2_text")),
+          );
           assert.ok(g.scrap > 10);
           assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
         } else {
@@ -141,7 +143,10 @@ describe("Crystal fight surrender", () => {
         assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
       } else {
         seen.add("nothing");
-        assert.ok([1, 2].some((n) => body.includes(eventText(`event_CRYSTAL_SHIP_SURRENDER_${n}_text`))), body);
+        assert.ok(
+          [1, 2].some((n) => body.includes(eventText(`event_CRYSTAL_SHIP_SURRENDER_${n}_text`))),
+          body,
+        );
         assert.equal(g.scrap, 10);
         assert.equal(g.enemy, null);
       }

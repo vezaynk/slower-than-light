@@ -6,8 +6,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerEvent } from "./filler-events.ts";
 
-const LEAD =
-  eventText("event_WRECKAGE_EVENT_c1_text");
+const LEAD = eventText("event_WRECKAGE_EVENT_c1_text");
 const SCAN = "c:battlefield-wreckage:2";
 
 function open(g: Game) {

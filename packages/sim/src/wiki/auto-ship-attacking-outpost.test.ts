@@ -59,7 +59,15 @@ describe("Optional fight: Auto-ship and outpost", () => {
     const parts = destroyed.player.parts;
     assert.equal(pageWin(destroyed, "auto-ship-attacking-outpost", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, textRe("ship_BOSS_SCOUT_RESCUE_deadCrew_text", "ship_QUEST_CONSTRUCTIONYARD_SHIP_destroyed_text", "ship_SQUAT_REFUEL_STATION_deadCrew_text", "ship_SQUAT_REFUEL_STATION_destroyed_text"));
+    assert.match(
+      body,
+      textRe(
+        "ship_BOSS_SCOUT_RESCUE_deadCrew_text",
+        "ship_QUEST_CONSTRUCTIONYARD_SHIP_destroyed_text",
+        "ship_SQUAT_REFUEL_STATION_deadCrew_text",
+        "ship_SQUAT_REFUEL_STATION_destroyed_text",
+      ),
+    );
     assert.match(body, textRe("ship_REBEL_AUTO_REFUEL_destroyed_c1_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 2, body);

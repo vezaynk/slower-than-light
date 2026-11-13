@@ -6,8 +6,7 @@ import type { Game } from "../types.ts";
 import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const BODY =
-  "Two pirate ships. One carries fuel, one carries missiles. Plasma storm.";
+const BODY = "Two pirate ships. One carries fuel, one carries missiles. Plasma storm.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

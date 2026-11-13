@@ -21,8 +21,7 @@ describe("Mantis ship attacking civilian aid", () => {
     // Wiki citations:
     // > "You frown, power up the weapons and prepare to engage the Mantis ship. Not today." — [[Mantis ship attacking civilian]]
     // > "Fight the Mantis Ship." — [[Mantis ship attacking civilian]]
-    const lead =
-      eventText("event_MANTIS_CIVILIAN_c1_text");
+    const lead = eventText("event_MANTIS_CIVILIAN_c1_text");
     const g = createGame(1);
     open(g);
     choose(g, "c:mantis-ship-attacking-civilian:0");

@@ -7,8 +7,7 @@ import { heldSchematics } from "../rules/make-room.ts";
 import { scrapBand } from "./surrender.ts";
 import { eventText } from "../event-text.ts";
 
-const CROP =
-  eventText("event_PIRATE_STATION_CROPS_c3_text");
+const CROP = eventText("event_PIRATE_STATION_CROPS_c3_text");
 const DWELLING = eventText("event_PIRATE_STATION_CROPS_c4_text");
 
 const BODY = "Pirate ship blockading a settlement.";

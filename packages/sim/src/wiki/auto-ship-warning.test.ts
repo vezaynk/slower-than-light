@@ -29,8 +29,7 @@ function resources(body: string): number {
   ).length;
 }
 
-const FTL =
-  eventText("ship_REBEL_AUTO_WARNING_escape_text");
+const FTL = eventText("ship_REBEL_AUTO_WARNING_escape_text");
 
 describe("Fleeing Auto-ship", () => {
   it("shows the FTL warning, then starts a running Auto-ship on a 40 second timer that doubles pursuit", () => {
@@ -68,7 +67,14 @@ describe("Fleeing Auto-ship", () => {
     const parts = destroyed.player.parts;
     assert.equal(pageWin(destroyed, "auto-ship-warning", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, textRe("ship_REBEL_AUTO_WARNING_destroyed_text", "ship_SQUAT_WARNING_deadCrew_text", "ship_SQUAT_WARNING_destroyed_text"));
+    assert.match(
+      body,
+      textRe(
+        "ship_REBEL_AUTO_WARNING_destroyed_text",
+        "ship_SQUAT_WARNING_deadCrew_text",
+        "ship_SQUAT_WARNING_destroyed_text",
+      ),
+    );
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);

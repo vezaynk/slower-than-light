@@ -45,8 +45,7 @@ describe("Auto-ship warning intro", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:auto-ship-warning:0");
-    const lead =
-      eventText("ship_REBEL_AUTO_WARNING_escape_text");
+    const lead = eventText("ship_REBEL_AUTO_WARNING_escape_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);

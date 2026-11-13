@@ -64,8 +64,7 @@ describe("Rebel ship attacking Crystal ship reward", () => {
   it("attacking the Crystalline ship stays on default rewards", () => {
     const g = createGame(3);
     open(g);
-    const lead =
-      eventText("event_CRYSTAL_REBEL_CRYSTAL_c2_text");
+    const lead = eventText("event_CRYSTAL_REBEL_CRYSTAL_c2_text");
     choose(g, "c:rebel-ship-attacking-crystal-ship:1");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

@@ -5,11 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { eventText } from "../event-text.ts";
 
-const INTROS = [
-  "Escort request.",
-  "Escort request.",
-  "Escort request.",
-];
+const INTROS = ["Escort request.", "Escort request.", "Escort request."];
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

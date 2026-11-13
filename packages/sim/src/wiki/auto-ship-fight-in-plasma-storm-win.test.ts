@@ -39,7 +39,10 @@ describe("Auto-ship fight in plasma storm reward", () => {
     const augments = destroyed.augments.length;
     assert.equal(pageWin(destroyed, "auto-ship-fight-in-plasma-storm", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, textRe("event_DESTROYED_DEFAULT_1_text", "ship_PIRATE_BRIBER_destroyed_text"));
+    assert.match(
+      body,
+      textRe("event_DESTROYED_DEFAULT_1_text", "ship_PIRATE_BRIBER_destroyed_text"),
+    );
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);

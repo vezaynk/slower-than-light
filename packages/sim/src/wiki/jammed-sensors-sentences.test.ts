@@ -3,10 +3,8 @@ import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 
-const CONTINUE =
-  eventText("event_BOARDERS_HACKING_c1_text");
-const HACK =
-  eventText("event_BOARDERS_HACKING_c2_text");
+const CONTINUE = eventText("event_BOARDERS_HACKING_c1_text");
+const HACK = eventText("event_BOARDERS_HACKING_c2_text");
 
 describe("Boarders: Humans jammed sensors sentences", () => {
   it("continue shows the sensor sentence on the card and returns to the boarder fight", () => {

@@ -155,10 +155,7 @@ describe("Optional fight: Mantis hunter", () => {
     b.name = "Optional fight: Mantis hunter";
     g.here = b.id;
     g.event = citedEvent(g, b);
-    assert.equal(
-      g.event?.body,
-      "Mantis ship.",
-    );
+    assert.equal(g.event?.body, "Mantis ship.");
     assert.ok(g.event?.choices.some((c) => c.id === "c:mantis-ship-with-rock-body-parts:0"));
   });
 });

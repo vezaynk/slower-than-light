@@ -20,8 +20,7 @@ describe("Federation deserters attack", () => {
   it("attacking shows the printed cowards sentence on the card and fights a Federation ship", () => {
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_CRYSTAL_FED_DESERTER_c2_text");
+    const lead = eventText("event_CRYSTAL_FED_DESERTER_c2_text");
     choose(g, "c:federation-deserters:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

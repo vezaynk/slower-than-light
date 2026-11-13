@@ -5,8 +5,7 @@ import type { Game } from "../types.ts";
 import { mediumScrapBand } from "../content.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const BODY =
-  "Plasma storm. 3-4 Human boarders.";
+const BODY = "Plasma storm. 3-4 Human boarders.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

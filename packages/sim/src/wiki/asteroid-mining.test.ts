@@ -102,7 +102,11 @@ describe("Trade: missiles for rewards", () => {
         assert.equal(g.missiles, 0);
         const body = g.event?.body ?? "";
         // Rewards, "Augment": only the augment result installs one (a random augmentation).
-        assert.equal(g.augments.length, augments + (lead(body, "event_HELP_MINERS_2_3_text") ? 1 : 0), body);
+        assert.equal(
+          g.augments.length,
+          augments + (lead(body, "event_HELP_MINERS_2_3_text") ? 1 : 0),
+          body,
+        );
         if (n === 5 && lead(body, "event_HELP_MINERS_1_2_text")) {
           bag.add("hull");
           assert.equal(g.player.hull, g.player.hullMax - 10);

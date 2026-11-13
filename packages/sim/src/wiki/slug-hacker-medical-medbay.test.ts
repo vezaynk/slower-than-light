@@ -13,8 +13,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { eventText } from "../event-text.ts";
 
-const LEAD =
-  eventText("event_NEBULA_SLUG_MEDBAY_c2_text");
+const LEAD = eventText("event_NEBULA_SLUG_MEDBAY_c2_text");
 const ID = "c:slug-hacker-medical:2";
 
 function open(g: Game) {
@@ -44,11 +43,7 @@ describe("Slug hacker (medical) improved medbay", () => {
     g.player.systems.medbay.level = 1;
     g.player.systems.medbay.power = 1;
     open(g);
-    assert.ok(
-      g.event?.choices.some(
-        (c) => c.id === ID && c.label === "Medbay at half power.",
-      ),
-    );
+    assert.ok(g.event?.choices.some((c) => c.id === ID && c.label === "Medbay at half power."));
     assert.equal(choiceDisabled(g, ID), "Needs level 2 Medbay");
     choose(g, ID);
     assert.equal(g.phase, "event");

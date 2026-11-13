@@ -13,6 +13,11 @@ export function archivePhrase(key: string | undefined): string | undefined {
 
 let basePhrases = new Map<string, string>();
 
+/** Empties the live phrases, so a test can stand for an archive with no strings. The reset snapshot stays. */
+export function clearArchivePhrases(): void {
+  phrases.clear();
+}
+
 /** Keeps the phrases of the archive a `"base"` load installs, so a test reset can put them back. */
 export function snapshotArchivePhrases(): void {
   basePhrases = new Map(phrases);

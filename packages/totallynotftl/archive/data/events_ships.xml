@@ -719,10 +719,10 @@
     <text>Rebel checkpoint. Hide, or fight the Rebel ship.</text>
     <text>Rebel checkpoint. Hide, or fight the Rebel ship.</text>
     <text>Rebel checkpoint. Hide, or fight the Rebel ship.</text>
-    <roll k="label">Fly behind a moon and stay hidden.</roll>
-    <roll k="label">Shut down all non-vital systems and stay hidden.</roll>
-    <roll k="label">Stay quiet and hope they don't notice you.</roll>
-    <roll k="label">Stay out of their way and charge your FTL drive.</roll>
+    <roll k="label">Hide. Nothing happens.</roll>
+    <roll k="label">Hide. Nothing happens.</roll>
+    <roll k="label">Hide. Nothing happens.</roll>
+    <roll k="label">Hide. Nothing happens.</roll>
     <item_modify name="bribe">
       <item type="scrap" min="10" max="15"/>
     </item_modify>
@@ -2447,42 +2447,42 @@
     <alias>No fuel: refugee trading</alias>
     <text/>
     <card>
-      <text>A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, it recognizes you are part of the Federation and offers to split its remaining fuel with you.</text>
+      <text>Refugee ship. It shares fuel.</text>
       <choice name="c:no-fuel-refugee-trading:low" owner="missing">
-        <text>Continue</text>
+        <text>Gain low fuel.</text>
       </choice>
     </card>
     <card>
-      <text>A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, its hull looks damaged — it is in bad need of scrap and is willing to trade fuel for it.</text>
+      <text>Refugee ship. Trade offer: scrap for fuel.</text>
       <choice name="c:no-fuel-refugee-trading:trade" owner="missing">
-        <text>Trade 10 scrap for 3 fuel.</text>
+        <text>Lose 10 scrap. Gain 3 fuel.</text>
         <req><item_modify><item type="scrap" min="-10" max="-10"/></item_modify>Need 10 scrap</req>
         <item_modify>
           <item type="fuel" min="3" max="3"/>
         </item_modify>
       </choice>
       <choice name="c:no-fuel-refugee-trading:engi" owner="missing">
-        <text>Negotiate a better trade.</text>
+        <text>Ask for a better scrap-for-fuel trade.</text>
         <req><crewMember name="engi"/>Needs an Engi crewmember</req>
       </choice>
       <choice name="c:no-fuel-refugee-trading:refuse" owner="missing">
-        <text>Refuse their offer.</text>
+        <text>1 in 2: nothing happens. 1 in 2: a second trade offer.</text>
       </choice>
       <choice name="c:no-fuel-refugee-trading:attack" owner="missing">
-        <text>The helpless refugees make easy targets. Attack them.</text>
+        <text>Gain medium fuel and scrap.</text>
       </choice>
     </card>
     <card>
-      <text>A refugee ship fleeing the Rebel advance enters the system, having picked up your distress beacon. While it doesn't have much fuel to spare, it is in bad need of armaments and is willing to trade for them.</text>
+      <text>Refugee ship. Trade offer: missiles for fuel.</text>
       <choice name="c:no-fuel-refugee-trading:missiles" owner="missing">
-        <text>Offer some missiles for fuel.</text>
+        <text>Lose 1 missile. Gain 5-7 fuel. 1 in 2: fight a pirate ship.</text>
         <req><item_modify><item type="missiles" min="-1" max="-1"/></item_modify>Need 1 missiles</req>
         <item_modify>
           <item type="fuel" min="5" max="7"/>
         </item_modify>
       </choice>
       <choice name="c:no-fuel-refugee-trading:arm-no" owner="missing">
-        <text>Refuse their offer.</text>
+        <text>2 in 4: fight a pirate ship. 1 in 4: gain low fuel. 1 in 4: nothing happens.</text>
       </choice>
     </card>
     <choice name="c:no-fuel-refugee-trading:0" owner="missing">
@@ -2894,17 +2894,17 @@
     <alias>crystal-chat</alias>
     <alias>Crystal chat</alias>
     <sector>CRYSTAL_HOME</sector>
-    <text>A small civilian vessel messages you, "Wow! You're that alien that opened up the portal, aren't you! Are you busy? Can I ask you a question?"</text>
+    <text>Civilian ship. It asks for a conversation.</text>
     <choice name="c:crystal-chat:yes" owner="missing">
-      <text>Yes.</text>
+      <text>Talk. Next: answer (1 in 3 each: Rebel fight, a reward, repair 6 hull) or end it.</text>
       <event/>
     </choice>
     <choice name="c:crystal-chat:no" owner="missing">
-      <text>No.</text>
+      <text>Nothing happens.</text>
       <event/>
     </choice>
     <choice name="c:crystal-chat:crystal" owner="missing">
-      <text>Have your crew speak to them.</text>
+      <text>Gain fuel and scrap: low, medium, or high, 1 in 3 each.</text>
       <req><crewMember name="crystal"/>Needs a Crystal crewmember</req>
       <event/>
     </choice>
@@ -2914,13 +2914,13 @@
     <alias>crystalline-men-buried</alias>
     <alias>Crystalline men buried</alias>
     <sector>CRYSTAL_HOME</sector>
-    <text>A large Crystalline ship is floating in space here. They hail: "Aliens?! How curious. We request your aid. We have men buried on a nearby planet and we must dig them out."</text>
+    <text>Crystal ship. It asks for one crewmember to dig.</text>
     <choice name="c:crystalline-men-buried:send" owner="missing">
-      <text>Send a crewmember to help.</text>
+      <text>Send 1 crewmember. More choices follow.</text>
       <event/>
     </choice>
     <choice name="c:crystalline-men-buried:refuse" owner="missing">
-      <text>Refuse.</text>
+      <text>Nothing happens.</text>
       <event/>
     </choice>
   </event>
@@ -2929,22 +2929,22 @@
     <alias>crystalline-research-facility</alias>
     <alias>Crystalline research facility</alias>
     <sector>CRYSTAL_HOME</sector>
-    <text>You arrive near what appears to be a Crystalline research facility. A scientist quickly messages you, "Ah! You're those aliens! Please, I've heard so much about you and I'm curious about your physiology! Would you let us run a few simple tests?"</text>
+    <text>Crystal research station. It asks to test a crewmember.</text>
     <choice name="c:crystalline-research-facility:allow" owner="missing">
-      <text>Allow them to run tests on a crew member.</text>
+      <text>1 in 3 each: lose 1 crew, gain low scrap and a weapon; gain a medium reward; gain low scrap and a drone.</text>
       <event/>
     </choice>
     <choice name="c:crystalline-research-facility:refuse" owner="missing">
-      <text>Refuse.</text>
+      <text>2 in 3: nothing happens. 1 in 3: fight a Crystal ship.</text>
       <event/>
     </choice>
     <choice name="c:crystalline-research-facility:rock" owner="missing">
-      <text>Send your Rockman crew.</text>
+      <text>Gain medium scrap and resources.</text>
       <req><crewMember name="rock"/>Needs a Rock crewmember</req>
       <event/>
     </choice>
     <choice name="c:crystalline-research-facility:BACKUP_DNA" owner="missing">
-      <text>Send your crew's data.</text>
+      <text>Gain medium scrap and a weapon.</text>
       <event/>
     </choice>
   </event>
@@ -3253,14 +3253,14 @@
   <ship name="REBEL_AUTO_WARNING" auto_blueprint="SHIPS_AUTO">
     <escape min="22" max="22" timer="40"/>
     <gotaway>
-      <text>The scout jumps away. It will certainly have informed the fleet of your position. You must get to the next sector as soon as possible!</text>
+      <text>The scout escapes.</text>
       <modifyPursuit amount="1"/>
     </gotaway>
   </ship>
   <ship name="SQUAT_WARNING" auto_blueprint="SHIPS_REBEL">
     <escape min="22" max="22" timer="40"/>
     <gotaway>
-      <text>The scout jumps away. They are sure to have informed the fleet of your position. You must get to the next Sector as soon as possible!</text>
+      <text>The scout escapes.</text>
       <modifyPursuit amount="1"/>
     </gotaway>
   </ship>

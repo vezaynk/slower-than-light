@@ -4,8 +4,7 @@ import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const BODY =
-  "Hostile Auto-ship. Your shields are hacked.";
+const BODY = "Hostile Auto-ship. Your shields are hacked.";
 
 const HACKING =
   "Your hacking system automatically counters the digital assault and you move in to fight the ship.";

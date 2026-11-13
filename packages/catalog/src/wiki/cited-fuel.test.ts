@@ -46,10 +46,7 @@ describe("cited fuel pages", () => {
     // > "You receive medium fuel." — [[No fuel: friendly refugee]]
     const ev = EXTRA_EVENTS.find((row) => row.dest === "No fuel: friendly refugee");
     assert.ok(ev);
-    assert.equal(
-      ev.body,
-      "While it doesn't have much fuel to spare, it recognizes you are part of the Federation and offers to split its remaining fuel with you.",
-    );
+    assert.equal(ev.body, "Refugee ship. It shares fuel.");
     assert.ok(ev.body.length <= 240);
     // "You receive {{tooltip|medium|2-4}} [[Rewards#Fuel only|fuel]]."
     assert.deepEqual(ev.choices[0].fx, [{ k: "res", id: "fuel", sign: 1, lo: 2, hi: 4 }]);

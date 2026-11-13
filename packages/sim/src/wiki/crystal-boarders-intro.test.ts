@@ -4,11 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const INTROS = [
-  "2-3 Crystal boarders.",
-  "2-3 Crystal boarders.",
-  "2-3 Crystal boarders.",
-];
+const INTROS = ["2-3 Crystal boarders.", "2-3 Crystal boarders.", "2-3 Crystal boarders."];
 
 function beacon(): Beacon {
   return {

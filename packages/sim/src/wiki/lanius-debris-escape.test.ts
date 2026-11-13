@@ -21,8 +21,7 @@ describe("Lanius ship in rich debris field escape", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-in-rich-debris-field:1");
-    const lead =
-      eventText("event_LANIUS_HARVESTER_c4_text");
+    const lead = eventText("event_LANIUS_HARVESTER_c4_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);

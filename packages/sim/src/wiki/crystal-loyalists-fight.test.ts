@@ -20,8 +20,7 @@ describe("Optional fight: Crystal ship and Federation ship", () => {
   it("prints the lead-in and fights a Crystal ship", () => {
     const g = createGame(1);
     open(g);
-    const told =
-      eventText("event_CRYSTAL_FED_c1_text");
+    const told = eventText("event_CRYSTAL_FED_c1_text");
     choose(g, "c:crystal-ship-attacking-federation-loyalists:0");
     assert.equal(g.phase, "event");
     assert.ok(g.event?.body?.includes(told));

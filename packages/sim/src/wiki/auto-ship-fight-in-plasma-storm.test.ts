@@ -26,10 +26,7 @@ describe("Hostile Auto-ship in plasma storm", () => {
     // > "Fight an Auto-ship." — [[Auto-ship fight in plasma storm]]
     const g = createGame(1);
     open(g);
-    assert.equal(
-      g.event?.body,
-      "Hostile Auto-ship. Plasma storm.",
-    );
+    assert.equal(g.event?.body, "Hostile Auto-ship. Plasma storm.");
     for (const n of [1, 2, 3]) {
       assert.equal(
         g.event?.choices.some((c) => c.id === `c:auto-ship-fight-in-plasma-storm:${n}`),
@@ -72,8 +69,7 @@ describe("Hostile Auto-ship in plasma storm", () => {
       g.player.systems.engines.level = 4;
       assert.equal(choiceDisabled(g, "c:auto-ship-fight-in-plasma-storm:1"), null);
       choose(g, "c:auto-ship-fight-in-plasma-storm:1");
-      const fightLead =
-        eventText("event_STORM_AUTO_ESCAPE_2_text");
+      const fightLead = eventText("event_STORM_AUTO_ESCAPE_2_text");
       if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight = true;
         assert.equal(g.event?.body, fightLead);

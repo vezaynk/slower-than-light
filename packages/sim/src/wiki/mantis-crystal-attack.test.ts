@@ -20,8 +20,7 @@ describe("Optional fight: Mantis ship and Crystal ships", () => {
   it("attacking the Mantis prints the lead-in and starts a Mantis ship fight", () => {
     const g = createGame(1);
     open(g);
-    const told =
-      eventText("event_CRYSTAL_MANTIS_CRYSTAL_c1_text");
+    const told = eventText("event_CRYSTAL_MANTIS_CRYSTAL_c1_text");
     choose(g, "c:mantis-ship-attacking-crystal:0");
     assert.equal(g.phase, "event");
     assert.ok(g.event?.body?.includes(told));

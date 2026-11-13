@@ -24,7 +24,10 @@ describe("Zoltan ship asks to dock keep distance", () => {
     open(g);
     g.fleet = 5;
     choose(g, "c:zoltan-ship-asks-to-dock:1");
-    assert.equal(g.event?.body, [eventText("event_LANIUS_TRADER_c2_text"), "Nothing happens."].join("\n\n"));
+    assert.equal(
+      g.event?.body,
+      [eventText("event_LANIUS_TRADER_c2_text"), "Nothing happens."].join("\n\n"),
+    );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.fuel, fuel);

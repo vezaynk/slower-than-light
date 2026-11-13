@@ -95,7 +95,9 @@ describe("Hire: Slug crew", () => {
     open(left);
     fillerChoose(left, "c:slocknog:1");
     fillerChoose(left, "s:slocknog:leave");
-    assert.ok((left.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_RESCUE_LIST_1_c2_text")));
+    assert.ok(
+      (left.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_RESCUE_LIST_1_c2_text")),
+    );
     assert.match(left.event?.body ?? "", /Nothing happens/);
     assert.equal(left.scrap, 10);
     assert.equal(

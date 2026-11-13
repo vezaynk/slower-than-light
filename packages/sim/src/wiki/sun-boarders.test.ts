@@ -5,8 +5,7 @@ import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-humans-near-sun:0";
-const BODY =
-  "Sun: fires break out. 2-4 Human boarders.";
+const BODY = "Sun: fires break out. 2-4 Human boarders.";
 const DEST = "Boarders: Humans near sun";
 const SECTORS = [
   "MANTIS_SECTOR",

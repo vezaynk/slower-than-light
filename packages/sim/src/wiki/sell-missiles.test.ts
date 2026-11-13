@@ -25,10 +25,7 @@ describe("Trade: missiles for scrap", () => {
   it("opens on the printed black-market line", () => {
     const g = createGame(1);
     const ev = citedEvent(g, beacon());
-    assert.equal(
-      ev?.body,
-      "Station buying missiles.",
-    );
+    assert.equal(ev?.body, "Station buying missiles.");
   });
 
   it("sells 5, 10, or 15 missiles for 15, 30, or 45 scrap", () => {

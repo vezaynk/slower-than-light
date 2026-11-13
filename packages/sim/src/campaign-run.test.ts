@@ -303,7 +303,9 @@ describe("a seeded Kestrel run", () => {
     choose(hired, "s:confused-mantis:human");
     choose(hired, "s:confused-mantis:return");
     choose(hired, "s:confused-mantis:hire");
-    const robert = hired.crew.find((c) => c.side === "player" && c.name === eventText("name_RobertSmith"));
+    const robert = hired.crew.find(
+      (c) => c.side === "player" && c.name === eventText("name_RobertSmith"),
+    );
     assert.ok(robert);
     assert.equal(robert.kin, "mantis");
     assert.equal(robert.hp, crewDef("mantis").hp);

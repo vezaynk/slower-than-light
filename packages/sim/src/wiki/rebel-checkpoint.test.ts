@@ -12,12 +12,7 @@ const INTROS = [
   "Rebel checkpoint. Hide, or fight the Rebel ship.",
   "Rebel checkpoint. Hide, or fight the Rebel ship.",
 ];
-const HIDES = [
-  "Fly behind a moon and stay hidden.",
-  "Shut down all non-vital systems and stay hidden.",
-  "Stay quiet and hope they don't notice you.",
-  "Stay out of their way and charge your FTL drive.",
-];
+const HIDES = ["Hide. Nothing happens."];
 const BRIBES = [
   eventText("text_REBEL_BRIBE_TEXT_1"),
   eventText("text_REBEL_BRIBE_TEXT_2"),
@@ -48,7 +43,7 @@ describe("Rebel checkpoint", () => {
   it("shows one of four intros, attacks a Rebel ship, and hiding does nothing", () => {
     const intros = new Set<string>();
     const hides = new Set<string>();
-    for (let seed = 1; seed <= 40 && (intros.size < 1 || hides.size < 4); seed++) {
+    for (let seed = 1; seed <= 40 && (intros.size < 1 || hides.size < 1); seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -62,7 +57,7 @@ describe("Rebel checkpoint", () => {
       assert.ok(cost >= 10 && cost <= 15);
     }
     assert.equal(intros.size, 1);
-    assert.equal(hides.size, 4);
+    assert.equal(hides.size, 1);
 
     const attack = createGame(2);
     open(attack);

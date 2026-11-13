@@ -25,10 +25,7 @@ describe("Trade: drone parts for scrap", () => {
   it("opens on the printed damaged-station line", () => {
     const g = createGame(1);
     const ev = citedEvent(g, beacon());
-    assert.equal(
-      ev?.body,
-      "Station buying drone parts.",
-    );
+    assert.equal(ev?.body, "Station buying drone parts.");
   });
 
   it("sells 3, 6, or 12 drone parts for 12, 24, or 48 scrap", () => {

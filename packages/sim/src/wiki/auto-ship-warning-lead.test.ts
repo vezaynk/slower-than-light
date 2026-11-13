@@ -20,8 +20,7 @@ describe("Auto-ship warning lead-in", () => {
   it("shows the printed FTL sentence on the card and still runs on the 40 second pursuit", () => {
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("ship_REBEL_AUTO_WARNING_escape_text");
+    const lead = eventText("ship_REBEL_AUTO_WARNING_escape_text");
     choose(g, "c:auto-ship-warning:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

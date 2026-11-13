@@ -484,8 +484,8 @@
   <text name="event_HIGH_SCAN_TERRAFORMING_3_text">Life found. The terraformers will proceed unless stopped.</text>
   <text name="event_LANIUS_AUTO_REBEL_c1_text">Fight the Lanius ship.</text>
   <text name="event_LANIUS_AUTO_REBEL_c2_text">You leave.</text>
-  <text name="event_LANIUS_AUTO_REBEL_LIST_1_text">Gain low scrap. Reveal the map.</text>
-  <text name="event_LANIUS_AUTO_REBEL_LIST_2_text">Gain low scrap. The Rebel fleet is delayed 1 jump.</text>
+  <text name="event_LANIUS_AUTO_REBEL_LIST_1_text">Gain scrap, random tier. Reveal the map.</text>
+  <text name="event_LANIUS_AUTO_REBEL_LIST_2_text">Gain scrap, random tier. The Rebel fleet is delayed 1 jump.</text>
   <text name="event_LANIUS_BEACON_EATER_ASK_1_c2_choice">3 in 4: nothing happens. 1 in 4: fight a Lanius ship.</text>
   <text name="event_LANIUS_BEACON_EATER_ASK_1_text">They ask for scrap.</text>
   <text name="event_LANIUS_BEACON_EATER_ASK_2_text">Fight a Lanius ship.</text>
@@ -599,7 +599,7 @@
   <text name="event_LANIUS_TRADER_c2_text">You leave.</text>
   <text name="event_LANIUS_TRADER_c3_choice">Get a second offer: 3-7 fuel, missiles, or drone parts for 20-50 scrap.</text>
   <text name="event_LANIUS_TRADER_c3_text">New trade offer.</text>
-  <text name="event_LANIUS_TRADER_LIST_1_text">Lose 3-7 fuel. Gain 15-30 scrap.</text>
+  <text name="event_LANIUS_TRADER_LIST_1_text">Trade complete.</text>
   <text name="event_LANIUS_TRADER_TRANSLATOR_c1_choice">Make the trade shown.</text>
   <text name="event_LANIUS_TRADER_TRANSLATOR_c2_choice">Nothing happens.</text>
   <text name="event_LANIUS_TRADER_TRANSLATOR_c2_text">You leave.</text>
@@ -1028,7 +1028,7 @@
   <text name="event_SATELLITE_DEFENSE_BORING_1_text">Gain scrap and supplies.</text>
   <text name="event_SAVE_CIVILIAN_LIST_LANIUS_2_text">Gain medium scrap and resources.</text>
   <text name="event_SAVE_CIVILIAN_LIST_LANIUS_3_text">Gain low scrap and resources.</text>
-  <text name="event_SAVE_CIVILIAN_LIST_LANIUS_4_text">Weapon offer.</text>
+  <text name="event_SAVE_CIVILIAN_LIST_LANIUS_4_text">Gain a weapon.</text>
   <text name="event_SAVE_CIVILIAN_LIST_LANIUS_5_text">Repair 5 hull.</text>
   <text name="event_SAVE_CIVILIAN_LIST_LANIUS_6_text">No effect.</text>
   <text name="event_SAVE_ENGI_STATION_1_text">Nothing happens.</text>
@@ -1319,7 +1319,7 @@
   <text name="ship_JELLY_STATUS_MEDBAY_destroyed_text">Gain high scrap and resources. Systems restored.</text>
   <text name="ship_JELLY_STATUS_OXYGEN_deadCrew_text">Gain medium scrap and resources. Oxygen restored.</text>
   <text name="ship_JELLY_STATUS_OXYGEN_destroyed_text">Gain medium scrap and resources. Oxygen restored.</text>
-  <text name="ship_JELLY_STATUS_OXYGEN_FIRE_deadCrew_text">Gain medium scrap and resources. Systems restored.</text>
+  <text name="ship_JELLY_STATUS_OXYGEN_FIRE_deadCrew_text">Gain high scrap and resources. Systems restored.</text>
   <text name="ship_JELLY_STATUS_SHIELDS_deadCrew_text">Gain high scrap and resources. Shields restored.</text>
   <text name="ship_JELLY_STATUS_SHIELDS_destroyed_text">Gain medium scrap and resources. Shields restored.</text>
   <text name="ship_JELLY_STATUS_WEAPONS_deadCrew_text">Gain high scrap and resources. Weapons restored.</text>

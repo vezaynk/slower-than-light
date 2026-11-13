@@ -96,7 +96,10 @@ describe("Engi ship with Mantis crew", () => {
       listen(g);
       fillerChoose(g, "s:confused-mantis:shuttle");
       const body = g.event?.body ?? "";
-      if (body === eventText("event_CONFUSED_MANTIS_DEFAULT_1_text") && ids(g).includes("s:confused-mantis:return")) {
+      if (
+        body === eventText("event_CONFUSED_MANTIS_DEFAULT_1_text") &&
+        ids(g).includes("s:confused-mantis:return")
+      ) {
         home = true;
         assert.ok(ids(g).includes("s:confused-mantis:return"));
         assert.equal(players(g).length, crew);
@@ -134,10 +137,13 @@ describe("Engi ship with Mantis crew", () => {
       const crew = players(g).length;
       listen(g);
       fillerChoose(g, "s:confused-mantis:shuttle");
-      if (!(g.event?.body ?? "").includes(eventText("event_CONFUSED_MANTIS_DEFAULT_2_text"))) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_CONFUSED_MANTIS_DEFAULT_2_text")))
+        continue;
       seen = true;
       assert.equal(players(g).length, crew);
-      assert.ok((g.event?.body ?? "").includes(eventText("event_CONFUSED_MANTIS_DEFAULT_2_c0_clone")));
+      assert.ok(
+        (g.event?.body ?? "").includes(eventText("event_CONFUSED_MANTIS_DEFAULT_2_c0_clone")),
+      );
       assert.match(g.event?.body ?? "", /revived/);
     }
     assert.equal(seen, true);

@@ -58,7 +58,10 @@ describe("Optional fight: pirate ship and civilian (Lanius)", () => {
     const crew = destroyed.crew.filter((c) => c.side === "player").length;
     assert.equal(pageWin(destroyed, "pirate-ship-attacking-civilian-lanius", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, textRe("ship_PIRATE_CIVILIAN_destroyed_text", "ship_PIRATE_REFUGEE_destroyed_text"));
+    assert.match(
+      body,
+      textRe("ship_PIRATE_CIVILIAN_destroyed_text", "ship_PIRATE_REFUGEE_destroyed_text"),
+    );
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -75,7 +78,16 @@ describe("Optional fight: pirate ship and civilian (Lanius)", () => {
     open(killed);
     assert.equal(pageWin(killed, "pirate-ship-attacking-civilian-lanius", true), true);
     const killedBody = killed.event?.body ?? "";
-    assert.match(killedBody, textRe("ship_LANIUS_CIVILIAN_deadCrew_text", "ship_LANIUS_CIVILIAN_destroyed_text", "ship_PIRATE_CIVILIAN_deadCrew_text", "ship_PIRATE_CIVILIAN_destroyed_text", "ship_REBEL_AUTO_CIVILIAN_destroyed_text"));
+    assert.match(
+      killedBody,
+      textRe(
+        "ship_LANIUS_CIVILIAN_deadCrew_text",
+        "ship_LANIUS_CIVILIAN_destroyed_text",
+        "ship_PIRATE_CIVILIAN_deadCrew_text",
+        "ship_PIRATE_CIVILIAN_destroyed_text",
+        "ship_REBEL_AUTO_CIVILIAN_destroyed_text",
+      ),
+    );
     const high = scraps(killedBody);
     assert.equal(high.length, 1, killedBody);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, killedBody);

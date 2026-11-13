@@ -5,14 +5,10 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { eventText } from "../event-text.ts";
 
-const DULL =
-  eventText("event_FLOATING_CARGO_SCAN_LIST_1_text");
-const SUPPLIES =
-  eventText("event_FLOATING_CARGO_SCAN_LIST_2_text");
-const AMBUSH =
-  eventText("event_FLOATING_CARGO_SCAN_LIST_3_text");
-const FIRE =
-  eventText("event_FLOATING_CARGO_SCAN_LIST_3_c1_text");
+const DULL = eventText("event_FLOATING_CARGO_SCAN_LIST_1_text");
+const SUPPLIES = eventText("event_FLOATING_CARGO_SCAN_LIST_2_text");
+const AMBUSH = eventText("event_FLOATING_CARGO_SCAN_LIST_3_text");
+const FIRE = eventText("event_FLOATING_CARGO_SCAN_LIST_3_c1_text");
 const SENSORS = "c:destroyed-cargo-ship:2";
 const SCANNERS = "c:destroyed-cargo-ship:3";
 

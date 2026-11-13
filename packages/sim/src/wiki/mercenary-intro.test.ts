@@ -44,8 +44,7 @@ describe("The mercenary intro", () => {
 
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_MERCENARY_c3_text");
+    const lead = eventText("event_MERCENARY_c3_text");
     choose(g, "c:the-mercenary:1");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);

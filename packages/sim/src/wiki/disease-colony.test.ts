@@ -105,14 +105,14 @@ describe("Distress: colony riot", () => {
       open(g);
       fillerChoose(g, "c:unknown-disease-on-mining-colony:0");
       const body = g.event?.body ?? "";
-      if ((body).includes(eventText("event_DISTRESS_STATION_DISEASE_LIST_2_text"))) {
+      if (body.includes(eventText("event_DISTRESS_STATION_DISEASE_LIST_2_text"))) {
         lost = true;
         assert.equal(g.crew.length, crew - 1);
         assert.equal(g.player.weapons.length, weapons);
         mediumStuff(body);
       } else {
         quiet = true;
-        assert.ok((body).includes(eventText("event_DISTRESS_STATION_DISEASE_LIST_1_text")));
+        assert.ok(body.includes(eventText("event_DISTRESS_STATION_DISEASE_LIST_1_text")));
         assert.equal(g.crew.length, crew);
         assert.equal(g.scrap, 10);
       }
@@ -137,9 +137,12 @@ describe("Distress: colony riot", () => {
       const crew = g.crew.length;
       open(g);
       fillerChoose(g, "c:unknown-disease-on-mining-colony:0");
-      if (!(g.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_DISEASE_LIST_2_text"))) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_DISEASE_LIST_2_text")))
+        continue;
       seen = true;
-      assert.ok((g.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_DISEASE_LIST_2_c0_clone")));
+      assert.ok(
+        (g.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_DISEASE_LIST_2_c0_clone")),
+      );
       assert.equal(/revived/.test(g.event?.body ?? ""), false);
       assert.equal(g.crew.length, crew - 1);
     }
@@ -164,7 +167,9 @@ describe("Distress: colony riot", () => {
     const crew = rock.crew.length;
     open(rock);
     fillerChoose(rock, "c:unknown-disease-on-mining-colony:2");
-    assert.ok((rock.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_DISEASE_c3_text")));
+    assert.ok(
+      (rock.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_DISEASE_c3_text")),
+    );
     assert.equal(rock.crew.length, crew);
     mediumStuff(rock.event?.body ?? "");
 
@@ -173,7 +178,9 @@ describe("Distress: colony riot", () => {
     const aboard = engi.crew.length;
     open(engi);
     fillerChoose(engi, "c:unknown-disease-on-mining-colony:3");
-    assert.ok((engi.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_DISEASE_c4_text")));
+    assert.ok(
+      (engi.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_DISEASE_c4_text")),
+    );
     assert.equal(engi.crew.length, aboard);
     mediumStuff(engi.event?.body ?? "");
   });
@@ -203,7 +210,7 @@ describe("Distress: colony riot", () => {
     assert.ok(bots.event?.choices.some((c) => c.id === "s:unknown-disease:medbot"));
     fillerChoose(bots, "s:unknown-disease:medbot");
     const body = bots.event?.body ?? "";
-    assert.ok((body).includes(eventText("event_DISTRESS_STATION_DISEASE_c5_c2_text")));
+    assert.ok(body.includes(eventText("event_DISTRESS_STATION_DISEASE_c5_c2_text")));
     const got = reward(body);
     assert.ok(got.scrap >= 19 && got.scrap <= 23);
     assert.equal(got.fuel, 0);

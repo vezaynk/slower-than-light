@@ -4,11 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const INTROS = [
-  "2-4 Mantis boarders.",
-  "2-4 Mantis boarders.",
-  "2-4 Mantis boarders.",
-];
+const INTROS = ["2-4 Mantis boarders.", "2-4 Mantis boarders.", "2-4 Mantis boarders."];
 
 function beacon(): Beacon {
   return {

@@ -5,8 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { eventText } from "../event-text.ts";
 
-const INTRO =
-  eventText("event_NEBULA_TRADER_text");
+const INTRO = eventText("event_NEBULA_TRADER_text");
 
 const TAKE =
   /^c:trade-resources-in-nebula:take:(fuel|missiles|parts):(\d+):(fuel|missiles|parts):(\d+)$/;

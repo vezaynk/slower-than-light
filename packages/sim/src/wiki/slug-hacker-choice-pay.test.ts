@@ -5,7 +5,9 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { eventText } from "../event-text.ts";
 
-const BODY = [eventText("event_NEBULA_SLUG_CHOOSE_DEATH_c4_text"), "You avoided the fight."].join("\n\n");
+const BODY = [eventText("event_NEBULA_SLUG_CHOOSE_DEATH_c4_text"), "You avoided the fight."].join(
+  "\n\n",
+);
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

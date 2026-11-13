@@ -43,8 +43,7 @@ describe("Mantis ship attacking civilian intro", () => {
     const before = g.crew.filter((c) => c.side === "player").length;
     open(g);
     choose(g, "c:mantis-ship-attacking-civilian:0");
-    const lead =
-      eventText("event_MANTIS_CIVILIAN_c1_text");
+    const lead = eventText("event_MANTIS_CIVILIAN_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);

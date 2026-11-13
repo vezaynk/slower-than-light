@@ -154,12 +154,11 @@ const ARRIVE: QuestPart["arrive"] = {
     const unlocked = grantUnlock(g, "PLAYER_SHIP_CRYSTAL"); // @agent:unlocks. Ancient device: "You unlock the Crystal Cruiser".
     const offer = scrapOnly(g, "medium");
     offer.fuel = between(g, resourceBand("fuel", "medium"));
-    result(
-      g,
-      eventText("event_CRYSTAL_UNLOCK_text"),
-      offer,
-      [unlocked, grantAug(g, "CRYSTAL_SHARDS"), repair(g, 10)],
-    );
+    result(g, eventText("event_CRYSTAL_UNLOCK_text"), offer, [
+      unlocked,
+      grantAug(g, "CRYSTAL_SHARDS"),
+      repair(g, 10),
+    ]);
   },
   "rock-shipyard": (g) => {
     // Wiki citations:
@@ -217,11 +216,7 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "Fight a Rock ship (default rewards)." — [[Ancient device]]
     // ROCK_SHIP keeps the Rock surrender row (surrender.ts).
     if (rand(g) < 0.5) {
-      result(
-        g,
-        eventText("event_ROCK_CRYSTAL_BEACON_LIST_1_text"),
-        scrapOnly(g, "high"),
-      );
+      result(g, eventText("event_ROCK_CRYSTAL_BEACON_LIST_1_text"), scrapOnly(g, "high"));
     } else {
       pageFight(
         g,
@@ -259,10 +254,7 @@ const CHOICES_A: QuestPart["choices"] = {
     // Wiki citations:
     // > "Nothing happens." — [[Rock war vessel encounter]]
     // > "If the Federation is as weak as you it deserves to fall." — [[Rock war vessel encounter]]
-    result(
-      g,
-      eventText("event_ROCK_UNLOCK1_c3_text"),
-    );
+    result(g, eventText("event_ROCK_UNLOCK1_c3_text"));
   },
   // INFERRED: no surrender (the page prints none). The M-class star's flares are rules/flare.ts eventHasFlare("quest-rock-sun"): the arrival page's `<environment type="sun">`.
   "qa:rock-sun:fight": (g) => {
@@ -313,8 +305,14 @@ const CHOICES_A: QuestPart["choices"] = {
       // {{Winning|surrender=true|...}}. INFERRED: no threshold is printed and the ship cannot fight back, so the offer
       // opens with the fight. Zoltan ships otherwise never surrender (surrender.ts), so this card is the only one.
       card(g, eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_text"), [
-        { id: "qa:uzt:finish", label: eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_c1_choice") },
-        { id: "qa:uzt:go", label: eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_c2_choice") },
+        {
+          id: "qa:uzt:finish",
+          label: eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_c1_choice"),
+        },
+        {
+          id: "qa:uzt:go",
+          label: eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_c2_choice"),
+        },
       ]);
     } else {
       pageFight(
@@ -338,19 +336,13 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "You power down your weapons and after a time the ship slowly limps away." — [[Unarmed Zoltan transport]]
     // > "Nothing happens." — [[Unarmed Zoltan transport]]
     closeFight(g);
-    result(
-      g,
-      eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_c2_text"),
-    );
+    result(g, eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_c2_text"));
   },
   "c:unarmed-zoltan-transport:2": (g) => {
     // Wiki citations:
     // > "The galaxy is at war - there's no time for talk of peace." — [[Unarmed Zoltan transport]]
     // > "Nothing happens." — [[Unarmed Zoltan transport]]
-    result(
-      g,
-      eventText("event_ZOLTAN_PEACE_QUEST_c3_text"),
-    );
+    result(g, eventText("event_ZOLTAN_PEACE_QUEST_c3_text"));
   },
   // Quest Marker. Every Rebel fight here is "(default rewards)", so no PAGE wins entry.
   "qa:peace:attack": (g) => {
@@ -365,46 +357,35 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "Perhaps there could be a reconciliation of our ideals without war?" — [[Unarmed Zoltan transport#Quest Marker]]
     // > "Surrender. Your ultimate destruction is inevitable." — [[Unarmed Zoltan transport#Quest Marker]]
     // > "Your Rebellion is causing millions of deaths." — [[Unarmed Zoltan transport#Quest Marker]]
-    card(
-      g,
-      eventText("event_ZOLTAN_PEACE_QUEST2_c2_text"),
-      [
-        {
-          id: "qa:peace:reconcile",
-          label: eventText("event_ZOLTAN_PEACE_QUEST2_c2_c1_choice"),
-        },
-        {
-          id: "qa:peace:surrender",
-          label:
-            eventText("event_ZOLTAN_PEACE_QUEST2_c2_c2_choice"),
-        },
-        {
-          id: "qa:peace:unity",
-          label:
-            eventText("event_ZOLTAN_PEACE_QUEST2_c2_c3_choice"),
-        },
-      ],
-    );
+    card(g, eventText("event_ZOLTAN_PEACE_QUEST2_c2_text"), [
+      {
+        id: "qa:peace:reconcile",
+        label: eventText("event_ZOLTAN_PEACE_QUEST2_c2_c1_choice"),
+      },
+      {
+        id: "qa:peace:surrender",
+        label: eventText("event_ZOLTAN_PEACE_QUEST2_c2_c2_choice"),
+      },
+      {
+        id: "qa:peace:unity",
+        label: eventText("event_ZOLTAN_PEACE_QUEST2_c2_c3_choice"),
+      },
+    ]);
   },
   "qa:peace:reconcile": (g) => {
     // Wiki citations:
     // > "The galaxy is huge, you can find a place for your ideals elsewhere without causing this destruction." — [[Unarmed Zoltan transport#Quest Marker]]
     // > "True progress can only be achieved without bloodshed." — [[Unarmed Zoltan transport#Quest Marker]]
-    card(
-      g,
-      eventText("event_ZOLTAN_PEACE_QUEST2_c2_c1_text"),
-      [
-        {
-          id: "qa:peace:elsewhere",
-          label:
-            eventText("event_ZOLTAN_PEACE_QUEST2_c2_c1_c1_choice"),
-        },
-        {
-          id: "qa:peace:bloodless",
-          label: eventText("event_ZOLTAN_PEACE_QUEST2_c2_c1_c2_choice"),
-        },
-      ],
-    );
+    card(g, eventText("event_ZOLTAN_PEACE_QUEST2_c2_c1_text"), [
+      {
+        id: "qa:peace:elsewhere",
+        label: eventText("event_ZOLTAN_PEACE_QUEST2_c2_c1_c1_choice"),
+      },
+      {
+        id: "qa:peace:bloodless",
+        label: eventText("event_ZOLTAN_PEACE_QUEST2_c2_c1_c2_choice"),
+      },
+    ]);
   },
   "qa:peace:elsewhere": (g) => {
     // Wiki citations:
@@ -479,11 +460,7 @@ const CHOICES_A: QuestPart["choices"] = {
       ["ambush", 1],
     ] as ["study" | "ambush", number][]);
     if (r === "study") {
-      result(
-        g,
-        eventText("event_ZOLTAN_CREW_STUDY_LIST_1_text"),
-        scrapOnly(g, "low"),
-      );
+      result(g, eventText("event_ZOLTAN_CREW_STUDY_LIST_1_text"), scrapOnly(g, "low"));
       return;
     }
     pageFight(
@@ -507,12 +484,9 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "Thank you! We didn't expect to receive such a significant amount of data regarding your crew's health during FTL travel." — [[Zoltan research facility]]
     // > "You receive a drone schematic with low resources and scrap." — [[Zoltan research facility]]
     if (medbayLevel(g) < 3) return;
-    result(
-      g,
-      eventText("event_ZOLTAN_CREW_STUDY_c3_text"),
-      rollSurrenderOffer(g, "low", true),
-      [grantRandomItem(g, "drone")],
-    );
+    result(g, eventText("event_ZOLTAN_CREW_STUDY_c3_text"), rollSurrenderOffer(g, "low", true), [
+      grantRandomItem(g, "drone"),
+    ]);
   },
   // Zoltan quest primitives. Interfere: a Zoltan fight. Both endings double pursuit for 1 jump (pageWin).
   "c:zoltan-quest-primitives:0": (g) => {
@@ -585,10 +559,7 @@ const CHOICES_A: QuestPart["choices"] = {
       );
       boarders(g, "Zoltan", "energy", 2, 4);
     } else {
-      zoltanHub(
-        g,
-        eventText("event_ZOLTAN_TRADE_HUB_TALK_2_text"),
-      );
+      zoltanHub(g, eventText("event_ZOLTAN_TRADE_HUB_TALK_2_text"));
     }
   },
   "c:zoltan-trade-hub:1": (g) => {
@@ -596,10 +567,7 @@ const CHOICES_A: QuestPart["choices"] = {
     // > "(Teleporter) Beam directly to the civilian deck." — [[Zoltan trade hub]]
     // > "You re-materialize in a dark corner of the main concourse and are able to conduct your investigations in peace." — [[Zoltan trade hub]]
     if (!hasTeleporter(g)) return;
-    zoltanHub(
-      g,
-      eventText("event_ZOLTAN_TRADE_HUB_c2_text"),
-    );
+    zoltanHub(g, eventText("event_ZOLTAN_TRADE_HUB_c2_text"));
   },
   "c:zoltan-trade-hub:2": (g) => {
     // Wiki citations:
@@ -609,40 +577,28 @@ const CHOICES_A: QuestPart["choices"] = {
     const cost = affordStock(g, "c:zoltan-trade-hub:2", "scrap");
     if (!hasZoltan(g) || cost == null) return;
     takeStock(g, "scrap", cost);
-    zoltanHub(
-      g,
-      `${eventText("event_ZOLTAN_TRADE_HUB_c3_text")}\n\n${scrapLine(cost)}`,
-    );
+    zoltanHub(g, `${eventText("event_ZOLTAN_TRADE_HUB_c3_text")}\n\n${scrapLine(cost)}`);
   },
   "c:zoltan-trade-hub:3": (g) =>
     // Wiki citations:
     // > "Nothing happens." — [[Zoltan trade hub]]
     // > "You don't have the papers" — [[Zoltan trade hub]]
-    result(
-      g,
-      eventText("event_ZOLTAN_TRADE_HUB_c4_text"),
-    ),
+    result(g, eventText("event_ZOLTAN_TRADE_HUB_c4_text")),
 
   // ---- Rock bride ----
   "c:rock-bride:1": (g) =>
     // Wiki citations:
     // > "Nothing happens." — [[Rock bride]]
     // > "Arranged marriages aren't on your list of worthy causes." — [[Rock bride]]
-    result(
-      g,
-      eventText("event_ROCK_QUEST_MARRIAGE_START_c2_text"),
-    ),
+    result(g, eventText("event_ROCK_QUEST_MARRIAGE_START_c2_text")),
   // The augmentation is not named: Rewards, "Augment": "A random augmentation and T scrap."
   "qa:bride:hand": (g) => {
     // Wiki citations:
     // > "Hand her over." — [[Rock bride#Quest Marker]]
     // > "You receive an augmentation with low scrap." — [[Rock bride#Quest Marker]]
-    result(
-      g,
-      eventText("event_ROCK_QUEST_MARRIAGE_c1_c1_text"),
-      scrapOnly(g, "low"),
-      [grantRandomItem(g, "augment")],
-    );
+    result(g, eventText("event_ROCK_QUEST_MARRIAGE_c1_c1_text"), scrapOnly(g, "low"), [
+      grantRandomItem(g, "augment"),
+    ]);
   },
   "qa:bride:refuse": (g) => {
     // Wiki citations:
@@ -691,7 +647,8 @@ function stdText(
   idK = idD,
   then?: Choice[],
 ): Win {
-  return (g, deadCrew) => std(destroyed, killed, eventText(deadCrew ? idK : idD), undefined, then)(g, deadCrew);
+  return (g, deadCrew) =>
+    std(destroyed, killed, eventText(deadCrew ? idK : idD), undefined, then)(g, deadCrew);
 }
 
 const WINS_A: QuestPart["wins"] = {
@@ -743,23 +700,17 @@ const WINS_A: QuestPart["wins"] = {
       // Wiki citations:
       // > "After killing enemy crew The Rebel contacts you. \"Lovely, you've done our job for us! We'll let you live as thanks. However, I can't promise the fleet will show you the same courtesy.\" They jump off. You collect what you can from the remains of the Zoltan ship." — [[Zoltan quest primitives]]
       // > "Rebel Fleet pursuit is doubled for 1 jump and you receive a random amount of scrap with resources." — [[Zoltan quest primitives]]
-      result(
-        g,
-        eventText("ship_ZOLTAN_PRIMITIVES_ZOLTAN_destroyed_text"),
-        rollStandard(g),
-        ["Rebel Fleet pursuit is doubled for 1 jump."],
-      );
+      result(g, eventText("ship_ZOLTAN_PRIMITIVES_ZOLTAN_destroyed_text"), rollStandard(g), [
+        "Rebel Fleet pursuit is doubled for 1 jump.",
+      ]);
       return;
     }
     // Wiki citations:
     // > "After destroying enemy ship The Rebel contacts you. \"Lovely, you've done our job for us! We'll let you live as thanks. However, I can't promise the fleet will show you the same courtesy.\" They jump off. You collect what you can from the remains of the Zoltan ship." — [[Zoltan quest primitives]]
     // > "Rebel Fleet pursuit is doubled for 1 jump and you receive low scrap with resources." — [[Zoltan quest primitives]]
-    result(
-      g,
-      eventText("ship_ZOLTAN_PRIMITIVES_ZOLTAN_destroyed_text"),
-      rollStandard(g, "low"),
-      ["Rebel Fleet pursuit is doubled for 1 jump."],
-    );
+    result(g, eventText("ship_ZOLTAN_PRIMITIVES_ZOLTAN_destroyed_text"), rollStandard(g, "low"), [
+      "Rebel Fleet pursuit is doubled for 1 jump.",
+    ]);
   },
   // Protect. A weapon with low scrap, or a weapon with medium scrap. The weapon is not named.
   "zoltan-quest-primitives-protect": (g, deadCrew) => {
@@ -767,34 +718,24 @@ const WINS_A: QuestPart["wins"] = {
       // Wiki citations:
       // > "After killing enemy crew The Zoltan hail once the smoke disperses. \"Thank you. We were led to believe Federation ideals died along with the Federation itself. Let us aid you a little, for old times' sake.\" You accept their reward and scrap, then collect some remains from the Rebel ship." — [[Zoltan quest primitives]]
       // > "You receive a weapon with medium scrap." — [[Zoltan quest primitives]]
-      result(
-        g,
-        eventText("ship_ZOLTAN_PRIMITIVES_REBEL_destroyed_text"),
-        scrapOnly(g, "medium"),
-        [grantRandomItem(g, "weapon")],
-      );
+      result(g, eventText("ship_ZOLTAN_PRIMITIVES_REBEL_destroyed_text"), scrapOnly(g, "medium"), [
+        grantRandomItem(g, "weapon"),
+      ]);
       return;
     }
     // Wiki citations:
     // > "After destroying enemy ship The Zoltan hail once the smoke disperses. \"Thank you. We were led to believe Federation ideals died along with the Federation itself. Let us aid you a little, for old times' sake.\" You accept their reward and scrap, then collect some remains from the Rebel ship." — [[Zoltan quest primitives]]
     // > "You receive a weapon with low scrap." — [[Zoltan quest primitives]]
-    result(
-      g,
-      eventText("ship_ZOLTAN_PRIMITIVES_REBEL_destroyed_text"),
-      scrapOnly(g, "low"),
-      [grantRandomItem(g, "weapon")],
-    );
+    result(g, eventText("ship_ZOLTAN_PRIMITIVES_REBEL_destroyed_text"), scrapOnly(g, "low"), [
+      grantRandomItem(g, "weapon"),
+    ]);
   },
   // Wiki citations:
   // > "After destroying enemy ship His escort eliminated, the Grand Basilisk dispatches his entire fleet. There's just time to take your pick from the wreck before you jump out of reach." — [[Rock bride#Quest Marker]]
   // > "You receive medium scrap with resources." — [[Rock bride#Quest Marker]]
   // > "After killing enemy crew His escort eliminated, the Grand Basilisk dispatches his entire fleet. There's just time to take your pick from the wreck before you jump out of reach." — [[Rock bride#Quest Marker]]
   // > "You receive high scrap with resources." — [[Rock bride#Quest Marker]]
-  "quest-rock-bride": stdText(
-    "medium",
-    "high",
-    "ship_ROCK_QUEST_MARRIAGE_destroyed_text",
-  ),
+  "quest-rock-bride": stdText("medium", "high", "ship_ROCK_QUEST_MARRIAGE_destroyed_text"),
 };
 
 const GOT_AWAY_A: QuestPart["gotAway"] = {
@@ -803,12 +744,9 @@ const GOT_AWAY_A: QuestPart["gotAway"] = {
     // Wiki citations:
     // > "As they jump away they relay coordinates to your navigation system." — [[Rock war vessel encounter#Sun Quest Marker]]
     // > "Another quest marker is added to your map." — [[Rock war vessel encounter#Sun Quest Marker]]
-    result(
-      g,
-      eventText("ship_ROCK_UNLOCK2_gotaway_text"),
-      undefined,
-      [addQuest(g, "rock-shipyard")],
-    );
+    result(g, eventText("ship_ROCK_UNLOCK2_gotaway_text"), undefined, [
+      addQuest(g, "rock-shipyard"),
+    ]);
   },
 };
 

@@ -323,7 +323,9 @@ describe("cited events", () => {
     if (!here.links.includes(sell.id)) here.links.push(sell.id);
     commitJump(shop, sell.id);
     assert.equal(shop.phase, "event");
-    const choice = shop.event?.choices.find((c) => c.label === "Lose 3 drone parts. Gain 12 scrap.");
+    const choice = shop.event?.choices.find(
+      (c) => c.label === "Lose 3 drone parts. Gain 12 scrap.",
+    );
     assert.ok(choice);
     choose(shop, choice.id);
     assert.equal(shop.phase, "event");
@@ -454,8 +456,7 @@ describe("crew entirely composed of Mantis", () => {
         "ZOLTAN_DISTRESS_MANTIS",
         "Optional fight: Zoltan ship or Mantis ship",
       );
-      const lead =
-        eventText("event_ZOLTAN_DISTRESS_MANTIS_c2_text");
+      const lead = eventText("event_ZOLTAN_DISTRESS_MANTIS_c2_text");
       choose(z, "c:zoltan-ship-follows-mantis-ship:1");
       assert.equal(z.phase, "event");
       assert.equal(z.event?.choices[0]?.id, "ship-resume");
@@ -497,7 +498,12 @@ describe("Hostile Zoltan ship with boarders", () => {
       const augments = [...g.augments];
       const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
       const rooms = new Set(g.player.rooms.map((r) => r.id));
-      openCited(g, "Zoltan Controlled Sector", "ZOLTAN_BOARDERS", "Hostile Zoltan ship with boarders");
+      openCited(
+        g,
+        "Zoltan Controlled Sector",
+        "ZOLTAN_BOARDERS",
+        "Hostile Zoltan ship with boarders",
+      );
       choose(g, "c:zoltan-border-police:0");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemy?.faction, "zoltan");
@@ -660,7 +666,12 @@ describe("Hostile Rebel ship with boarders", () => {
       const augments = [...g.augments];
       const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
       const rooms = new Set(g.player.rooms.map((r) => r.id));
-      openCited(g, "Rebel Controlled Sector", "BOARDERS_REBEL_SHIP", "Hostile Rebel ship with boarders");
+      openCited(
+        g,
+        "Rebel Controlled Sector",
+        "BOARDERS_REBEL_SHIP",
+        "Hostile Rebel ship with boarders",
+      );
       choose(g, "c:rebel-fight-with-boarders:0");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemy?.faction, "rebel");
@@ -755,7 +766,12 @@ describe("Hostile Mantis ship with boarders", () => {
       const augments = [...g.augments];
       const crewIds = g.crew.filter((c) => c.side === "player").map((c) => c.id);
       const rooms = new Set(g.player.rooms.map((r) => r.id));
-      openCited(g, "Zoltan Controlled Sector", "ZOLTAN_BOARDERS_MANTIS", "Hostile Mantis ship with boarders");
+      openCited(
+        g,
+        "Zoltan Controlled Sector",
+        "ZOLTAN_BOARDERS_MANTIS",
+        "Hostile Mantis ship with boarders",
+      );
       choose(g, "c:mantis-outcasts:0");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemy?.faction, "mantis");
@@ -859,7 +875,12 @@ describe("Hostile Slug ship: choose a hack", () => {
     assert.equal(shields.player.shieldNow, 1);
 
     const air = createGame(42);
-    openCited(air, "Slug Controlled Nebula", "NEBULA_SLUG_CHOOSE_DEATH", "Hostile Slug ship: choose a hack");
+    openCited(
+      air,
+      "Slug Controlled Nebula",
+      "NEBULA_SLUG_CHOOSE_DEATH",
+      "Hostile Slug ship: choose a hack",
+    );
     air.player.systems.oxygen.level = 2;
     air.player.systems.oxygen.power = 2;
     air.player.systems.oxygen.damage = 0;
@@ -893,7 +914,12 @@ describe("Hostile Slug ship: choose a hack", () => {
     assert.ok(gained > 0.04 && gained < 0.1, String(gained));
 
     const guns = createGame(43);
-    openCited(guns, "Slug Controlled Nebula", "NEBULA_SLUG_CHOOSE_DEATH", "Hostile Slug ship: choose a hack");
+    openCited(
+      guns,
+      "Slug Controlled Nebula",
+      "NEBULA_SLUG_CHOOSE_DEATH",
+      "Hostile Slug ship: choose a hack",
+    );
     guns.player.systems.weapons.level = 2;
     guns.player.systems.weapons.power = 2;
     guns.player.systems.weapons.damage = 0;
@@ -935,8 +961,7 @@ describe("Hostile Engi ship: virus", () => {
     g.player.systems.engines.power = 6;
     g.player.systems.engines.damage = 0;
     g.player.systems.engines.ion = [];
-    const wipe =
-      eventText("event_ENGI_VIRUS_c1_c1_text");
+    const wipe = eventText("event_ENGI_VIRUS_c1_c1_text");
     choose(g, "c:the-engi-virus:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

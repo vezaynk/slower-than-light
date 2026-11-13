@@ -20,8 +20,7 @@ describe("Lanius ship attacking civilian distress escape", () => {
   it("fights a Lanius ship that never escapes", () => {
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_LANIUS_DISTRESS_FIGHT_c1_text");
+    const lead = eventText("event_LANIUS_DISTRESS_FIGHT_c1_text");
     choose(g, "c:lanius-ship-attacking-civilian-distress:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

@@ -14,10 +14,8 @@ const FARM = eventText("event_REBEL_HELPERS_SUPPLIES_1_text");
 const SCRAP = eventText("event_REBEL_HELPERS_SUPPLIES_3_text");
 const TRAP = eventText("event_REBEL_HELPERS_SUPPLIES_4_text");
 const PLAGUE = eventText("event_REBEL_HELPERS_SUPPLIES_2_text");
-const DESTROYED =
-  eventText("ship_REBEL_HELPERS_SHIP_destroyed_text");
-const CREW =
-  eventText("ship_REBEL_HELPERS_SHIP_deadCrew_text");
+const DESTROYED = eventText("ship_REBEL_HELPERS_SHIP_destroyed_text");
+const CREW = eventText("ship_REBEL_HELPERS_SHIP_deadCrew_text");
 const LEAVE_LINES = [
   eventText("text_REBEL_HELPER_NO_SUPPLIES_TEXT_1"),
   eventText("text_REBEL_HELPER_NO_SUPPLIES_TEXT_2"),

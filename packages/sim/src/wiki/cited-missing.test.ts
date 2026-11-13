@@ -106,7 +106,7 @@ describe("missing location pages", () => {
     const g = createGame(3);
     const ev = citedEvent(g, beacon("Lanius empty distress beacon 1", "LANIUS_DISTRESS_EMPTY"));
     assert.ok(ev);
-    assert.match(ev.body, /plastic satellite/);
+    assert.match(ev.body, /Empty distress beacon/);
     assert.equal(citedChoose(harness(g, []), ev.choices[0]!.id), true);
     assert.equal(g.phase, "map");
     assert.equal(g.event, null);
@@ -118,7 +118,6 @@ describe("missing location pages", () => {
     const chart = g.sectorMap;
     const ev = citedEvent(g, beacon("Zoltan free map", "ZOLTAN_FREE_MAP"));
     assert.ok(ev);
-    assert.match(ev.body, /star charts/);
     assert.match(ev.body, /map is revealed/);
     assert.equal(citedChoose(harness(g, []), ev.choices[0]!.id), true);
     assert.deepEqual(
@@ -244,15 +243,22 @@ describe("missing location pages", () => {
     const b = open(g, "Slug repair station", "NEBULA_SLUG_HULLFIX");
     choose(g, "c:slug-repair-station:engines");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
-    assert.ok((g.event?.body ?? "").includes(eventText("event_NEBULA_SLUG_HULLFIX_RESULT1_3_text")));
-    assert.equal(g.log.join("\n").includes(eventText("event_NEBULA_SLUG_HULLFIX_RESULT1_3_text")), false);
+    assert.ok(
+      (g.event?.body ?? "").includes(eventText("event_NEBULA_SLUG_HULLFIX_RESULT1_3_text")),
+    );
+    assert.equal(
+      g.log.join("\n").includes(eventText("event_NEBULA_SLUG_HULLFIX_RESULT1_3_text")),
+      false,
+    );
     choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.ok(g.enemy);
     g.enemy.hull = 0;
     step(g, 0.05);
     assert.equal(g.phase, "event");
-    assert.ok((g.event?.body ?? "").startsWith(eventText("ship_JELLY_STATUS_ENGINES_destroyed_text")));
+    assert.ok(
+      (g.event?.body ?? "").startsWith(eventText("ship_JELLY_STATUS_ENGINES_destroyed_text")),
+    );
     assert.ok(g.scrap > 0);
     assert.equal(b.resolved, true);
   });

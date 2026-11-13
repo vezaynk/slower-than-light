@@ -2,8 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { choose, commitJump, createGame } from "../sim.ts";
 
-const BODY =
-  "Hostile Slug ship.";
+const BODY = "Hostile Slug ship.";
 
 describe("Hostile Slug ship", () => {
   it("shows the arrival card, then starts the Slug fight", () => {

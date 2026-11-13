@@ -16,8 +16,7 @@ function open(g: Game) {
   assert.equal(g.event?.title, "Optional fight: two Engi ships");
 }
 
-const LEAD =
-  eventText("event_ENGI_SEX_c1_text");
+const LEAD = eventText("event_ENGI_SEX_c1_text");
 
 describe("Engi smashed ships pry", () => {
   it("shows the hostile sentence on the continue card and fights an Engi ship", () => {

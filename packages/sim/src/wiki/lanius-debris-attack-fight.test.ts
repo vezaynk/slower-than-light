@@ -20,8 +20,7 @@ describe("Lanius ship in rich debris field attack fight", () => {
   it("attacking shows the printed lead-in on the card and fights a Lanius ship", () => {
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_LANIUS_HARVESTER_c4_text");
+    const lead = eventText("event_LANIUS_HARVESTER_c4_text");
     choose(g, "c:lanius-ship-in-rich-debris-field:1");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);

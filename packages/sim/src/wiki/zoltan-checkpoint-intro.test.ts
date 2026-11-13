@@ -4,8 +4,7 @@ import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const BODY =
-  "Checkpoint. Crew scan.";
+const BODY = "Checkpoint. Crew scan.";
 
 describe("Zoltan security checkpoint intro", () => {
   it("prints the hail with the checkpoint sentence", () => {

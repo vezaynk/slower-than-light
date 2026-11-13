@@ -7,8 +7,7 @@ import { eventText } from "../event-text.ts";
 
 const ID = "c:refueling-platform:1";
 const LABEL = "Fight the pirate ship.";
-const BAIT =
-  eventText("event_FUELING_STATION_IGNORE_1_text");
+const BAIT = eventText("event_FUELING_STATION_IGNORE_1_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

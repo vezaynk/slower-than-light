@@ -471,14 +471,10 @@ function crystalFightAccept(g: Game) {
   if (kind === "soldier") {
     // Wiki citations:
     // > "What appears to be a young soldier pushes its way onto the vid screen, \"A captain both able and merciful? I have always wanted to explore beyond our restricted sector... Please, permit me to join your crew?\"" — [[Crystal fight#The ship surrenders]]
-    pageCard(
-      g,
-      eventText("event_CRYSTAL_SHIP_SURRENDER_7_text"),
-      [
-        { id: "s:crystal-fight:yes", label: eventText("event_CRYSTAL_SHIP_SURRENDER_7_c1_choice") },
-        { id: "s:crystal-fight:no", label: eventText("event_CRYSTAL_SHIP_SURRENDER_7_c2_choice") },
-      ],
-    );
+    pageCard(g, eventText("event_CRYSTAL_SHIP_SURRENDER_7_text"), [
+      { id: "s:crystal-fight:yes", label: eventText("event_CRYSTAL_SHIP_SURRENDER_7_c1_choice") },
+      { id: "s:crystal-fight:no", label: eventText("event_CRYSTAL_SHIP_SURRENDER_7_c2_choice") },
+    ]);
     g.paused = true;
     return;
   }
@@ -569,10 +565,7 @@ export function surrenderChoose(g: Game, id: string): boolean {
     g.phase = "combat";
     g.paused = false;
     if (joined && plan.event === "crystal-fight-with-surrender-offer-human-crew") {
-      log(
-        g,
-        eventText("ship_CRYSTAL_HUNTER_surrender_c1_text"),
-      );
+      log(g, eventText("ship_CRYSTAL_HUNTER_surrender_c1_text"));
       log(g, "You receive a Human crewmember and the fight continues.");
     } else if (joined) {
       log(g, `A ${offer.crew} crewmember joins you. The fight continues.`);
@@ -912,10 +905,7 @@ function cargoScan(g: Game) {
       between(g, [lo, hi]),
     );
     if (eligible == null) {
-      pageResult(
-        g,
-        eventText("event_FLOATING_CARGO_SCAN_LIST_1_text"),
-      );
+      pageResult(g, eventText("event_FLOATING_CARGO_SCAN_LIST_1_text"));
       return;
     }
     const offer: SurrenderOffer = {
@@ -927,39 +917,30 @@ function cargoScan(g: Game) {
       parts: 0,
     };
     offer.scrap = adjustScrap(g, eligible);
-    pageResult(
-      g,
-      eventText("event_FLOATING_CARGO_SCAN_LIST_1_text"),
-      offer,
-    );
+    pageResult(g, eventText("event_FLOATING_CARGO_SCAN_LIST_1_text"), offer);
     return;
   }
   if (r === "supplies") {
     // Wiki citations:
     // > "Your Advanced Sensors are able to breach the protective barrier and scan the cargo. It appears to be filled with military supplies! You take everything you can use." — [[Destroyed cargo ship#Scan the boxes]]
     // > "You receive medium scrap with resources." — [[Destroyed cargo ship#Scan the boxes]]
-    pageResult(
-      g,
-      eventText("event_FLOATING_CARGO_SCAN_LIST_2_text"),
-      rollStandard(g, "medium"),
-    );
+    pageResult(g, eventText("event_FLOATING_CARGO_SCAN_LIST_2_text"), rollStandard(g, "medium"));
     return;
   }
   // Wiki citations:
   // > "Your advanced sensors pick up faint life signatures inside the cargo. The life forms appear to be armed. This looks like a planned pirate ambush." — [[Destroyed cargo ship#Scan the boxes]]
   // > "Destroy the crates to prevent another ship from falling victim." — [[Destroyed cargo ship#Scan the boxes]]
   // > "Leave it alone and prepare to jump." — [[Destroyed cargo ship#Scan the boxes]]
-  pageCard(
-    g,
-    eventText("event_FLOATING_CARGO_SCAN_LIST_3_text"),
-    [
-      {
-        id: "s:destroyed-cargo-ship:destroy",
-        label: eventText("event_FLOATING_CARGO_SCAN_LIST_3_c1_choice"),
-      },
-      { id: "s:destroyed-cargo-ship:leave", label: eventText("event_FLOATING_CARGO_SCAN_LIST_3_c2_choice") },
-    ],
-  );
+  pageCard(g, eventText("event_FLOATING_CARGO_SCAN_LIST_3_text"), [
+    {
+      id: "s:destroyed-cargo-ship:destroy",
+      label: eventText("event_FLOATING_CARGO_SCAN_LIST_3_c1_choice"),
+    },
+    {
+      id: "s:destroyed-cargo-ship:leave",
+      label: eventText("event_FLOATING_CARGO_SCAN_LIST_3_c2_choice"),
+    },
+  ]);
 }
 
 export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
@@ -970,19 +951,12 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       // Wiki citations:
       // > "The Engi seem relieved, and eager to get underway. They set off without saying goodbye." — [[Engi surrender]]
       // > "Nothing happens." — [[Engi surrender]]
-      pageResult(
-        g,
-        eventText("event_ENGI_SURRENDER_LIST_1_text"),
-      );
+      pageResult(g, eventText("event_ENGI_SURRENDER_LIST_1_text"));
     } else {
       // Wiki citations:
       // > "The Engi are satisfied with your explanation. \"Beneficial. Subject goal: long, long journey. Remains compatible with transfer of goods from Engi.\" They send over the gear willingly, and you feel better for it." — [[Engi surrender]]
       // > "You receive a random amount of scrap with resources." — [[Engi surrender]]
-      pageResult(
-        g,
-        eventText("event_ENGI_SURRENDER_LIST_2_text"),
-        rollStandard(g),
-      );
+      pageResult(g, eventText("event_ENGI_SURRENDER_LIST_2_text"), rollStandard(g));
     }
   },
   // Accept their offer of surrender. -> "You receive a random amount of scrap with resources."
@@ -990,11 +964,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "The Engi obediently transfer over the goods and get on their way. Money for nothing." — [[Engi surrender]]
     // > "You receive a random amount of scrap with resources." — [[Engi surrender]]
-    pageResult(
-      g,
-      eventText("event_ENGI_SURRENDER_c2_text"),
-      rollStandard(g),
-    );
+    pageResult(g, eventText("event_ENGI_SURRENDER_c2_text"), rollStandard(g));
   },
 
   // ---- "Destroyed cargo ship", Bring it aboard. Four results on the page, no odds (equal, INFERRED). ----
@@ -1005,11 +975,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
       // Wiki citations:
       // > "They appear to be filled with military supplies! You take everything you can use and jettison the rest." — [[Destroyed cargo ship]]
       // > "You receive medium scrap with resources." — [[Destroyed cargo ship]]
-      pageResult(
-        g,
-        eventText("event_FLOATING_CARGO_LIST_1_text"),
-        rollStandard(g, "medium"),
-      );
+      pageResult(g, eventText("event_FLOATING_CARGO_LIST_1_text"), rollStandard(g, "medium"));
     } else if (r === "goods") {
       // Wiki citations:
       // > "The cargo was primarily consumer goods and clothing, nothing particularly useful. You manage to collect some scrap." — [[Destroyed cargo ship]]
@@ -1023,19 +989,13 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
         parts: 0,
       };
       offer.scrap = adjustScrap(g, offer.eligible);
-      pageResult(
-        g,
-        eventText("event_FLOATING_CARGO_LIST_2_text"),
-        offer,
-      );
+      pageResult(g, eventText("event_FLOATING_CARGO_LIST_2_text"), offer);
     } else if (r === "boarders") {
       // Wiki citations:
       // > "Once you bring the cargo onto your ship, a pirate bursts out of one of the crates saying, \"Ugh... I was getting cramped in there. Oh, yeah! Prepare to die!\" Immediately after this battle-cry your ship is filled with the sound of crates breaking open..." — [[Destroyed cargo ship]]
       humanBoarders(g, 2, 4);
       beginBoarding(g);
-      showEventLines(g, [
-        eventText("event_FLOATING_CARGO_LIST_3_text"),
-      ]);
+      showEventLines(g, [eventText("event_FLOATING_CARGO_LIST_3_text")]);
     } else {
       // Wiki citations:
       // > "You bring the cargo aboard. Before you have a chance to open them a pirate ship appears out of hiding and charges. At the same time, the crates fly open. Intruders aboard the ship!" — [[Destroyed cargo ship]]
@@ -1095,27 +1055,31 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     if (rand(g) < 0.5) {
       // Wiki citations:
       // > "\"Some of our friends have taken to piracy in the recent chaos of the war. We'd like you to \"convince\" them of their poor decision by severely damaging the ship. We'll pay you well as long as you don't kill them all.\"" — [[Settlement mercenary work]]
-      pageCard(
-        g,
-        eventText("event_MERCENARY_WORK_LIST_2_text"),
-        [
-          { id: "s:settlement-mercenary-work:accept", label: eventText("event_MERCENARY_WORK_LIST_2_c1_choice") },
-          { id: "s:settlement-mercenary-work:decline", label: eventText("event_MERCENARY_WORK_LIST_1_c2_choice") },
-        ],
-      );
+      pageCard(g, eventText("event_MERCENARY_WORK_LIST_2_text"), [
+        {
+          id: "s:settlement-mercenary-work:accept",
+          label: eventText("event_MERCENARY_WORK_LIST_2_c1_choice"),
+        },
+        {
+          id: "s:settlement-mercenary-work:decline",
+          label: eventText("event_MERCENARY_WORK_LIST_1_c2_choice"),
+        },
+      ]);
     } else {
       // The space dock offer: "Agree to rescue the store." adds a quest marker (@agent:quests, wiki/quests.ts).
       // Wiki citations:
       // > "\"A space dock is under assault from the Rebels. Although the dock is... technically... illegal within their laws, it's very important for our trade. We'll pay you in fuel and scrap if you promise to save them.\"" — [[Settlement mercenary work]]
       // > "Agree to rescue the store." — [[Settlement mercenary work]]
-      pageCard(
-        g,
-        eventText("event_MERCENARY_WORK_LIST_1_text"),
-        [
-          { id: "s:settlement-mercenary-work:dock", label: eventText("event_MERCENARY_WORK_LIST_1_c1_choice") },
-          { id: "s:settlement-mercenary-work:nodock", label: eventText("event_MERCENARY_WORK_LIST_1_c2_choice") },
-        ],
-      );
+      pageCard(g, eventText("event_MERCENARY_WORK_LIST_1_text"), [
+        {
+          id: "s:settlement-mercenary-work:dock",
+          label: eventText("event_MERCENARY_WORK_LIST_1_c1_choice"),
+        },
+        {
+          id: "s:settlement-mercenary-work:nodock",
+          label: eventText("event_MERCENARY_WORK_LIST_1_c2_choice"),
+        },
+      ]);
     }
   },
   // Accept. -> "Fight a Pirate ship." Trivia: "The 'SQUAT_PIRATE_MERCENARY' ship from the settlement never runs away."
@@ -1136,10 +1100,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // Wiki citations:
     // > "\"Fine. I don't know what we'll do about them though...\" You prepare to jump away from this sector." — [[Settlement mercenary work]]
     // > "Nothing happens." — [[Settlement mercenary work]]
-    pageResult(
-      g,
-      eventText("event_MERCENARY_WORK_LIST_2_c2_text"),
-    );
+    pageResult(g, eventText("event_MERCENARY_WORK_LIST_2_c2_text"));
   },
   // "A quest marker is added to your map." @agent:quests: the space dock rescue (wiki/quests.ts "store-rescue").
   "s:settlement-mercenary-work:dock": (g) => {
@@ -1166,16 +1127,12 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // > "Accept his challenge." — [[The Black Raven]]
     // > "Decline." — [[The Black Raven]]
     // > "(Slugman Crew) Engage in a duel of the mind." — [[The Black Raven]]
-    pageCard(
-      g,
-      eventText("event_DONOR_BLACK_RAVEN_c1_text"),
-      [
-        { id: "s:the-black-raven:accept", label: eventText("event_DONOR_BLACK_RAVEN_c1_c1_choice") },
-        { id: "s:the-black-raven:decline", label: eventText("event_DONOR_BLACK_RAVEN_c1_c2_choice") },
-        // {{Blue Option|Slugman Crew|Engage in a duel of the mind.}}
-        { id: "s:the-black-raven:duel", label: eventText("event_DONOR_BLACK_RAVEN_c1_c3_choice") },
-      ],
-    );
+    pageCard(g, eventText("event_DONOR_BLACK_RAVEN_c1_text"), [
+      { id: "s:the-black-raven:accept", label: eventText("event_DONOR_BLACK_RAVEN_c1_c1_choice") },
+      { id: "s:the-black-raven:decline", label: eventText("event_DONOR_BLACK_RAVEN_c1_c2_choice") },
+      // {{Blue Option|Slugman Crew|Engage in a duel of the mind.}}
+      { id: "s:the-black-raven:duel", label: eventText("event_DONOR_BLACK_RAVEN_c1_c3_choice") },
+    ]);
   },
   // Two results, no odds. INFERRED: equal odds. The win gives a weapon with high scrap; the weapon is unnamed, so
   // Rewards, "Weapon": "A random weapon & T scrap."
@@ -1245,7 +1202,9 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     pageResult(
       g,
       `${eventText("event_CRYSTAL_SHIP_SURRENDER_7_c1_text")}\n\n${
-        joined ? "You receive a Crystal crewmember." : "There is no room aboard for their crewmember."
+        joined
+          ? "You receive a Crystal crewmember."
+          : "There is no room aboard for their crewmember."
       }`,
     );
   },
@@ -1255,11 +1214,7 @@ export const PAGE_CHOICES: Record<string, (g: Game) => void> = {
     // > "\"I understand. We did try to kill you...\" They transfer some materials over before leaving." — [[Crystal fight#The ship surrenders]]
     // > "You receive a random amount of resources with some scrap." — [[Crystal fight#The ship surrenders]]
     closeFight(g);
-    pageResult(
-      g,
-      eventText("event_CRYSTAL_SHIP_SURRENDER_7_c2_text"),
-      rollStandard(g),
-    );
+    pageResult(g, eventText("event_CRYSTAL_SHIP_SURRENDER_7_c2_text"), rollStandard(g));
   },
 
   // ---- "Zoltan ship asks to dock", Dock with them. Two results on the page. ----

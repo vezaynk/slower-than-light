@@ -24,8 +24,7 @@ describe("Pirate ship attacking Crystal attack", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:pirate-ship-attacking-crystal:0");
-    const lead =
-      eventText("event_CRYSTAL_PIRATE_CRYSTAL_c1_text");
+    const lead = eventText("event_CRYSTAL_PIRATE_CRYSTAL_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);

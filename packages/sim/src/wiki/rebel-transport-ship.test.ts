@@ -22,10 +22,18 @@ function held(g: Game, kind: "weapon" | "drone"): number {
 
 /** The rows whose sentence hands over a weapon / a drone schematic. */
 function gives(text: string, kind: "weapon" | "drone"): number {
-  if (kind === "drone") return textRe("event_REBEL_TRANSPORT_CAPTURED_4_text", "event_REBEL_TRANSPORT_DESTROYED_5_text").test(text) ? 1 : 0;
-  return textRe("event_REBEL_TRANSPORT_DESTROYED_1_text", "event_REBEL_TRANSPORT_DESTROYED_3_text", "event_REBEL_TRANSPORT_CAPTURED_1_text").test(
-    text,
-  )
+  if (kind === "drone")
+    return textRe(
+      "event_REBEL_TRANSPORT_CAPTURED_4_text",
+      "event_REBEL_TRANSPORT_DESTROYED_5_text",
+    ).test(text)
+      ? 1
+      : 0;
+  return textRe(
+    "event_REBEL_TRANSPORT_DESTROYED_1_text",
+    "event_REBEL_TRANSPORT_DESTROYED_3_text",
+    "event_REBEL_TRANSPORT_CAPTURED_1_text",
+  ).test(text)
     ? 1
     : 0;
 }

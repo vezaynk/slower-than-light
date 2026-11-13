@@ -4,8 +4,7 @@ import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const BODY =
-  "Hostile Lanius ship. Pulsar: ion pulses.";
+const BODY = "Hostile Lanius ship. Pulsar: ion pulses.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

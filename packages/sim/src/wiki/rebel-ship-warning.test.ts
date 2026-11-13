@@ -26,8 +26,7 @@ describe("Fleeing Rebel ship", () => {
     open(g);
     assert.equal(g.event?.body, "Fleeing Rebel ship.");
     assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-ship-warning:0"));
-    const told =
-      eventText("ship_SQUAT_WARNING_escape_text");
+    const told = eventText("ship_SQUAT_WARNING_escape_text");
     choose(g, "c:rebel-ship-warning:0");
     assert.equal(g.phase, "event");
     assert.ok(g.event?.body?.includes(told));
@@ -63,8 +62,7 @@ describe("Fleeing Rebel ship", () => {
     g.phase = "map";
     g.event = null;
     const scout = "Fleeing Rebel ship.";
-    const told =
-      eventText("ship_SQUAT_WARNING_escape_text");
+    const told = eventText("ship_SQUAT_WARNING_escape_text");
     commitJump(g, dest.id);
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, scout);

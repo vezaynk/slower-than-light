@@ -42,8 +42,7 @@ describe("Lanius ship salvager intro", () => {
 
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_LANIUS_SOLO_SALVAGE_c1_text");
+    const lead = eventText("event_LANIUS_SOLO_SALVAGE_c1_text");
     choose(g, "c:lanius-ship-salvager:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

@@ -6,8 +6,7 @@ import { citedEvent } from "./cited-events.ts";
 import { eventText } from "../event-text.ts";
 
 const ID = "c:federation-deserters:2";
-const SENTENCE =
-  eventText("event_CRYSTAL_FED_DESERTER_c1_text");
+const SENTENCE = eventText("event_CRYSTAL_FED_DESERTER_c1_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

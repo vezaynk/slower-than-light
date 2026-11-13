@@ -36,10 +36,7 @@ describe("Optional fight: Lanius ship and Slug ship", () => {
     // > "Fight a Lanius ship." — [[Lanius ship attacking Slug]]
     const g = createGame(1);
     open(g);
-    assert.equal(
-      g.event?.body,
-      "Lanius ship attacking a Slug ship.",
-    );
+    assert.equal(g.event?.body, "Lanius ship attacking a Slug ship.");
     choose(g, "c:lanius-ship-attacking-slug:0");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "lanius-ship-attacking-slug");
@@ -54,7 +51,16 @@ describe("Optional fight: Lanius ship and Slug ship", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "lanius-ship-attacking-slug", dead), true);
       const body = g.event?.body ?? "";
-      assert.match(body, dead ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text") : textRe("event_DESTROYED_DEFAULT_1_text", "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text", "ship_PIRATE_BRIBER_destroyed_text"));
+      assert.match(
+        body,
+        dead
+          ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text")
+          : textRe(
+              "event_DESTROYED_DEFAULT_1_text",
+              "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text",
+              "ship_PIRATE_BRIBER_destroyed_text",
+            ),
+      );
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);

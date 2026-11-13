@@ -6,11 +6,7 @@ import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-mantis:0";
 const DEST = "Boarders: Mantis";
-const INTROS = [
-  "2-4 Mantis boarders.",
-  "2-4 Mantis boarders.",
-  "2-4 Mantis boarders.",
-];
+const INTROS = ["2-4 Mantis boarders.", "2-4 Mantis boarders.", "2-4 Mantis boarders."];
 const SECTORS = ["MANTIS_SECTOR", "MANTIS_HOME"];
 
 function beacon(): Beacon {

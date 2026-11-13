@@ -18,8 +18,7 @@ function open(g: Game) {
 
 describe("Lanius ship salvager attack", () => {
   it("attacking shows the printed weapons sentence and fights a Lanius ship", () => {
-    const lead =
-      eventText("event_LANIUS_SOLO_SALVAGE_c1_text");
+    const lead = eventText("event_LANIUS_SOLO_SALVAGE_c1_text");
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-salvager:0");

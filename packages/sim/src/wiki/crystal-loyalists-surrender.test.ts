@@ -31,8 +31,7 @@ describe("Crystal ship attacking Federation loyalists surrender", () => {
 
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_CRYSTAL_FED_c1_text");
+    const lead = eventText("event_CRYSTAL_FED_c1_text");
     choose(g, "c:crystal-ship-attacking-federation-loyalists:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

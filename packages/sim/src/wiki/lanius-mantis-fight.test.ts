@@ -20,8 +20,7 @@ describe("Lanius ship attacking Mantis fight", () => {
   it("attacking shows the printed fray sentence on the card and fights a Lanius ship", () => {
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_LANIUS_MANTIS_DISTRESS_c1_text");
+    const lead = eventText("event_LANIUS_MANTIS_DISTRESS_c1_text");
     choose(g, "c:lanius-ship-attacking-mantis:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

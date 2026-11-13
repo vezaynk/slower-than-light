@@ -6,8 +6,7 @@ import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-humans-abandoned:0";
-const BODY =
-  "3-4 Human boarders.";
+const BODY = "3-4 Human boarders.";
 
 function beacon(): Beacon {
   return {

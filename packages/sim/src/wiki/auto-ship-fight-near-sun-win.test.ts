@@ -39,7 +39,10 @@ describe("Hostile Auto-ship near sun", () => {
     const augments = destroyed.augments.length;
     assert.equal(pageWin(destroyed, "auto-ship-fight-near-sun", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, textRe("event_DESTROYED_DEFAULT_1_text", "ship_PIRATE_BRIBER_destroyed_text"));
+    assert.match(
+      body,
+      textRe("event_DESTROYED_DEFAULT_1_text", "ship_PIRATE_BRIBER_destroyed_text"),
+    );
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -78,8 +81,7 @@ describe("Hostile Auto-ship near sun", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    const body =
-      "Hostile Auto-ship. Sun: fires break out.";
+    const body = "Hostile Auto-ship. Sun: fires break out.";
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, body);
     assert.equal(g.log.includes(body), false);

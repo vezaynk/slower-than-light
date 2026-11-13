@@ -67,7 +67,10 @@ describe("Optional fight: pirate ship (distress)", () => {
     open(destroyed);
     assert.equal(pageWin(destroyed, "pirate-ship-attacking-civilian-distress", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, textRe("ship_PIRATE_CIVILIAN_destroyed_text", "ship_PIRATE_REFUGEE_destroyed_text"));
+    assert.match(
+      body,
+      textRe("ship_PIRATE_CIVILIAN_destroyed_text", "ship_PIRATE_REFUGEE_destroyed_text"),
+    );
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -109,8 +112,7 @@ describe("Optional fight: pirate ship (distress)", () => {
         g.enemy != null && (g.phase === "combat" || g.event?.choices[0]?.id === "ship-resume");
       if (attack) {
         fight = true;
-        const lead =
-          eventText("event_PIRATE_CIVILIAN_BEACON_BEAM_1_text");
+        const lead = eventText("event_PIRATE_CIVILIAN_BEACON_BEAM_1_text");
         assert.equal(g.event?.body, lead);
         assert.equal(g.log.includes(lead), false);
         assert.equal(g.fightEvent, "pirate-ship-attacking-civilian-distress");

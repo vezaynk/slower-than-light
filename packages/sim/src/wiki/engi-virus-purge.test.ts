@@ -29,8 +29,7 @@ describe("The Engi virus purge", () => {
     g.player.systems.engines.power = 6;
     g.player.systems.engines.damage = 0;
     g.player.systems.engines.ion = [];
-    const lead =
-      eventText("event_ENGI_VIRUS_c1_c1_text");
+    const lead = eventText("event_ENGI_VIRUS_c1_c1_text");
     choose(g, "c:the-engi-virus:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

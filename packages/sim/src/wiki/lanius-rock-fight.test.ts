@@ -20,8 +20,7 @@ describe("Lanius ship attacking Rock fight", () => {
   it("attacking shows the printed lead-in on the card and fights a Lanius ship", () => {
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_LANIUS_ROCK_DISTRESS_c1_text");
+    const lead = eventText("event_LANIUS_ROCK_DISTRESS_c1_text");
     choose(g, "c:lanius-ship-attacking-rock:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);

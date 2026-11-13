@@ -4,10 +4,7 @@ import { createGame } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { fillerEvent } from "./filler-events.ts";
 
-const INTROS = [
-  "Wreckage.",
-  "Wreckage.",
-];
+const INTROS = ["Wreckage.", "Wreckage."];
 
 function open(g: Game) {
   const b: Beacon = {

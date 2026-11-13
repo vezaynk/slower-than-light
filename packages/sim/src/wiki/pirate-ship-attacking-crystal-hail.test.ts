@@ -4,8 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const HAIL =
-  "Pirate ship attacking a Crystal ship.";
+const HAIL = "Pirate ship attacking a Crystal ship.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

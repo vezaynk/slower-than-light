@@ -40,10 +40,7 @@ describe("Lanius fight with friendly ASB support reward", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "lanius-fight-with-friendly-asb-support", false), true);
       const body = g.event?.body ?? "";
-      assert.match(
-        body,
-        textRe("ship_LANIUS_BOARDERS_PDS_destroyed_text"),
-      );
+      assert.match(body, textRe("ship_LANIUS_BOARDERS_PDS_destroyed_text"));
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -69,7 +66,14 @@ describe("Lanius fight with friendly ASB support reward", () => {
     killed.player.hull = killed.player.hullMax;
     assert.equal(pageWin(killed, "lanius-fight-with-friendly-asb-support", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(dead, textRe("ship_LANIUS_AUTO_REBEL_deadCrew_text", "ship_LANIUS_BOARDERS_PDS_deadCrew_text", "ship_LANIUS_CIVILIAN_deadCrew_text"));
+    assert.match(
+      dead,
+      textRe(
+        "ship_LANIUS_AUTO_REBEL_deadCrew_text",
+        "ship_LANIUS_BOARDERS_PDS_deadCrew_text",
+        "ship_LANIUS_CIVILIAN_deadCrew_text",
+      ),
+    );
     const high = scraps(dead);
     assert.equal(high.length, 1, dead);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);

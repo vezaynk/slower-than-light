@@ -65,7 +65,7 @@ describe("Derelict in dense asteroid field", () => {
       open(g);
       fillerChoose(g, "c:dense-asteroid-field-distress:0");
       const body = g.event?.body ?? "";
-      if ((body).includes(eventText("event_ASTEROID_DERELICT_SHIP_SEARCH_1_text"))) {
+      if (body.includes(eventText("event_ASTEROID_DERELICT_SHIP_SEARCH_1_text"))) {
         hit = true;
         assert.equal(g.player.hull, hull - 5);
         assert.equal(g.player.systems.engines?.damage, 1);
@@ -73,7 +73,7 @@ describe("Derelict in dense asteroid field", () => {
         assert.match(body, /1 damage to engines/);
         assert.equal(g.scrap, 10);
         assert.equal(g.player.weapons.length, guns);
-      } else if ((body).includes(eventText("event_ASTEROID_DERELICT_SHIP_SEARCH_2_text"))) {
+      } else if (body.includes(eventText("event_ASTEROID_DERELICT_SHIP_SEARCH_2_text"))) {
         scrap = true;
         const got = reward(body);
         assert.ok(got.scrap >= 7 && got.scrap <= 23, body);
@@ -82,8 +82,8 @@ describe("Derelict in dense asteroid field", () => {
         assert.equal(g.player.weapons.length, guns);
       } else {
         remains = true;
-        assert.ok((body).includes(eventText("event_ASTEROID_DERELICT_SHIP_SEARCH_3_text")));
-        assert.ok((body).includes(eventText("event_ASTEROID_DERELICT_SHIP_SEARCH_3_text")));
+        assert.ok(body.includes(eventText("event_ASTEROID_DERELICT_SHIP_SEARCH_3_text")));
+        assert.ok(body.includes(eventText("event_ASTEROID_DERELICT_SHIP_SEARCH_3_text")));
         assert.equal(
           g.event?.choices.map((c) => c.id).join(","),
           "s:dense-asteroid-field-distress:weapon,s:dense-asteroid-field-distress:pod",
@@ -108,11 +108,13 @@ describe("Derelict in dense asteroid field", () => {
     open(g);
     assert.equal(choiceDisabled(g, "c:dense-asteroid-field-distress:2"), null);
     fillerChoose(g, "c:dense-asteroid-field-distress:2");
-    assert.ok((g.event?.body ?? "").includes(eventText("event_ASTEROID_DERELICT_SHIP_SEARCH_3_text")));
+    assert.ok(
+      (g.event?.body ?? "").includes(eventText("event_ASTEROID_DERELICT_SHIP_SEARCH_3_text")),
+    );
     fillerChoose(g, "s:dense-asteroid-field-distress:weapon");
     const body = g.event?.body ?? "";
     const got = reward(body);
-    assert.ok((body).includes(eventText("event_ASTEROID_DERELICT_SHIP_SEARCH_3_c1_c1_text")));
+    assert.ok(body.includes(eventText("event_ASTEROID_DERELICT_SHIP_SEARCH_3_c1_c1_text")));
     assert.ok(got.scrap >= 7 && got.scrap <= 10, body);
     assert.equal(got.fuel, 0);
     assert.equal(got.missiles, 0);
@@ -136,7 +138,7 @@ describe("Derelict in dense asteroid field", () => {
     fillerChoose(g, "s:dense-asteroid-field-distress:pod");
     const body = g.event?.body ?? "";
     const got = reward(body);
-    assert.ok((body).includes(eventText("event_ASTEROID_DERELICT_SHIP_SEARCH_3_c1_c2_text")));
+    assert.ok(body.includes(eventText("event_ASTEROID_DERELICT_SHIP_SEARCH_3_c1_c2_text")));
     assert.match(body, /Damaged Stasis Pod/);
     assert.ok(got.scrap >= 7 && got.scrap <= 10, body);
     assert.equal(g.augments.filter((id) => id === "STASIS_POD").length, 1);

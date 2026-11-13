@@ -82,7 +82,9 @@ describe("slug moon grade", () => {
     assert.equal(hired.crew.filter((c) => c.kin === "slug").length, gels);
     assert.equal(hired.crew.filter((c) => c.kin === "engi").length, shells + 1);
     assert.equal(hired.scrap, scrap);
-    assert.ok((hired.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_TRUE_text")));
+    assert.ok(
+      (hired.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_TRUE_text")),
+    );
 
     loadPack(
       {
@@ -113,7 +115,9 @@ describe("slug moon grade", () => {
     assert.equal(poor.scrap, 9);
     assert.equal(poor.fuel, 10);
     assert.equal(poor.player.parts, 10);
-    assert.ok((poor.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_LIST_1_c1_text")));
+    assert.ok(
+      (poor.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_LIST_1_c1_text")),
+    );
     poor.scrap = 40;
     choose(poor, `c:slug-moons-question:answer:${count}:${wrong}`);
     assert.equal(poor.scrap, 30);
@@ -166,7 +170,9 @@ describe("slug moon grade", () => {
     const quietCount = answer(quiet, moons(quiet.event?.body ?? ""));
     assert.equal(quiet.crew.filter((c) => c.side === "player").length, before);
     assert.equal(quiet.scrap, 80);
-    assert.ok((quiet.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_LIST_1_c1_text")));
+    assert.ok(
+      (quiet.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_QUESTION_LIST_1_c1_text")),
+    );
     choose(quiet, `c:slug-moons-question:answer:${quietCount}:${quietCount === 5 ? 6 : 5}`);
     assert.equal(quiet.scrap, 80);
     assert.equal(quiet.fuel, 10);

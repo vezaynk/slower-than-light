@@ -23,8 +23,7 @@ describe("Zoltan ship follows Mantis ship save", () => {
     // > "Fight a Zoltan ship." — [[Zoltan ship follows Mantis ship]]
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_ZOLTAN_DISTRESS_MANTIS_c1_text");
+    const lead = eventText("event_ZOLTAN_DISTRESS_MANTIS_c1_text");
     choose(g, "c:zoltan-ship-follows-mantis-ship:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

@@ -59,20 +59,29 @@ describe("Optional fight: hidden Rebel ship in nebula", () => {
         g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
       if (fighting) {
         fight = true;
-        assert.ok((g.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_LIST_1_text")));
-        assert.equal((g.log.join(" ")).includes(eventText("event_NEBULA_REBEL_CHASE_LIST_1_text")), false);
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_LIST_1_text")),
+        );
+        assert.equal(
+          g.log.join(" ").includes(eventText("event_NEBULA_REBEL_CHASE_LIST_1_text")),
+          false,
+        );
         choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
         assert.equal(g.scrap, 10);
         assert.equal(g.fleet, 4);
-      } else if ((g.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_LIST_3_text"))) {
+      } else if (
+        (g.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_LIST_3_text"))
+      ) {
         doubled = true;
         assert.equal(g.fleet, 8);
-        assert.match(g.event?.body ?? "", /pursuit is doubled/);
+        assert.match(g.event?.body ?? "", /Rebel fleet speed x2/);
         assert.equal(g.scrap, 10);
       } else {
         gone = true;
-        assert.ok((g.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_LIST_2_text")));
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_LIST_2_text")),
+        );
         assert.match(g.event?.body ?? "", /Nothing happens/);
         assert.equal(g.fleet, 4);
         assert.equal(g.scrap, 10);
@@ -103,7 +112,10 @@ describe("Optional fight: hidden Rebel ship in nebula", () => {
     assert.equal(sensors.phase, "event");
     assert.equal(sensors.event?.choices[0]?.id, "ship-resume");
     assert.ok((sensors.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_c3_text")));
-    assert.equal((sensors.log.join(" ")).includes(eventText("event_NEBULA_REBEL_CHASE_c3_text")), false);
+    assert.equal(
+      sensors.log.join(" ").includes(eventText("event_NEBULA_REBEL_CHASE_c3_text")),
+      false,
+    );
     choose(sensors, "ship-resume");
     assert.equal(sensors.phase, "combat");
     assert.equal(sensors.scrap, 10);
@@ -116,7 +128,10 @@ describe("Optional fight: hidden Rebel ship in nebula", () => {
     assert.equal(glass.phase, "event");
     assert.equal(glass.event?.choices[0]?.id, "ship-resume");
     assert.ok((glass.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_c3_text")));
-    assert.equal((glass.log.join(" ")).includes(eventText("event_NEBULA_REBEL_CHASE_c3_text")), false);
+    assert.equal(
+      glass.log.join(" ").includes(eventText("event_NEBULA_REBEL_CHASE_c3_text")),
+      false,
+    );
     choose(glass, "ship-resume");
     assert.equal(glass.phase, "combat");
 
@@ -128,7 +143,7 @@ describe("Optional fight: hidden Rebel ship in nebula", () => {
     assert.equal(life.phase, "event");
     assert.equal(life.event?.choices[0]?.id, "ship-resume");
     assert.ok((life.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_c5_text")));
-    assert.equal((life.log.join(" ")).includes(eventText("event_NEBULA_REBEL_CHASE_c5_text")), false);
+    assert.equal(life.log.join(" ").includes(eventText("event_NEBULA_REBEL_CHASE_c5_text")), false);
     choose(life, "ship-resume");
     assert.equal(life.phase, "combat");
     assert.equal(life.scrap, 10);

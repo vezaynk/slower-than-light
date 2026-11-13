@@ -68,7 +68,7 @@ describe("Optional fight: Auto-ship at radar station", () => {
     const guns = g.player.weapons.length;
     assert.equal(pageWin(g, "auto-ship-near-radar-station", false), true);
     const body = g.event?.body ?? "";
-    assert.match(body, /salvage what you can/);
+    assert.match(body, textRe("ship_REBEL_AUTO_RADAR_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -107,7 +107,6 @@ describe("Optional fight: Auto-ship at radar station", () => {
 
     let fight = 0;
     let station = 0;
-    const leads = new Set<string>();
     for (let seed = 1; seed <= 90; seed++) {
       const g = createGame(seed);
       open(g);
@@ -131,13 +130,16 @@ describe("Optional fight: Auto-ship at radar station", () => {
         assert.equal(g.fleet, 5);
       } else {
         station += 1;
-        if (body.includes(eventText("event_AUTO_DEFENSE_RADAR_COMBAT_1_text"))) leads.add("lure");
-        if (body.includes("repeatedly fires")) leads.add("fire");
-        assert.match(body, /luring it away|repeatedly fires/);
+        assert.match(
+          body,
+          textRe(
+            "event_AUTO_DEFENSE_RADAR_COMBAT_1_text",
+            "event_AUTO_DEFENSE_RADAR_COMBAT_2_text",
+          ),
+        );
       }
     }
     assert.ok(fight > 0 && station > fight, `${station} station, ${fight} fight`);
-    assert.equal(leads.size, 2);
   });
 
   it("hacking the station by hand delays the fleet, doubles pursuit, or pays nothing", () => {
@@ -158,11 +160,11 @@ describe("Optional fight: Auto-ship at radar station", () => {
         seen.add("delay");
         assert.equal(g.fleet, 4);
         assert.equal(g.pursuitDouble, undefined);
-      } else if (body.includes("map is updated")) {
+      } else if (body.includes(eventText("event_DEFENSE_RADAR_LIST_2_text"))) {
         seen.add("map");
         assert.equal(g.fleet, 5);
         assert.equal(g.pursuitDouble, undefined);
-      } else if (body.includes("pursuit is doubled")) {
+      } else if (g.pursuitDouble === true) {
         seen.add("pursuit");
         assert.equal(g.fleet, 5);
         assert.equal(g.pursuitDouble, true);

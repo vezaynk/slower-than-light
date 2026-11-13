@@ -37,10 +37,7 @@ describe("Rebel ship attacking civilians in Last Stand reward", () => {
     assert.equal(destroyed.fightEvent, "rebel-ship-attacking-civilians-in-last-stand");
     assert.equal(pageWin(destroyed, "rebel-ship-attacking-civilians-in-last-stand", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(
-      body,
-      textRe("ship_BOSS_SCOUT_RESCUE_destroyed_text"),
-    );
+    assert.match(body, textRe("ship_BOSS_SCOUT_RESCUE_destroyed_text"));
     assert.ok(destroyed.event?.choices.some((c) => c.id === "q:last-stand-survivors:contact"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
@@ -89,7 +86,7 @@ describe("Rebel ship attacking civilians in Last Stand reward", () => {
         assert.equal(resources(body), 2, body);
         assert.equal(g.scrap, before + paid[0]!);
         assert.equal(g.player.weapons.length, guns);
-      } else if (body.includes("sincere gratitude")) {
+      } else if (body.includes(eventText("event_BOSS_SCOUT_RESCUE_LIST_1_text"))) {
         seen.add("thanks");
         assert.match(body, /Nothing happens/);
         assert.equal(g.scrap, before);

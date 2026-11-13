@@ -19,7 +19,7 @@ function kind(g: Game): "fail" | "oxygen" | "pirate" | "mold" | "offer" {
   const body = g.event?.body ?? "";
   if (body.includes(eventText("event_NORMAL_SCAN_TERRAFORMING_1_text"))) return "fail";
   if (body.includes(eventText("event_HIGH_SCAN_TERRAFORMING_3_text"))) return "mold";
-  if (body.includes("Oxygen system upgraded")) return "oxygen";
+  if (body.includes(eventText("event_HIGH_SCAN_TERRAFORMING_1_text"))) return "oxygen";
   // A fight now waits on Continue. The enemy is already armed.
   if (
     g.phase === "combat" ||
@@ -69,7 +69,9 @@ describe("Terraforming scan blue options", () => {
       }
       if (sk === "oxygen") assert.equal(sensors.player.systems.oxygen.level, 2);
       assert.equal(
-        `${sensors.event?.body ?? ""}\n${sensors.log.join("\n")}`.includes(eventText("event_NORMAL_SCAN_TERRAFORMING_2_text")),
+        `${sensors.event?.body ?? ""}\n${sensors.log.join("\n")}`.includes(
+          eventText("event_NORMAL_SCAN_TERRAFORMING_2_text"),
+        ),
         false,
       );
 
@@ -85,7 +87,9 @@ describe("Terraforming scan blue options", () => {
       seen.zoltan.add(zk);
       if (zk === "oxygen") assert.equal(zoltan.player.systems.oxygen.level, 2);
       assert.equal(
-        `${zoltan.event?.body ?? ""}\n${zoltan.log.join("\n")}`.includes(eventText("event_NORMAL_SCAN_TERRAFORMING_2_text")),
+        `${zoltan.event?.body ?? ""}\n${zoltan.log.join("\n")}`.includes(
+          eventText("event_NORMAL_SCAN_TERRAFORMING_2_text"),
+        ),
         false,
       );
     }

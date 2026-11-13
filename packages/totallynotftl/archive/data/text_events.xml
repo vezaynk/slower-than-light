@@ -959,12 +959,12 @@
   <text name="event_REFUGEE_TRADER_c2_choice">Nothing happens.</text>
   <text name="event_REFUGEE_TRADER_text">Trade offer: supplies for supplies.</text>
   <text name="event_ROCK_ATHIEST_c1_choice">Fight the Rock ship.</text>
-  <text name="event_ROCK_ATHIEST_c2_choice">1 in 3: gain 1 Rock crew. 2 in 3: nothing.</text>
+  <text name="event_ROCK_ATHIEST_c2_choice">1 in 3: gain 1 Rock crew. 2 in 3: nothing happens.</text>
   <text name="event_ROCK_ATHIEST_c3_choice">Gain 1 Rock crew.</text>
   <text name="event_ROCK_ATHIEST_c3_text">Gain 1 Rock crew.</text>
   <text name="event_ROCK_ATHIEST_GOOD_1_text">Gain 1 Rock crew.</text>
   <text name="event_ROCK_ATHIEST_GOOD_2_text">You leave.</text>
-  <text name="event_ROCK_ATHIEST_text">Rock ship. Its crew can join you.</text>
+  <text name="event_ROCK_ATHIEST_text">Neutral Rock ship. It may join your crew.</text>
   <text name="event_ROCK_CRYSTAL_BEACON_c2_text">Nothing happens.</text>
   <text name="event_ROCK_CRYSTAL_BEACON_c3_c1_text">Jump to the hidden Crystal sector.</text>
   <text name="event_ROCK_CRYSTAL_BEACON_c3_text">Your Crystal crew activates the device.</text>
@@ -1388,6 +1388,7 @@
   <text name="ship_REBEL_AUTO_CIVILIAN_destroyed_c1_choice">1 in 6 each: a crew offer; gain medium scrap and resources; gain low scrap and resources; a weapon offer; repair 5 hull; nothing.</text>
   <text name="ship_REBEL_AUTO_CIVILIAN_destroyed_text">Gain low scrap and resources.</text>
   <text name="ship_REBEL_AUTO_FUEL_destroyed_text">Gain medium scrap and fuel.</text>
+  <text name="ship_REBEL_AUTO_HACKSHIELDS_destroyed_text">Gain medium scrap and resources.</text>
   <text name="ship_REBEL_AUTO_ITEM_destroyed_c1_choice">1 in 4: nothing. 1 in 4: gain a drone schematic and low scrap. 1 in 4: gain a weapon and low scrap. 1 in 4: gain medium resources.</text>
   <text name="ship_REBEL_AUTO_ITEM_destroyed_text">Gain medium scrap.</text>
   <text name="ship_REBEL_AUTO_MAP_destroyed_text">Reveal the map. Gain low scrap.</text>

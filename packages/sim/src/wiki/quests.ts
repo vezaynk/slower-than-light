@@ -4970,7 +4970,7 @@ export const PAGE_WINS: Record<string, Win> = {
   // Destroyed pays medium scrap with resources. The page prints no crew-kill reward.
   "auto-ship-carrying-shield-virus": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(g, eventText("ship_REBEL_AUTO_FUEL_destroyed_text"), rollStandard(g, "medium"));
+    result(g, eventText("ship_REBEL_AUTO_HACKSHIELDS_destroyed_text"), rollStandard(g, "medium"));
   },
   // Lanius ship attacking civilian. Destroyed pays medium standard. A crew kill pays high. Then the civilians.
   // Lanius ship attacking civilian distress prints the same two endings and the same contact.

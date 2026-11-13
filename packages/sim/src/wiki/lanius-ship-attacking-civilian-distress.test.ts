@@ -6,7 +6,6 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { joinCrew } from "./surrender.ts";
-import { eventText } from "../event-text.ts";
 import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
@@ -34,8 +33,7 @@ describe("Optional fight: Lanius ship (distress)", () => {
   it("fighting starts a Lanius fight", () => {
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_LANIUS_DISTRESS_FIGHT_c1_text");
+    const lead = eventText("event_LANIUS_DISTRESS_FIGHT_c1_text");
     choose(g, "c:lanius-ship-attacking-civilian-distress:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -57,7 +55,12 @@ describe("Optional fight: Lanius ship (distress)", () => {
       const crew = g.crew.filter((c) => c.side === "player").length;
       assert.equal(pageWin(g, "lanius-ship-attacking-civilian-distress", dead), true);
       const body = g.event?.body ?? "";
-      assert.match(body, dead ? /No more life signs/ : textRe("ship_LANIUS_AUTO_REBEL_destroyed_text", "ship_LANIUS_CIVILIAN_destroyed_text"));
+      assert.match(
+        body,
+        dead
+          ? textRe("ship_LANIUS_CIVILIAN_deadCrew_text")
+          : textRe("ship_LANIUS_AUTO_REBEL_destroyed_text", "ship_LANIUS_CIVILIAN_destroyed_text"),
+      );
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.ok(paid[0]! >= (dead ? 19 : 12) && paid[0]! <= (dead ? 23 : 19), body);
@@ -110,9 +113,13 @@ describe("Optional fight: Lanius ship (distress)", () => {
         g.event?.choices.some((c) => c.id === "ship-resume") === true && g.enemy != null;
       if (rogue) {
         fight = true;
-        assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_DISTRESS_FIGHT_LANIUS_2_text")));
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_LANIUS_DISTRESS_FIGHT_LANIUS_2_text")),
+        );
         assert.equal(
-          g.log.some((line) => line.includes(eventText("event_LANIUS_DISTRESS_FIGHT_LANIUS_2_text"))),
+          g.log.some((line) =>
+            line.includes(eventText("event_LANIUS_DISTRESS_FIGHT_LANIUS_2_text")),
+          ),
           false,
         );
         choose(g, "ship-resume");
@@ -122,7 +129,9 @@ describe("Optional fight: Lanius ship (distress)", () => {
         assert.equal(g.scrap, 10);
       } else {
         peace = true;
-        assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_DISTRESS_FIGHT_LANIUS_1_text")));
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_LANIUS_DISTRESS_FIGHT_LANIUS_1_text")),
+        );
         assert.equal(g.event?.body.includes("Scrap:"), false);
         assert.equal(g.scrap, 10);
         assert.equal(

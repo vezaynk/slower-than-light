@@ -118,7 +118,7 @@ describe("Engi surrender (no fight)", () => {
     choose(g, "c:engi-surrender:1");
     assert.equal(g.enemy, null);
     assert.equal(g.phase, "event");
-    assert.ok(g.event!.body.startsWith("The Engi obediently transfer"));
+    assert.ok(g.event!.body.startsWith(eventText("event_ENGI_SURRENDER_c2_text")));
     assert.ok(g.scrap > s0.scrap);
     const d = kinds(s0, g);
     assert.equal([d.fuel, d.missiles, d.parts].filter((n) => n > 0).length, 2);
@@ -140,11 +140,11 @@ describe("Engi surrender (no fight)", () => {
       const g = arrive(seed, "Engi Controlled Sector", "Surrendering Engi ship");
       const s0 = snap(g);
       choose(g, "c:engi-surrender:0");
-      if (g.event!.body.startsWith("The Engi seem relieved")) {
+      if (g.event!.body.startsWith(eventText("event_ENGI_SURRENDER_LIST_1_text"))) {
         assert.equal(g.scrap, s0.scrap);
         seen.add("nothing");
       } else {
-        assert.ok(g.event!.body.startsWith("The Engi are satisfied"));
+        assert.ok(g.event!.body.startsWith(eventText("event_ENGI_SURRENDER_LIST_2_text")));
         assert.ok(g.scrap > s0.scrap);
         seen.add("gear");
       }
@@ -236,8 +236,7 @@ describe("Quest offer: settlement", () => {
         continue;
       }
       choose(g, "s:settlement-mercenary-work:accept");
-      const job =
-        eventText("event_MERCENARY_WORK_LIST_2_c1_text");
+      const job = eventText("event_MERCENARY_WORK_LIST_2_c1_text");
       assert.equal(g.phase, "event");
       assert.equal(g.event?.body, job);
       assert.equal(g.log.includes(job), false);
@@ -255,11 +254,7 @@ describe("Quest offer: settlement", () => {
       const before = g.scrap;
       choose(g, ACCEPT_ID);
       // "You receive a weapon with medium scrap." The unnamed weapon is a random one; its line follows the page text.
-      assert.ok(
-        g.reward!.note.startsWith(
-          "Gain medium scrap and a weapon.",
-        ),
-      );
+      assert.ok(g.reward!.note.startsWith("Gain medium scrap and a weapon."));
       const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
       assert.ok(g.reward!.scrap > 0 && g.scrap - before === g.reward!.scrap);
       assert.ok(g.reward!.scrap >= Math.floor(lo * 0.5) && g.reward!.scrap <= hi * 2);
@@ -287,8 +282,7 @@ describe("Hostile Slug pirate ship", () => {
       ["s:the-black-raven:accept", "s:the-black-raven:decline", "s:the-black-raven:duel"],
     );
     choose(g, "s:the-black-raven:decline");
-    const challenge =
-      eventText("event_DONOR_BLACK_RAVEN_c1_c2_text");
+    const challenge = eventText("event_DONOR_BLACK_RAVEN_c1_c2_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, challenge);
     assert.equal(g.log.includes(challenge), false);
@@ -304,9 +298,7 @@ describe("Hostile Slug pirate ship", () => {
     choose(g, ACCEPT_ID);
     assert.equal(g.phase, "reward");
     // "You receive a weapon with high scrap." The unnamed weapon is a random one.
-    assert.ok(
-      g.reward!.note.startsWith("Gain high scrap and a weapon."),
-    );
+    assert.ok(g.reward!.note.startsWith("Gain high scrap and a weapon."));
     assert.ok(g.reward!.scrap > 0);
     assert.equal(weaponsHeld(g), weapons + 1);
   });
@@ -316,9 +308,8 @@ describe("Hostile Slug pirate ship", () => {
     // > "Ignore him and attack." — [[The Black Raven#Fighting the Black Raven]]
     // > "\"Wait! There is no need to be....\" You cut off the transmission and prepare to fire." — [[The Black Raven#Fighting the Black Raven]]
     // > "Continue the fight." — [[The Black Raven#Fighting the Black Raven]]
-    const cut =
-      eventText("ship_DONOR_BLACK_RAVEN_surrender_c2_text");
-    const g = arrive(5, "Slug Home Nebula", "The Black Raven");
+    const cut = eventText("ship_DONOR_BLACK_RAVEN_surrender_c2_text");
+    const g = arrive(5, "Slug Home Nebula", "Hostile Slug pirate ship");
     choose(g, "c:the-black-raven:0");
     choose(g, "s:the-black-raven:decline");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -353,10 +344,8 @@ describe("Floating cargo", () => {
       const kills = g.kills;
       choose(g, "c:destroyed-cargo-ship:0");
       const resume = g.phase === "event" && g.event?.choices[0]?.id === "ship-resume";
-      const ambushText =
-        "You bring the cargo aboard. Before you have a chance to open them a pirate ship appears out of hiding and charges. At the same time, the crates fly open. Intruders aboard the ship!";
-      const crateText =
-        eventText("event_FLOATING_CARGO_LIST_3_text");
+      const ambushText = eventText("event_FLOATING_CARGO_LIST_4_text");
+      const crateText = eventText("event_FLOATING_CARGO_LIST_3_text");
       if ((g.phase === "combat" || resume) && g.enemy) {
         seen.add("ambush");
         assert.equal(g.event?.body, ambushText);
@@ -388,13 +377,13 @@ describe("Floating cargo", () => {
         );
         assert.equal(g.kills, kills);
         assert.equal(g.scrap, s0.scrap);
-      } else if (g.event!.body.startsWith("They appear to be filled")) {
+      } else if (g.event!.body.startsWith(eventText("event_FLOATING_CARGO_LIST_1_text"))) {
         seen.add("supplies");
         const d = kinds(s0, g);
         assert.equal([d.fuel, d.missiles, d.parts].filter((n) => n > 0).length, 2);
       } else {
         seen.add("scrap");
-        assert.ok(g.event!.body.startsWith("The cargo was primarily consumer goods"));
+        assert.ok(g.event!.body.startsWith(eventText("event_FLOATING_CARGO_LIST_2_text")));
         assert.deepEqual(kinds(s0, g), { fuel: 0, missiles: 0, parts: 0 });
         assert.ok(g.scrap > s0.scrap);
       }

@@ -60,8 +60,11 @@ describe("Trade: weapon for scrap (nebula)", () => {
       const body = g.event?.body ?? "";
       if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         lie = true;
-        assert.ok((body).includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_2_text")));
-        assert.equal((g.log.join(" ")).includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_2_text")), false);
+        assert.ok(body.includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_2_text")));
+        assert.equal(
+          g.log.join(" ").includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_2_text")),
+          false,
+        );
         assert.equal(g.scrap, scrap);
         assert.equal(g.player.weapons.length, guns);
         choose(g, "ship-resume");
@@ -69,19 +72,24 @@ describe("Trade: weapon for scrap (nebula)", () => {
         assert.equal(g.fightEvent, "pirate-ship-selling-weapon");
         assert.equal(g.scrap, scrap);
         assert.equal(g.player.weapons.length, guns);
-        assert.equal((g.log.join(" ")).includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_2_text")), false);
+        assert.equal(
+          g.log.join(" ").includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_2_text")),
+          false,
+        );
       } else {
         deal = true;
         assert.equal(g.phase, "event");
-        assert.ok((body).includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_text")));
+        assert.ok(body.includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_text")));
         assert.equal(g.scrap, scrap);
         assert.equal(g.player.weapons.length, guns);
         assert.deepEqual(
-          g.event?.choices.map((c) => c.label),
-          ["Decline."],
+          g.event?.choices.map((c) => c.id),
+          ["s:pirate-weapon:decline"],
         );
         choose(g, "s:pirate-weapon:decline");
-        assert.ok((g.event?.body ?? "").includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_c2_text")));
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_c2_text")),
+        );
         assert.match(g.event?.body ?? "", /Nothing happens/);
         assert.equal(g.scrap, scrap);
         assert.equal(g.player.weapons.length, guns);

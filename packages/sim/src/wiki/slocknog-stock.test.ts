@@ -46,11 +46,9 @@ function open(g: Game) {
   g.phase = "event";
 }
 
-/** The hire is the only Slug aboard. A reset pack drops the archive's names, so the name is not the test. */
+/** The hire is the only Slug aboard. */
 function hired(g: Game) {
-  return g.crew.some(
-    (crew) => crew.side === "player" && crew.hp > 0 && crew.name === "Slocknog",
-  );
+  return g.crew.some((crew) => crew.side === "player" && crew.hp > 0 && crew.kin === "slug");
 }
 
 describe("slocknog stock", () => {
@@ -63,6 +61,7 @@ describe("slocknog stock", () => {
     assert.equal(g.scrap, 0);
     assert.equal(hired(g), true);
     assert.match(g.event?.body ?? "", /Scrap: -55\./);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_RESCUE_c1_text")));
   });
 
   it("spends a replaced scrap count and refuses below it", () => {

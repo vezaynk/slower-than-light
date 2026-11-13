@@ -7,7 +7,7 @@ import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { eventText } from "../event-text.ts";
 
-const DESTROYED = eventText("ship_LANIUS_FUELING_STATION_SHIP_destroyed_text");
+const DESTROYED = eventText("ship_REBEL_AUTO_HACKSHIELDS_destroyed_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

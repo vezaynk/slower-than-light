@@ -438,7 +438,13 @@ const SLUG_MOON_QUESTION = "event_SLUG_DISTRESS_QUESTION_LIST_1_c1_text";
 const SLUG_MOON_CORRECT = "event_SLUG_DISTRESS_QUESTION_TRUE_text";
 const SLUG_MOON_WRONG = "event_SLUG_DISTRESS_QUESTION_FALSE_text";
 /** ftl.dat's tracking pages by moon count: SLUG_DISTRESS_QUESTION_LIST_1 to _4. */
-const MOON_PAGES: Record<number, number> = { 5: 1, 6: 2, 7: 3, 11: 4 };
+/** ftl.dat's tracking page text by moon count. */
+const MOON_PAGES: Record<number, string> = {
+  5: "event_SLUG_DISTRESS_QUESTION_LIST_1_text",
+  6: "event_SLUG_DISTRESS_QUESTION_LIST_2_text",
+  7: "event_SLUG_DISTRESS_QUESTION_LIST_3_text",
+  11: "event_SLUG_DISTRESS_QUESTION_LIST_4_text",
+};
 
 const SLUG_MOON_ASK = /^c:slug-moons-question:ask:(\d+)$/;
 const SLUG_MOON_ANSWER = /^c:slug-moons-question:answer:(\d+):(\d+)$/;
@@ -476,7 +482,7 @@ function slugMoonsCard(g: Game, b: Beacon, title: string): GameEvent {
   // ftl.dat writes one tracking page per moon count. A count it has no page for shows the packed word.
   const page = MOON_PAGES[row.n];
   const tracking = page
-    ? eventText(`event_SLUG_DISTRESS_QUESTION_LIST_${page}_text`)
+    ? eventText(page)
     : `${row.word[0]!.toUpperCase()}${row.word.slice(1)} moons.`;
   return {
     title,
@@ -965,9 +971,18 @@ function citedEventRaw(g: Game, b: Beacon): GameEvent | null {
       body: ev.body,
       choices: [
         ...ev.choices.map((c) => ({ id: c.id, label: c.label })),
-        { id: "c:auto-ship-fight-in-plasma-storm:1", label: eventText("event_STORM_AUTO_c2_choice") },
-        { id: "c:auto-ship-fight-in-plasma-storm:2", label: eventText("event_STORM_AUTO_c3_choice") },
-        { id: "c:auto-ship-fight-in-plasma-storm:3", label: eventText("event_STORM_AUTO_c4_choice") },
+        {
+          id: "c:auto-ship-fight-in-plasma-storm:1",
+          label: eventText("event_STORM_AUTO_c2_choice"),
+        },
+        {
+          id: "c:auto-ship-fight-in-plasma-storm:2",
+          label: eventText("event_STORM_AUTO_c3_choice"),
+        },
+        {
+          id: "c:auto-ship-fight-in-plasma-storm:3",
+          label: eventText("event_STORM_AUTO_c4_choice"),
+        },
       ],
     };
   }
@@ -1618,8 +1633,7 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     ctx.note(eventText("event_ROCK_MANTIS_HUNTER_c1_text"));
   }
   // Lanius lone ship. "Attack the Lanius ship." One printed lead-in, then a Lanius ship fight.
-  if (id === "c:lanius-lone-ship:0")
-    ctx.note(eventText("event_LANIUS_SCARED_CIVILIAN_c1_text"));
+  if (id === "c:lanius-lone-ship:0") ctx.note(eventText("event_LANIUS_SCARED_CIVILIAN_c1_text"));
   // Auto-ship near radar station. "Approach the station." One printed lead-in, then an Auto-ship fight.
   if (id === "c:auto-ship-near-radar-station:0")
     ctx.note(eventText("event_AUTO_DEFENSE_RADAR_c1_text"));
@@ -1663,8 +1677,7 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
     // > "Fight a Lanius ship." — [[Refueling platform garbled broadcast]]
     ctx.note(eventText("event_LANIUS_FUELING_STATION_c1_text"));
   // Slug drink. "Refuse." One printed lead-in, then a Slug ship fight.
-  if (id === "c:slug-drink:0")
-    ctx.note(eventText("event_SLUG_DRINK_c2_text"));
+  if (id === "c:slug-drink:0") ctx.note(eventText("event_SLUG_DRINK_c2_text"));
   // Zoltan quest primitives. "Interfere - make first contact with the primitive aliens." One printed lead-in, then a Zoltan ship fight.
   if (id === "c:zoltan-quest-primitives:0")
     ctx.note(eventText("event_ZOLTAN_QUEST_PRIMITIVES_c1_c1_text"));
@@ -1685,8 +1698,7 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   if (id === "c:auto-ship-carrying-shield-virus:1")
     ctx.note(eventText("event_AUTO_HACKER_c2_text"));
   // Rebel shipyard. "Look around." One printed warning, then the same second Flagship fight. No salvage is granted here.
-  if (id === "c:rebel-shipyard:0")
-    ctx.note(eventText("event_FLAGSHIP_CONSTRUCTION_c1_text"));
+  if (id === "c:rebel-shipyard:0") ctx.note(eventText("event_FLAGSHIP_CONSTRUCTION_c1_text"));
   const fight = choice.fx.find((fx) => fx.k === "fight");
   if (fight && fight.k === "fight") {
     ctx.fight(fight.tier, fight.asteroid ? true : undefined, undefined, fight.autoBlueprint);

@@ -43,11 +43,11 @@ describe("Trade: scrap for drone parts (pirate)", () => {
       false,
     );
     choose(g, "q:pirate-drones:hail");
-    assert.match(g.event?.body ?? "", /extensive stock/);
+    assert.equal(g.event?.body, eventText("event_CONTACT_PIRATE_SALESMAN_text"));
     assert.equal(choiceDisabled(g, "q:pirate-drones:slug"), "Needs a Slug crewmember");
     assert.equal(choiceDisabled(g, "q:pirate-drones:hack"), "Needs a Hacking system");
     choose(g, "q:pirate-drones:dock");
-    assert.match(g.event?.body ?? "", /exquisite suit/);
+    assert.equal(g.event?.body, eventText("event_DOCK_DRONE_SALESMAN_text"));
     assert.equal(
       labels(g).some((l) => /schematic/i.test(l)),
       false,
@@ -86,8 +86,7 @@ describe("Trade: scrap for drone parts (pirate)", () => {
     open(leave);
     choose(leave, "q:pirate-drones:hail");
     choose(leave, "q:pirate-drones:leave");
-    const leaveLead =
-      eventText("event_CONTACT_PIRATE_SALESMAN_c2_text");
+    const leaveLead = eventText("event_CONTACT_PIRATE_SALESMAN_c2_text");
     assert.equal(leave.phase, "event");
     assert.equal(leave.event?.body, leaveLead);
     assert.equal(leave.log.includes(leaveLead), false);
@@ -107,8 +106,7 @@ describe("Trade: scrap for drone parts (pirate)", () => {
       choose(g, "q:pirate-drones:hail");
       choose(g, "q:pirate-drones:dock");
       choose(g, "q:pirate-drones:nothing");
-      const nothing =
-        eventText("event_DOCK_DRONE_SALESMAN_c6_text");
+      const nothing = eventText("event_DOCK_DRONE_SALESMAN_c6_text");
       assert.equal(g.phase, "event");
       assert.equal(g.event?.body, nothing);
       assert.equal(g.log.includes(nothing), false);
@@ -139,7 +137,7 @@ describe("Trade: scrap for drone parts (pirate)", () => {
     dead.hp = dead.maxHp;
     assert.equal(choiceDisabled(slug, "q:pirate-drones:slug"), null);
     choose(slug, "q:pirate-drones:slug");
-    assert.match(slug.event?.body ?? "", /exquisite suit/);
+    assert.equal(slug.event?.body, eventText("event_DOCK_DRONE_SALESMAN_text"));
 
     const hack = createGame(6);
     open(hack);

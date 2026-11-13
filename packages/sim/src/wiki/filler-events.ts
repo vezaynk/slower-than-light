@@ -839,9 +839,7 @@ function giveMiners(g: Game, id: "c:asteroid-mining-colony:1" | "c:asteroid-mini
     ] as const);
     if (r === "hull") {
       g.player.hull = Math.min(g.player.hullMax, g.player.hull + 10);
-      show(g, eventText("event_HELP_MINERS_1_2_text"), undefined, [
-        "Hull repairs: 10.",
-      ]);
+      show(g, eventText("event_HELP_MINERS_1_2_text"), undefined, ["Hull repairs: 10."]);
     } else if (r === "reactor") {
       const note = bumpReactor(g);
       show(g, eventText("event_HELP_MINERS_1_3_text"), undefined, note ? [note] : []);
@@ -1436,10 +1434,20 @@ function craftsmenMenu(g: Game, discount: boolean) {
     choices.push({ id, label: label(n) });
   };
   // ftl.dat words the discounted buttons under their own ids (c1_c5_cN).
-  const craft = discount ? "event_LANIUS_RESEARCHER_CRAFT_c1_c5_c" : "event_LANIUS_RESEARCHER_CRAFT_c1_c";
-  offer("aug", (n) => `${eventText(`${craft}1_choice`)} [${n} scrap]`);
-  offer("weapon", (n) => `${eventText(`${craft}2_choice`)} [${n} scrap]`);
-  offer("drone", (n) => `${eventText(`${craft}3_choice`)} [${n} scrap]`);
+  const craft = discount
+    ? [
+        "event_LANIUS_RESEARCHER_CRAFT_c1_c5_c1_choice",
+        "event_LANIUS_RESEARCHER_CRAFT_c1_c5_c2_choice",
+        "event_LANIUS_RESEARCHER_CRAFT_c1_c5_c3_choice",
+      ]
+    : [
+        "event_LANIUS_RESEARCHER_CRAFT_c1_c1_choice",
+        "event_LANIUS_RESEARCHER_CRAFT_c1_c2_choice",
+        "event_LANIUS_RESEARCHER_CRAFT_c1_c3_choice",
+      ];
+  offer("aug", (n) => `${eventText(craft[0]!)} [${n} scrap]`);
+  offer("weapon", (n) => `${eventText(craft[1]!)} [${n} scrap]`);
+  offer("drone", (n) => `${eventText(craft[2]!)} [${n} scrap]`);
   choices.push({
     id: "s:lanius-craftsmen:decline",
     label: eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c4_choice"),
@@ -2423,9 +2431,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     if (!ownsDrone(g, "SHIP_REPAIR")) return;
     const joined = joinCrew(g, "Lanius");
     show(g, eventText("event_LANIUS_BEACON_EATER_c5_text"), undefined, [
-      joined
-        ? "Crew gained: Lanius."
-        : "Crew full: no one joins.",
+      joined ? "Crew gained: Lanius." : "Crew full: no one joins.",
     ]);
   },
   // Lanius ship attacking civilian distress. Two results and no odds. INFERRED: equal.
@@ -3613,9 +3619,7 @@ function moonChoice(g: Game, id: string): boolean {
     const before = g.player.hull;
     g.player.hull = Math.min(g.player.hullMax, g.player.hull + 10);
     const got = g.player.hull - before;
-    show(g, eventText("event_FAMILY_RETURN_3_text"), undefined, [
-      `Hull repairs: ${got}.`,
-    ]);
+    show(g, eventText("event_FAMILY_RETURN_3_text"), undefined, [`Hull repairs: ${got}.`]);
     return true;
   }
   if (id === "s:moon:bring") {

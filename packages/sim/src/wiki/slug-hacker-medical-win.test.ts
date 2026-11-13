@@ -21,7 +21,7 @@ describe("Slug hacker (medical) reward", () => {
     const guns = destroyed.player.weapons.length;
     assert.equal(pageWin(destroyed, "slug-hacker-medical", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, textRe("ship_JELLY_STATUS_OXYGEN_destroyed_text"));
+    assert.match(body, textRe("ship_JELLY_STATUS_MEDBAY_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 19 && paid[0]! <= 23, body);
@@ -33,10 +33,7 @@ describe("Slug hacker (medical) reward", () => {
     const killed = createGame(2);
     assert.equal(pageWin(killed, "slug-hacker-medical", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(
-      dead,
-      /you quickly shut off their hacking module and your systems return to normal/,
-    );
+    assert.match(dead, textRe("ship_JELLY_STATUS_MEDBAY_deadCrew_text"));
     const high = scraps(dead);
     assert.equal(high.length, 1, dead);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);

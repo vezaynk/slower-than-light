@@ -33,8 +33,7 @@ describe("Hostile Rebel ship (Engi distress)", () => {
   it("fights a Rebel ship that never runs and never surrenders", () => {
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_DISTRESS_ENGI_REBEL_text");
+    const lead = eventText("event_DISTRESS_ENGI_REBEL_text");
     choose(g, "c:engi-distress-rebel-fight:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -62,7 +61,7 @@ describe("Hostile Rebel ship (Engi distress)", () => {
       const augs = g.augments.length;
       assert.equal(pageWin(g, "engi-distress-rebel-fight", deadCrew), true);
       const body = g.event?.body ?? "";
-      assert.match(body, /poorly equipped/);
+      assert.match(body, textRe("event_DISTRESS_ENGI_REBEL_RESULT_text"));
       const paid = scraps(body).filter((n) => n > 0);
       assert.equal(paid.length, 1, body);
       if (deadCrew) assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -102,7 +101,7 @@ describe("Hostile Rebel ship (Engi distress)", () => {
     const before = poor.scrap;
     choose(poor, "q:engi-distress:scrap");
     assert.equal(poor.scrap, before);
-    assert.match(poor.event?.body ?? "", /poorly equipped/);
+    assert.match(poor.event?.body ?? "", textRe("event_DISTRESS_ENGI_REBEL_RESULT_text"));
   });
 
   it("25 scrap does nothing, mounts Healing Burst, or names no schematic, and the supply gift fits the med-bot", () => {
@@ -118,11 +117,12 @@ describe("Hostile Rebel ship (Engi distress)", () => {
       const body = g.event?.body ?? "";
       assert.equal(g.scrap, 15);
       assert.equal(g.augments.length, augs);
-      if (textRe("event_DISTRESS_ENGI_REBEL_LIST1_1_text").test(body)) {
+      const lead = body.split("\n\n")[0];
+      if (lead === eventText("event_DISTRESS_ENGI_REBEL_LIST1_1_text")) {
         seen.add("nothing");
         assert.match(body, /Nothing else happens/);
         assert.equal(g.player.weapons.length, guns);
-      } else if (/med-bot disperser/.test(body)) {
+      } else if (lead === eventText("event_DISTRESS_ENGI_REBEL_LIST1_2_text")) {
         seen.add("heal");
         assert.equal(
           g.player.weapons.some((w) => w.defId === "BOMB_HEAL"),
@@ -131,6 +131,7 @@ describe("Hostile Rebel ship (Engi distress)", () => {
         assert.match(body, /Healing Burst/);
       } else {
         seen.add("schematic");
+        assert.equal(lead, eventText("event_DISTRESS_ENGI_REBEL_LIST1_3_text"));
         assert.match(body, /drone schematic/);
         assert.equal(g.player.weapons.length, guns);
       }
@@ -160,7 +161,10 @@ describe("Hostile Rebel ship (Engi distress)", () => {
       g.player.weapons = full.player.weapons.map((w) => ({ ...w }));
       g.uid = full.uid;
       choose(g, "q:engi-distress:scrap");
-      if (/med-bot disperser/.test(g.event?.body ?? "")) {
+      if (
+        (g.event?.body ?? "").split("\n\n")[0] ===
+        eventText("event_DISTRESS_ENGI_REBEL_LIST1_2_text")
+      ) {
         blocked = true;
         assert.equal(
           g.player.weapons.some((w) => w.defId === "BOMB_HEAL"),

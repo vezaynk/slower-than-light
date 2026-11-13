@@ -72,7 +72,7 @@ describe("refuel dock price", () => {
     assert.equal(fixed.scrap, fixedScrap - 7);
     assert.equal(fixed.fuel, fixedFuel + 5);
     assert.equal(fixed.seed, fixedSeed);
-    assert.match(fixed.event?.body ?? "", /You receive 5 fuel/);
+    assert.match(fixed.event?.body ?? "", /Fuel: 5\./);
     assert.match(fixed.event?.body ?? "", /Scrap: -7\./);
     assert.equal(fixed.log.join("\n").includes("Scrap: -7."), false);
 
@@ -142,6 +142,10 @@ describe("refuel dock price", () => {
     choose(poor, "s:refuel-dock:accept");
     assert.equal(poor.scrap, 4);
     assert.equal(poor.event?.body, OFFER);
+    assert.equal(
+      poor.event?.choices.some((choice) => choice.id === "s:refuel-dock:accept"),
+      true,
+    );
   });
 
   it("does not roll a fixed offer and rolls nothing when the price is missing", () => {

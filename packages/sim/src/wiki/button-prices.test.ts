@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { afterEach, describe, it } from "node:test";
 import { eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import type { EventDef } from "@stl/pack";
@@ -86,7 +87,7 @@ describe("named button prices", () => {
     choose(forged, "s:rock-slug:debt:12");
     assert.equal(forged.scrap, 100);
     assert.equal(forged.event?.body, body);
-    assert.match(forged.event?.body ?? "", /thick boulder heads/);
+    assert.ok((forged.event?.body ?? "").includes(eventText("event_ROCK_SLUG_ARGUMENT_c1_text")));
   });
 
   it("omits a missing debt and keeps demand and leave", () => {
@@ -359,13 +360,13 @@ describe("named button prices", () => {
     choose(forged, "c:no-fuel-drifting-debris:pay:12");
     assert.equal(forged.scrap, 100);
     assert.equal(forged.event?.body, body);
-    assert.match(body ?? "", /pay a scrap ransom/);
+    assert.ok((body ?? "").includes(eventText("event_FUEL_OFF_ROCK_WRECK_LIST_4_text")));
 
     loadPack({ events: [{ ...row("no-fuel-drifting-debris"), prices: undefined }] }, "append");
     let quiet: Game | undefined;
     for (let seed = 1; seed <= 40 && !quiet; seed++) {
       const g = open(seed);
-      if (/pay a scrap ransom/.test(g.event?.body ?? "")) quiet = g;
+      if ((g.event?.body ?? "").includes(eventText("event_FUEL_OFF_ROCK_WRECK_LIST_4_text"))) quiet = g;
     }
     assert.ok(quiet);
     assert.equal(

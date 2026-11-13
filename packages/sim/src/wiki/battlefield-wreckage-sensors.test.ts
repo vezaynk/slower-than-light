@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -6,7 +7,7 @@ import { citedEvent } from "./cited-events.ts";
 import { fillerEvent } from "./filler-events.ts";
 
 const LEAD =
-  "You scan the battlefield, and with the aid of your Sensors, you are able to salvage a moderate amount of material from the wreckage. You prepare to jump.";
+  eventText("event_WRECKAGE_EVENT_c1_text");
 const SCAN = "c:battlefield-wreckage:2";
 
 function open(g: Game) {

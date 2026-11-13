@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -107,9 +108,9 @@ describe("Lanius ship attacking civilian distress", () => {
         g.event?.choices.some((c) => c.id === "ship-resume") === true && g.enemy != null;
       if (rogue) {
         fight = true;
-        assert.match(g.event?.body ?? "", /gone completely rogue/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_DISTRESS_FIGHT_LANIUS_2_text")));
         assert.equal(
-          g.log.some((line) => line.includes("gone completely rogue")),
+          g.log.some((line) => line.includes(eventText("event_LANIUS_DISTRESS_FIGHT_LANIUS_2_text"))),
           false,
         );
         choose(g, "ship-resume");
@@ -119,7 +120,7 @@ describe("Lanius ship attacking civilian distress", () => {
         assert.equal(g.scrap, 10);
       } else {
         peace = true;
-        assert.match(g.event?.body ?? "", /powers down its weapons/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_DISTRESS_FIGHT_LANIUS_1_text")));
         assert.equal(g.event?.body.includes("Scrap:"), false);
         assert.equal(g.scrap, 10);
         assert.equal(

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -55,7 +56,7 @@ describe("Lanius ship absorbing rebel base", () => {
       choose(g, "c:lanius-ship-absorbing-rebel-base:0");
       if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight = true;
-        assert.match(g.event?.body ?? "", /scoff/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_GROUP_AUTO_LIST_2_text")));
         assert.equal(
           g.log.some((line) => line.includes("scoff")),
           false,

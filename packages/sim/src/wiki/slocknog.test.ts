@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { CREW_CAP, choiceDisabled, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -33,13 +34,13 @@ describe("Slocknog", () => {
     open(g);
     assert.equal(choiceDisabled(g, "c:slocknog:0"), null);
     fillerChoose(g, "c:slocknog:0");
-    const slug = players(g).find((c) => c.name === "Slocknog");
+    const slug = players(g).find((c) => c.name === eventText("name_Slocknog"));
     assert.ok(slug);
     assert.equal(slug.kin, "slug");
     assert.equal(slug.skills, undefined);
     assert.equal(players(g).length, crew + 1);
     assert.equal(g.scrap, 0);
-    assert.match(g.event?.body ?? "", /named Slocknog/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_RESCUE_c1_text")));
   });
 
   it("refuses the hire below 55 scrap, and a full ship relieves someone already aboard", () => {
@@ -52,7 +53,7 @@ describe("Slocknog", () => {
     fillerChoose(short, "c:slocknog:0");
     assert.equal(short.scrap, 54);
     assert.equal(
-      players(short).some((c) => c.name === "Slocknog"),
+      players(short).some((c) => c.name === eventText("name_Slocknog")),
       false,
     );
 
@@ -63,7 +64,7 @@ describe("Slocknog", () => {
     fillerChoose(full, "c:slocknog:0");
     // Crew: at full crew a hire relieves "one of the existing crewmembers" (make-room.ts keepNewHire).
     assert.equal(full.scrap, 0);
-    const slug = players(full).find((c) => c.name === "Slocknog");
+    const slug = players(full).find((c) => c.name === eventText("name_Slocknog"));
     assert.ok(slug);
     assert.deepEqual(full.overflow, [{ kind: "crew", keep: slug.id }]);
   });
@@ -82,9 +83,9 @@ describe("Slocknog", () => {
     const crew = players(g).length;
     open(g);
     fillerChoose(g, "c:slocknog:1");
-    assert.match(g.event?.body ?? "", /sssentient|sssly|remove me from this rock/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_RESCUE_LIST_1_text")));
     fillerChoose(g, "s:slocknog:rescue");
-    const slug = players(g).find((c) => c.name === "Slocknog");
+    const slug = players(g).find((c) => c.name === eventText("name_Slocknog"));
     assert.ok(slug);
     assert.equal(slug.skills, undefined);
     assert.equal(players(g).length, crew + 1);
@@ -94,11 +95,11 @@ describe("Slocknog", () => {
     open(left);
     fillerChoose(left, "c:slocknog:1");
     fillerChoose(left, "s:slocknog:leave");
-    assert.match(left.event?.body ?? "", /find a way off that moon/);
+    assert.ok((left.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_RESCUE_LIST_1_c2_text")));
     assert.match(left.event?.body ?? "", /Nothing happens/);
     assert.equal(left.scrap, 10);
     assert.equal(
-      players(left).some((c) => c.name === "Slocknog"),
+      players(left).some((c) => c.name === eventText("name_Slocknog")),
       false,
     );
   });

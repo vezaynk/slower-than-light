@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -30,7 +31,7 @@ describe("Rebel fight chance in nebula", () => {
     g.fleet = 4;
     open(g);
     fillerChoose(g, "c:rebel-fight-chance-in-nebula:0");
-    assert.match(g.event?.body ?? "", /out of sight/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_c1_text")));
     assert.match(g.event?.body ?? "", /Nothing happens/);
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 4);
@@ -58,20 +59,20 @@ describe("Rebel fight chance in nebula", () => {
         g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
       if (fighting) {
         fight = true;
-        assert.match(g.event?.body ?? "", /vapour trails/);
-        assert.equal(/vapour trails/.test(g.log.join(" ")), false);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_LIST_1_text")));
+        assert.equal((g.log.join(" ")).includes(eventText("event_NEBULA_REBEL_CHASE_LIST_1_text")), false);
         choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
         assert.equal(g.scrap, 10);
         assert.equal(g.fleet, 4);
-      } else if (/disoriented/.test(g.event?.body ?? "")) {
+      } else if ((g.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_LIST_3_text"))) {
         doubled = true;
         assert.equal(g.fleet, 8);
         assert.match(g.event?.body ?? "", /pursuit is doubled/);
         assert.equal(g.scrap, 10);
       } else {
         gone = true;
-        assert.match(g.event?.body ?? "", /slip away/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_LIST_2_text")));
         assert.match(g.event?.body ?? "", /Nothing happens/);
         assert.equal(g.fleet, 4);
         assert.equal(g.scrap, 10);
@@ -101,8 +102,8 @@ describe("Rebel fight chance in nebula", () => {
     fillerChoose(sensors, SENSORS);
     assert.equal(sensors.phase, "event");
     assert.equal(sensors.event?.choices[0]?.id, "ship-resume");
-    assert.match(sensors.event?.body ?? "", /malfunctioning sensors/);
-    assert.equal(/malfunctioning sensors/.test(sensors.log.join(" ")), false);
+    assert.ok((sensors.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_c3_text")));
+    assert.equal((sensors.log.join(" ")).includes(eventText("event_NEBULA_REBEL_CHASE_c3_text")), false);
     choose(sensors, "ship-resume");
     assert.equal(sensors.phase, "combat");
     assert.equal(sensors.scrap, 10);
@@ -114,8 +115,8 @@ describe("Rebel fight chance in nebula", () => {
     fillerChoose(glass, SCANNERS);
     assert.equal(glass.phase, "event");
     assert.equal(glass.event?.choices[0]?.id, "ship-resume");
-    assert.match(glass.event?.body ?? "", /malfunctioning sensors/);
-    assert.equal(/malfunctioning sensors/.test(glass.log.join(" ")), false);
+    assert.ok((glass.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_c3_text")));
+    assert.equal((glass.log.join(" ")).includes(eventText("event_NEBULA_REBEL_CHASE_c3_text")), false);
     choose(glass, "ship-resume");
     assert.equal(glass.phase, "combat");
 
@@ -126,8 +127,8 @@ describe("Rebel fight chance in nebula", () => {
     fillerChoose(life, LIFE);
     assert.equal(life.phase, "event");
     assert.equal(life.event?.choices[0]?.id, "ship-resume");
-    assert.match(life.event?.body ?? "", /life signatures/);
-    assert.equal(/life signatures/.test(life.log.join(" ")), false);
+    assert.ok((life.event?.body ?? "").includes(eventText("event_NEBULA_REBEL_CHASE_c5_text")));
+    assert.equal((life.log.join(" ")).includes(eventText("event_NEBULA_REBEL_CHASE_c5_text")), false);
     choose(life, "ship-resume");
     assert.equal(life.phase, "combat");
     assert.equal(life.scrap, 10);

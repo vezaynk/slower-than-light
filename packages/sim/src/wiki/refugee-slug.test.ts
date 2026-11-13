@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -65,7 +66,7 @@ describe("Refugee (Slug)", () => {
         assert.equal(g.fightEvent, "refugee-slug");
       } else {
         trade = true;
-        assert.match(g.event?.body ?? "", /running low on supplies/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_REFUGEE_TRADER_text")));
         assert.equal(g.event?.choices[1]?.label, "Politely decline.");
         const scrap = g.scrap;
         const crew = g.crew.filter((c) => c.side === "player").length;
@@ -102,7 +103,7 @@ describe("Refugee (Slug)", () => {
     assert.equal(destroyed.scrap, before + paid[0]!);
     choose(destroyed, "s:refugee-slug:contact");
     const thanks = destroyed.event?.body ?? "";
-    assert.match(thanks, /thanks you for your assistance/);
+    assert.ok((thanks).includes(eventText("ship_PIRATE_REFUGEE_destroyed_c1_text")));
     assert.equal(/hounding them/.test(thanks), false);
 
     const killed = createGame(2);
@@ -115,6 +116,6 @@ describe("Refugee (Slug)", () => {
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);
     choose(killed, "s:refugee-slug:contact-dead");
     const followed = killed.event?.body ?? "";
-    assert.match(followed, /pirates have been following their trail/);
+    assert.ok((followed).includes(eventText("ship_PIRATE_REFUGEE_deadCrew_c1_text")));
   });
 });

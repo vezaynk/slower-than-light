@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon } from "../types.ts";
@@ -87,7 +88,7 @@ describe("Improve reactor for supplies", () => {
     assert.equal(g.player.parts, 0);
     assert.equal(g.fuel, 0);
     assert.equal(g.player.reactor, reactor + 1);
-    assert.match(g.event?.body ?? "", /try to improve your reactor/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_TRADER_UPGRADES_EXCHANGE_LIST_1_text")));
     assert.match(g.event?.body ?? "", /reactor is upgraded/);
   });
 
@@ -137,7 +138,7 @@ describe("Improve reactor for supplies", () => {
     assert.equal(g.player.parts, 4);
     assert.equal(g.fuel, 6);
     assert.equal(g.player.reactor, reactor);
-    assert.match(g.event?.body ?? "", /need what supplies you have/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_TRADER_UPGRADES_EXCHANGE_c2_text")));
     choose(g, "ack");
     assert.equal(g.phase, "map");
   });

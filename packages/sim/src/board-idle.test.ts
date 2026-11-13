@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "./event-text.ts";
 import { describe, it } from "node:test";
 import { beginBoarding, choose, step } from "./sim.ts";
 import type { Crew, Game } from "./types.ts";
@@ -217,8 +218,8 @@ describe("Boarders with no enemy ship", () => {
       fillerChoose(ref, "c:refugee-comms-down:0");
       const aboard = humans(ref);
       if (pausedBoarding(ref) && aboard.length >= 2 && aboard.length <= 4 && !ref.asb) {
-        assert.match(ref.event?.body ?? "", /cannibalistic refugees/);
-        assert.equal(ref.log.join("\n").includes("cannibalistic refugees"), false);
+        assert.ok((ref.event?.body ?? "").includes(eventText("event_REFUGEE_GHOST_LIST_5_text")));
+        assert.equal(ref.log.join("\n").includes(eventText("event_REFUGEE_GHOST_LIST_5_text")), false);
         assert.match(ref.log.join("\n"), /human boarders beam aboard/);
         refugee = true;
       }
@@ -226,8 +227,8 @@ describe("Boarders with no enemy ship", () => {
       fillerChoose(station, "c:abandoned-station:0");
       const pirates = humans(station);
       if (pausedBoarding(station) && station.asb && pirates.length >= 2 && pirates.length <= 4) {
-        assert.match(station.event?.body ?? "", /planetary defense system/);
-        assert.equal(station.log.join("\n").includes("planetary defense system"), false);
+        assert.ok((station.event?.body ?? "").includes(eventText("event_EMPTY_STATION2_LIST_6_text")));
+        assert.equal(station.log.join("\n").includes(eventText("event_EMPTY_STATION2_LIST_6_text")), false);
         assert.match(station.log.join("\n"), /boarders beam aboard/);
         battery = true;
       }

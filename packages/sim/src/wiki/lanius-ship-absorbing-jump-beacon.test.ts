@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { CREW_CAP, choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game, Kit } from "../types.ts";
@@ -107,9 +108,9 @@ describe("Lanius ship absorbing jump beacon", () => {
       choose(g, "c:lanius-ship-absorbing-jump-beacon:0");
       if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight = true;
-        assert.match(g.event?.body ?? "", /fully functional and looking for a fight/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_ASK_2_text")));
         assert.equal(
-          g.log.some((line) => line.includes("fully functional and looking for a fight")),
+          g.log.some((line) => line.includes(eventText("event_LANIUS_BEACON_EATER_ASK_2_text"))),
           false,
         );
         sameStock(g, before);
@@ -117,12 +118,12 @@ describe("Lanius ship absorbing jump beacon", () => {
         assertLaniusFight(g);
         sameStock(g, before);
         assert.equal(
-          g.log.some((line) => line.includes("fully functional and looking for a fight")),
+          g.log.some((line) => line.includes(eventText("event_LANIUS_BEACON_EATER_ASK_2_text"))),
           false,
         );
         continue;
       }
-      assert.match(g.event?.body ?? "", /critical\.\.\. must\.\.\. metal\.\.\./);
+      assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_ASK_1_text")));
       assert.deepEqual(
         g.event?.choices.map((c) => c.label),
         ["Leave."],
@@ -146,7 +147,7 @@ describe("Lanius ship absorbing jump beacon", () => {
         );
       } else {
         quiet = true;
-        assert.match(g.event?.body ?? "", /disable this beacon/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_LEAVE_1_text")));
         assert.match(g.event?.body ?? "", /Nothing happens/);
         sameStock(g, before);
       }
@@ -214,7 +215,7 @@ describe("Lanius ship absorbing jump beacon", () => {
     const crew = g.crew.filter((c) => c.side === "player").length;
     const held = stock(g);
     choose(g, "c:lanius-ship-absorbing-jump-beacon:2");
-    assert.match(g.event?.body ?? "", /lack of metal/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_c4_text")));
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
       ["Decline."],
@@ -249,7 +250,7 @@ describe("Lanius ship absorbing jump beacon", () => {
     const crew = g.crew.filter((c) => c.side === "player").length;
     assert.equal(choiceDisabled(g, "c:lanius-ship-absorbing-jump-beacon:3"), null);
     choose(g, "c:lanius-ship-absorbing-jump-beacon:3");
-    assert.match(g.event?.body ?? "", /breaking it down for metal/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_c5_text")));
     assert.match(g.event?.body ?? "", /You receive a Lanius crewmember/);
     assert.equal(g.player.parts, parts);
     assert.equal(g.player.kits.drones?.target, "SHIP_REPAIR");

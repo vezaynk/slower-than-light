@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -59,9 +60,9 @@ describe("Mantis fugitive", () => {
         trap = true;
         assert.ok(systemDamage(g) >= 1);
         assert.ok(aboard.every((c) => c.kin === "mantis"));
-        assert.ok(body.includes("sabotages your ship"));
+        assert.ok(body.includes(eventText("event_ALISON_MANTIS_CREW_HELP_1_text")));
         assert.equal(
-          g.log.some((line) => line.includes("sabotages your ship")),
+          g.log.some((line) => line.includes(eventText("event_ALISON_MANTIS_CREW_HELP_1_text"))),
           false,
         );
         assert.ok(g.log.includes("Hull damage: 5."));
@@ -70,9 +71,9 @@ describe("Mantis fugitive", () => {
         assert.equal(g.player.hull, hull);
         assert.equal(systemDamage(g), 0);
         assert.ok(aboard.some((c) => c.kin === "engi"));
-        assert.ok(body.includes("expresses his thanks"));
+        assert.ok(body.includes(eventText("event_ALISON_MANTIS_CREW_HELP_2_text")));
         assert.equal(
-          g.log.some((line) => line.includes("expresses his thanks")),
+          g.log.some((line) => line.includes(eventText("event_ALISON_MANTIS_CREW_HELP_2_text"))),
           false,
         );
       }
@@ -121,7 +122,7 @@ describe("Mantis fugitive", () => {
         assert.equal(got.missiles, 0);
         assert.equal(got.parts, 0);
         assert.equal(players(g).length, crew);
-        if (/delighted/.test(body)) {
+        if ((body).includes(eventText("event_ALISON_MANTIS_CREW_REJECT_1_text"))) {
           scrap = true;
           assert.equal(g.player.hull, hull);
           assert.equal(
@@ -130,7 +131,7 @@ describe("Mantis fugitive", () => {
           );
         } else {
           fire = true;
-          assert.match(body, /Fury sparks/);
+          assert.ok((body).includes(eventText("event_ALISON_MANTIS_CREW_REJECT_2_text")));
           assert.equal(g.player.hull, hull - 5);
           const flames = g.player.rooms.reduce((n, r) => n + r.fire, 0);
           assert.ok(flames === 1 || flames === 2, String(flames));

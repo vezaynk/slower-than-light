@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { afterEach, describe, it } from "node:test";
 import { allEvents, eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import type { ChoiceReq, EventDef } from "@stl/pack";
@@ -834,8 +835,8 @@ describe("stock spends", () => {
     const before = paid.seed;
     choose(paid, "c:crystalline-cache:breach");
     assert.equal(paid.missiles, 0);
-    assert.match(paid.event?.body ?? "", /Breach warheads/);
-    assert.equal(/Breach warheads/.test(paid.log.join("\n")), false);
+    assert.ok((paid.event?.body ?? "").includes(eventText("event_CRYSTAL_CACHE_c2_text")));
+    assert.equal((paid.log.join("\n")).includes(eventText("event_CRYSTAL_CACHE_c2_text")), false);
     assert.notEqual(paid.seed, before);
 
     rewriteStock("c:crystalline-cache:breach", undefined);

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon, Game, Kit } from "../types.ts";
@@ -103,11 +104,11 @@ describe("Fire on research station", () => {
       if (/fuel cell/.test(body)) {
         lost = true;
         assert.equal(g.crew.length, crew - 1);
-        assert.match(body, /is lost/);
+        assert.match(body, /Crew lost: /);
         scrapOnly(body, 7, 10);
       } else {
         paid = true;
-        assert.match(body, /drop them off/);
+        assert.ok((body).includes(eventText("event_DISTRESS_STATION_FIRE_CREW_2_text")));
         assert.equal(g.crew.length, crew);
         scrapOnly(body, 19, 23);
       }
@@ -152,7 +153,7 @@ describe("Fire on research station", () => {
       open(g);
       fillerChoose(g, "c:fire-on-research-station:1");
       const body = g.event?.body ?? "";
-      if (/huge blast/.test(body)) {
+      if ((body).includes(eventText("event_DISTRESS_STATION_FIRE_RESCUE_1_text"))) {
         blast = true;
         assert.equal(g.player.hull, hull - 4);
         assert.equal(systemDamage(g) - broken, 1);
@@ -160,8 +161,8 @@ describe("Fire on research station", () => {
         scrapOnly(body, 7, 10);
       } else {
         jones = true;
-        assert.match(body, /Dr. Jones joins you/);
-        assert.ok(g.crew.some((c) => c.name === "Dr. Jones" && c.side === "player"));
+        assert.match(body, /Crew gained: /);
+        assert.ok(g.crew.some((c) => c.name === eventText("name_DrJones") && c.side === "player"));
         assert.equal(g.crew.length, crew + 1);
         assert.equal(g.player.hull, hull);
         scrapOnly(body, 7, 10);
@@ -175,7 +176,7 @@ describe("Fire on research station", () => {
     const crew = g.crew.length;
     open(g);
     fillerChoose(g, "c:fire-on-research-station:2");
-    assert.match(g.event?.body ?? "", /nothing could have been done/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_FIRE_c3_text")));
     assert.equal(g.scrap, 10);
     assert.equal(g.crew.length, crew);
     choose(g, "ack");
@@ -190,7 +191,7 @@ describe("Fire on research station", () => {
     const weapons = g.player.weapons.length;
     open(g);
     fillerChoose(g, "c:fire-on-research-station:3");
-    assert.match(g.event?.body ?? "", /fire suppressant/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_FIRE_c4_text")));
     scrapOnly(g.event?.body ?? "", 19, 23);
     assert.equal(g.augments.length, 2);
     assert.equal(g.augments[0], "SCRAP_COLLECTOR");

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, createGame } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
@@ -51,7 +52,7 @@ describe("Trade scrap for upgrades", () => {
     const deal = agree(g);
     assert.ok(deal);
     assert.ok(deal.cost >= 15 && deal.cost <= 20);
-    assert.match(g.event?.body ?? "", /Oxygen system/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_TRADER_UPGRADES_LIST_1_text")));
     g.scrap = deal.cost - 1;
     assert.equal(choiceDisabled(g, deal.id), `Need ${deal.cost} scrap`);
     fillerChoose(g, deal.id);

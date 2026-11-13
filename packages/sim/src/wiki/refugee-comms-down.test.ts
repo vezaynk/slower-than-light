@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -6,7 +7,7 @@ import { fillerChoose } from "./filler-events.ts";
 
 const ID = "c:refugee-comms-down:0";
 const CLONE =
-  "Your abandoned crewmember is waiting on the ship when you return, trying not to dwell on the fate of his previous incarnation.";
+  eventText("event_REFUGEE_GHOST_LIST_4_c0_clone");
 
 function board(seed: number, cradle: boolean): Game {
   const g = createGame(seed);

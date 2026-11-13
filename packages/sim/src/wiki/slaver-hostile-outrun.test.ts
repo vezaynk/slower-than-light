@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -41,13 +42,13 @@ describe("Slaver (hostile) Engines out-run", () => {
       open(g);
       choose(g, ID);
       const body = g.event?.body ?? "";
-      if (body.includes("divert all available power")) {
+      if (body.includes(eventText("event_PIRATE_SLAVER_RUN_2_text"))) {
         divert = true;
         assert.equal(g.phase, "event");
         assert.equal(g.enemy, null);
         assert.equal(g.scrap, 10);
         assert.equal(body.includes("Nothing happens."), false);
-      } else if (body.includes("unable to keep pace")) {
+      } else if (body.includes(eventText("event_PIRATE_SLAVER_RUN_3_text"))) {
         pace = true;
         assert.equal(g.phase, "event");
         assert.equal(g.enemy, null);
@@ -57,9 +58,9 @@ describe("Slaver (hostile) Engines out-run", () => {
         fought = true;
         assert.equal(g.phase, "event");
         assert.equal(g.event?.choices[0]?.id, "ship-resume");
-        assert.ok((g.event?.body ?? "").includes("power up their weapons."));
+        assert.ok((g.event?.body ?? "").includes(eventText("event_PIRATE_SLAVER_RUN_1_text")));
         assert.equal(
-          g.log.some((line) => line.includes("power up their weapons.")),
+          g.log.some((line) => line.includes(eventText("event_PIRATE_SLAVER_RUN_1_text"))),
           false,
         );
         assert.equal(g.enemy?.pirate, true);

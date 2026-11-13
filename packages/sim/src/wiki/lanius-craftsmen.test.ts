@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -82,20 +83,20 @@ describe("Lanius craftsmen", () => {
     open(g);
     const before = stock(g);
     choose(g, "c:lanius-craftsmen:0");
-    assert.match(g.event?.body ?? "", /foggiest idea how it works/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_RESEARCHER_CRAFT_c1_text")));
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
       [
-        "Give 45 scrap to craft an augmentation.",
-        "Give 50 scrap to craft a weapon.",
-        "Give 40 scrap to craft a drone schematic.",
-        "Decline their offer.",
-        "Offer to help in the process.",
+        `${eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c1_choice")} [45 scrap]`,
+        `${eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c2_choice")} [50 scrap]`,
+        `${eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c3_choice")} [40 scrap]`,
+        eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c4_choice"),
+        eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c5_choice"),
       ],
     );
     assert.equal(choiceDisabled(g, "s:lanius-craftsmen:help"), "Needs a Lanius crewmember");
     choose(g, "s:lanius-craftsmen:decline");
-    assert.match(g.event?.body ?? "", /thank them for the information/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c4_text")));
     assert.match(g.event?.body ?? "", /Nothing happens/);
     sameStock(g, before);
     assert.equal(g.phase, "event");
@@ -116,14 +117,14 @@ describe("Lanius craftsmen", () => {
     assert.equal(choiceDisabled(g, "s:lanius-craftsmen:help"), null);
     assert.equal(choiceDisabled(g, "s:lanius-craftsmen:aug"), "Need 45 scrap");
     choose(g, "s:lanius-craftsmen:help");
-    assert.match(g.event?.body ?? "", /request less scrap/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c5_text")));
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
       [
-        "Give 35 scrap to craft an augmentation.",
-        "Give 40 scrap to craft a weapon.",
-        "Give 30 scrap to craft a drone schematic.",
-        "Decline their offer.",
+        `${eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c5_c1_choice")} [35 scrap]`,
+        `${eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c5_c2_choice")} [40 scrap]`,
+        `${eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c5_c3_choice")} [30 scrap]`,
+        eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c4_choice"),
       ],
     );
     g.scrap = 29;
@@ -132,7 +133,7 @@ describe("Lanius craftsmen", () => {
     const before = g.augments.length;
     choose(g, "s:lanius-craftsmen:help:drone");
     assert.equal(g.scrap, 0);
-    assert.match(g.event?.body ?? "", /construct the schematic/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c3_text")));
     assert.match(
       g.event?.body ?? "",
       /schematic (fitted|stowed in cargo)\.|choose what to leave behind\./,
@@ -150,7 +151,7 @@ describe("Lanius craftsmen", () => {
     open(g);
     const before = stock(g);
     choose(g, "c:lanius-craftsmen:1");
-    assert.match(g.event?.body ?? "", /commercial manufacturing/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_RESEARCHER_CRAFT_c2_text")));
     assert.match(g.event?.body ?? "", /Nothing happens/);
     sameStock(g, before);
     assert.equal(g.phase, "event");

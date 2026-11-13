@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, commitJump, createGame } from "../sim.ts";
 import type { Beacon, Game, WeaponInst } from "../types.ts";
@@ -70,14 +71,14 @@ function mineDetonates(defId: string): boolean {
   choose(g, "c:rock-live-mine:0");
   const locked = choiceDisabled(g, "s:rock-mine:missile");
   choose(g, "s:rock-mine:missile");
-  const blew = (g.event?.body ?? "").includes("modified warhead");
+  const blew = (g.event?.body ?? "").includes(eventText("event_ROCK_STARSHIP_MINE_c1_c2_text"));
   if (blew) {
     assert.equal(locked, null, defId);
     assert.equal(g.player.hull, before - 4);
   } else {
     assert.equal(locked, "Needs a missile weapon", defId);
     assert.equal(g.player.hull, before);
-    assert.match(g.event?.body ?? "", /bites down/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_ROCK_STARSHIP_MINE_c1_text")));
   }
   return blew;
 }

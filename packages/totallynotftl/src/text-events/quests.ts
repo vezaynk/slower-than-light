@@ -172,7 +172,8 @@ export const TEXT: Record<string, string> = {
   event_HIDDEN_FEDERATION_BASE_LIST_4_c4_text: "Gain a weapon and medium scrap.",
   event_HIDDEN_FEDERATION_BASE_LIST_4_text: "Nothing found at the coordinates.",
   event_LANIUS_AUTO_REBEL_LIST_1_text: "Gain scrap, random tier. Reveal the map.",
-  event_LANIUS_AUTO_REBEL_LIST_2_text: "Gain scrap, random tier. The Rebel fleet is delayed 1 jump.",
+  event_LANIUS_AUTO_REBEL_LIST_2_text:
+    "Gain scrap, random tier. The Rebel fleet is delayed 1 jump.",
   event_LANIUS_AUTO_REBEL_c2_text: "You leave.",
   event_LANIUS_BOARDERS_PDS_LIST_1_text: "Repair 8 hull.",
   event_LANIUS_BOARDERS_PDS_LIST_2_text: "No effect.",

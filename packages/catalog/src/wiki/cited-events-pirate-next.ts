@@ -38,13 +38,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:boarders-humans-pirate",
     aliases: ["Boarders: Humans (Pirate)"],
     sectors: ["Pirate Controlled Sector"],
-    body: "What appears to be a civilian ship sends a friendly hail. As you approach the vessel, you detect a teleporter signal but it's too late... intruders have beamed aboard!",
+    body: "3-5 Human boarders.",
     choices: [
       {
         id: "c:boarders-humans-pirate:0",
         // Wiki citations:
         // > "3-5 human boarders beam aboard your ship." — [[Boarders: Humans (Pirate)]]
-        label: "3-5 human boarders beam aboard your ship.",
+        label: "3-5 Human boarders.",
         fx: [{ k: "nothing" }],
       },
     ],

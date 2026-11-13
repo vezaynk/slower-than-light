@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, commitJump, createGame } from "../sim.ts";
 import type { Beacon, Game, WeaponInst } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerEvent } from "./filler-events.ts";
-import { addQuest, QUEST_ADDED } from "./quests.ts";
+import { addQuest, questAdded } from "./quests.ts";
 
 const CRYSTALS = ["CRYSTAL_BURST_1", "CRYSTAL_BURST_2", "CRYSTAL_HEAVY_1", "CRYSTAL_HEAVY_2"];
 
@@ -21,7 +22,7 @@ function fit(seed: number, defId: string): Game {
 
 function warCampOffers(defId: string): boolean {
   const g = fit(6, defId);
-  assert.equal(addQuest(g, "mantis-war-camp"), QUEST_ADDED);
+  assert.equal(addQuest(g, "mantis-war-camp"), questAdded());
   const beacon = g.beacons.find((b) => b.quest === "mantis-war-camp");
   assert.ok(beacon);
   const from = g.beacons.find((b) => b.id === g.here)!;
@@ -70,14 +71,14 @@ function mineDetonates(defId: string): boolean {
   choose(g, "c:rock-live-mine:0");
   const locked = choiceDisabled(g, "s:rock-mine:missile");
   choose(g, "s:rock-mine:missile");
-  const blew = (g.event?.body ?? "").includes("modified warhead");
+  const blew = (g.event?.body ?? "").includes(eventText("event_ROCK_STARSHIP_MINE_c1_c2_text"));
   if (blew) {
     assert.equal(locked, null, defId);
     assert.equal(g.player.hull, before - 4);
   } else {
     assert.equal(locked, "Needs a missile weapon", defId);
     assert.equal(g.player.hull, before);
-    assert.match(g.event?.body ?? "", /bites down/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_ROCK_STARSHIP_MINE_c1_text")));
   }
   return blew;
 }

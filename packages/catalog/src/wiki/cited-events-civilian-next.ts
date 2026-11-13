@@ -43,22 +43,28 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Rock Controlled Sector",
       "Rock Homeworlds",
     ],
-    body: "A ship without life forms within a nearby dense asteroid field is giving off the distress call. Shall we investigate? It could be dangerous.",
+    body: "Derelict ship. Dense asteroid field.",
     choices: [
       {
         id: "c:dense-asteroid-field-distress:0",
         // Wiki citations:
         // > "Search for the ship." — [[Dense asteroid field distress]]
-        label: "Search for the ship.",
+        label:
+          "1 in 3: take 4 hull damage and engine damage. 1 in 3: gain scrap and resources. 1 in 3: more options.",
         // Search. Hull and engines, random scrap, or the remains. No odds. INFERRED: equal.
-        fx: [{ k: "note", text: "Hull and engines, random scrap, or the remains." }],
+        fx: [
+          {
+            k: "note",
+            text: "1 in 3: take 4 hull damage and engine damage. 1 in 3: gain scrap and resources. 1 in 3: more options.",
+          },
+        ],
       },
       {
         id: "c:dense-asteroid-field-distress:1",
         // Wiki citations:
         // > "Avoid the area." — [[Dense asteroid field distress]]
         // > "Nothing happens." — [[Dense asteroid field distress]]
-        label: "Avoid the area.",
+        label: "Nothing happens.",
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },
@@ -67,9 +73,9 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Make a thorough search for the ship without fear of stray asteroids." — [[Dense asteroid field distress]]
         // > "Find remains of a ship." — [[Dense asteroid field distress]]
-        label: "Make a thorough search for the ship without fear of stray asteroids.",
+        label: "More options.",
         // Rock Plating. The remains.
-        fx: [{ k: "note", text: "The remains." }],
+        fx: [{ k: "note", text: "More options." }],
       },
     ],
   },

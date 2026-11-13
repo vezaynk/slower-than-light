@@ -3,6 +3,8 @@ import { describe, it } from "node:test";
 import { choose, choiceDisabled, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -24,10 +26,7 @@ describe("Auto-ship fight in plasma storm", () => {
     // > "Fight an Auto-ship." — [[Auto-ship fight in plasma storm]]
     const g = createGame(1);
     open(g);
-    assert.equal(
-      g.event?.body,
-      "You jump into a sector of the nebula beset by a plasma storm. An automated Rebel scout stationed at the beacon moves in to attack.",
-    );
+    assert.equal(g.event?.body, "Hostile Auto-ship. Plasma storm.");
     for (const n of [1, 2, 3]) {
       assert.equal(
         g.event?.choices.some((c) => c.id === `c:auto-ship-fight-in-plasma-storm:${n}`),
@@ -70,8 +69,7 @@ describe("Auto-ship fight in plasma storm", () => {
       g.player.systems.engines.level = 4;
       assert.equal(choiceDisabled(g, "c:auto-ship-fight-in-plasma-storm:1"), null);
       choose(g, "c:auto-ship-fight-in-plasma-storm:1");
-      const fightLead =
-        "Despite your advanced engines you are unable to shake them; you turn and prepare for a fight.";
+      const fightLead = eventText("event_STORM_AUTO_ESCAPE_2_text");
       if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight = true;
         assert.equal(g.event?.body, fightLead);
@@ -84,7 +82,7 @@ describe("Auto-ship fight in plasma storm", () => {
         assert.equal(g.log.includes(fightLead), false);
       } else {
         lost = true;
-        assert.match(g.event?.body ?? "", /lose the ship in the storm/);
+        assert.match(g.event?.body ?? "", textRe("event_STORM_AUTO_ESCAPE_1_text"));
         assert.match(g.event?.body ?? "", /Nothing happens/);
         assert.equal(g.scrap, 10);
         assert.equal(g.fleet, 5);
@@ -110,7 +108,7 @@ describe("Auto-ship fight in plasma storm", () => {
     fast.player.systems.engines.level = 6;
     assert.equal(choiceDisabled(fast, "c:auto-ship-fight-in-plasma-storm:2"), null);
     choose(fast, "c:auto-ship-fight-in-plasma-storm:2");
-    assert.match(fast.event?.body ?? "", /lose the ship in the storm/);
+    assert.match(fast.event?.body ?? "", textRe("event_STORM_AUTO_ESCAPE_1_text"));
     assert.match(fast.event?.body ?? "", /Nothing happens/);
     assert.equal(fast.phase, "event");
     assert.equal(fast.scrap, 10);
@@ -130,7 +128,7 @@ describe("Auto-ship fight in plasma storm", () => {
     };
     assert.equal(choiceDisabled(cloaked, "c:auto-ship-fight-in-plasma-storm:3"), null);
     choose(cloaked, "c:auto-ship-fight-in-plasma-storm:3");
-    assert.match(cloaked.event?.body ?? "", /lose your pursuer in the storm/);
+    assert.match(cloaked.event?.body ?? "", textRe("event_STORM_AUTO_c4_text"));
     assert.match(cloaked.event?.body ?? "", /Nothing happens/);
     assert.equal(cloaked.scrap, 10);
     assert.equal(cloaked.player.parts, bare.player.parts);

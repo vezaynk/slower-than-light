@@ -52,7 +52,9 @@ for (const archive of archiveCases()) {
       for (const seed of c.seeds) {
         const snap = playSide(c, seed, c.archive);
         assert.deepEqual(snap.warnings, []);
-        assert.match(snap.body, /Engi colony hiding/);
+        const intro = eventDef("ENGI_FLEET_DELAY")?.body ?? "";
+        assert.ok(intro, "the page has an intro");
+        assert.ok(snap.body.includes(intro), snap.body);
         assert.equal(snap.labels.length, 2);
         // Booby trap: 2 missiles, the fleet 2 turns back.
         assert.equal(snap.outcomes[0]?.missiles, "-2");

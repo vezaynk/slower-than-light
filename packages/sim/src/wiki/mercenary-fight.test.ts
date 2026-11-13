@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -19,8 +20,7 @@ describe("The Mercenary fight", () => {
   it("fighting shows the printed lead-in on the card and fights a pirate ship", () => {
     const g = createGame(1);
     open(g);
-    const lead =
-      "Mercenaries are worse than rebels. The only honorable course is to engage the mercenary in battle.";
+    const lead = eventText("event_MERCENARY_c3_text");
     choose(g, "c:the-mercenary:1");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -40,7 +40,7 @@ describe("The Mercenary fight", () => {
     g.fleet = 6;
     choose(g, "c:the-mercenary:0");
     assert.equal(g.phase, "event");
-    assert.match(g.event?.body ?? "", /masks its jump signature/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_MERCENARY_c1_text")));
     assert.match(g.event?.body ?? "", /delayed for 2 turns/);
     assert.equal(g.fleet, 4);
     assert.ok(g.scrap <= 30 && g.scrap >= 15, String(g.scrap));

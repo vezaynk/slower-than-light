@@ -4,6 +4,8 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -33,7 +35,7 @@ describe("Auto-ship attacking outpost", () => {
       g.event?.choices.some((c) => c.id === "c:auto-ship-attacking-outpost:0"),
       true,
     );
-    const lead = "Detecting the higher threat, the automated ship moves in to engage your ship.";
+    const lead = eventText("event_AUTO_REFUEL_STATION_c1_text");
     choose(g, "c:auto-ship-attacking-outpost:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -57,8 +59,16 @@ describe("Auto-ship attacking outpost", () => {
     const parts = destroyed.player.parts;
     assert.equal(pageWin(destroyed, "auto-ship-attacking-outpost", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /quickly salvage what you can/);
-    assert.match(body, /Take this on the house/);
+    assert.match(
+      body,
+      textRe(
+        "ship_BOSS_SCOUT_RESCUE_deadCrew_text",
+        "ship_QUEST_CONSTRUCTIONYARD_SHIP_destroyed_text",
+        "ship_SQUAT_REFUEL_STATION_deadCrew_text",
+        "ship_SQUAT_REFUEL_STATION_destroyed_text",
+      ),
+    );
+    assert.match(body, textRe("ship_REBEL_AUTO_REFUEL_destroyed_c1_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 2, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -85,7 +95,7 @@ describe("Auto-ship attacking outpost", () => {
     choose(g, "c:auto-ship-attacking-outpost:1");
     assert.equal(
       g.event?.body,
-      "You steer clear of the conflict. The outpost receives a beating but the ship stops its attack before it's destroyed.\n\nNothing happens.",
+      [eventText("event_AUTO_REFUEL_STATION_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

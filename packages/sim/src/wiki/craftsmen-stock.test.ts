@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { afterEach, describe, it } from "node:test";
 import { eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import type { ChoiceReq, EventDef } from "@stl/pack";
@@ -61,7 +62,10 @@ describe("craftsmen stock", () => {
     g.scrap = 7;
     choose(g, "c:lanius-craftsmen:0");
     const aug = g.event?.choices.find((choice) => choice.id === "s:lanius-craftsmen:aug");
-    assert.equal(aug?.label, "Give 7 scrap to craft an augmentation.");
+    assert.equal(
+      aug?.label,
+      `${eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c1_choice")} [7 scrap]`,
+    );
     g.scrap = 6;
     assert.equal(choiceDisabled(g, "s:lanius-craftsmen:aug"), "Need 7 scrap");
     const body = g.event?.body;
@@ -71,7 +75,9 @@ describe("craftsmen stock", () => {
     g.scrap = 7;
     choose(g, "s:lanius-craftsmen:aug");
     assert.equal(g.scrap, 0);
-    assert.match(g.event?.body ?? "", /construct the augmentation/);
+    assert.ok(
+      (g.event?.body ?? "").includes(eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c1_text")),
+    );
   });
 
   it("spends a replaced discount and nothing when that row is gone", () => {
@@ -86,10 +92,15 @@ describe("craftsmen stock", () => {
     const drone = paid.event?.choices.find(
       (choice) => choice.id === "s:lanius-craftsmen:help:drone",
     );
-    assert.equal(drone?.label, "Give 4 scrap to craft a drone schematic.");
+    assert.equal(
+      drone?.label,
+      `${eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c5_c3_choice")} [4 scrap]`,
+    );
     choose(paid, "s:lanius-craftsmen:help:drone");
     assert.equal(paid.scrap, 0);
-    assert.match(paid.event?.body ?? "", /construct the schematic/);
+    assert.ok(
+      (paid.event?.body ?? "").includes(eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c3_text")),
+    );
 
     resetPackForTests();
     rewrite("s:lanius-craftsmen:aug", undefined);

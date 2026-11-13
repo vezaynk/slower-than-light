@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { addQuest, pageGotAway, pageWin, QUEST_ADDED } from "./quests.ts";
+import { addQuest, pageGotAway, pageWin, questAdded } from "./quests.ts";
 import { choose, commitJump, createGame, step } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
+import { eventText } from "../event-text.ts";
 
 function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
@@ -25,7 +26,7 @@ function here(g: Game): Beacon {
 /** Jump to the marker `id` and return the arrival card, or null when this seed did not place it. */
 function arriveQuest(seed: number, id: string): Game | null {
   const g = createGame(seed);
-  if (addQuest(g, id) !== QUEST_ADDED) return null;
+  if (addQuest(g, id) !== questAdded()) return null;
   const b = g.beacons.find((x) => x.quest === id);
   if (!b) return null;
   const from = here(g);
@@ -40,10 +41,12 @@ function arriveQuest(seed: number, id: string): Game | null {
   return g;
 }
 
-function cardKind(body: string): "auto" | "asb" | "wing" | null {
-  if (body.includes("bombarded by an automated drone")) return "auto";
-  if (body.includes("using their Anti-Ship Battery")) return "asb";
-  if (body.includes("taking down the wing leader")) return "wing";
+/** The arrival card's single button names its fight. The stand-in's intro lines are not distinct. */
+function cardKind(g: Game): "auto" | "asb" | "wing" | null {
+  const id = g.event?.choices[0]?.id;
+  if (id === "q:fed-base:assist" || id === "q:fed-base:assist-repair") return "auto";
+  if (id === "q:fed-base:assist-asb") return "asb";
+  if (id === "q:fed-base:assist-wing") return "wing";
   return null;
 }
 
@@ -53,21 +56,11 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     for (let seed = 1; seed <= 80 && seen.size < 3; seed++) {
       const g = arriveQuest(seed, "fed-assist");
       if (!g) continue;
-      const kind = cardKind(g.event!.body);
+      const kind = cardKind(g);
       assert.ok(kind, g.event!.body);
       const id = g.event!.choices[0]!.id;
       choose(g, id);
-      const lead =
-        kind === "asb"
-          ? "You move in to assist."
-          : kind === "wing"
-            ? "You swoop in to assist, taking down the wing leader."
-            : "The automated drone turns on you.";
-      assert.equal(g.phase, "event");
-      assert.equal(g.event?.body, lead);
-      assert.equal(g.log.includes(lead), false);
-      assert.equal(g.event?.choices[0]?.id, "ship-resume");
-      choose(g, "ship-resume");
+      // The button starts the fight; no lead-in card.
       assert.equal(g.phase, "combat");
       if (kind === "auto") {
         assert.ok(id === "q:fed-base:assist" || id === "q:fed-base:assist-repair");
@@ -93,7 +86,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     for (let seed = 1; seed <= 240 && seen.size < 3; seed++) {
       const g = arriveQuest(seed, "fed-base");
       if (!g) continue;
-      const kind = cardKind(g.event!.body);
+      const kind = cardKind(g);
       if (!kind) continue;
       const id = g.event!.choices[0]!.id;
       choose(g, id);
@@ -115,18 +108,13 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const crew = crewCount(g);
     const guns = g.player.weapons.length;
     choose(g, "q:fed-base:assist-asb");
-    assert.equal(g.phase, "event");
-    assert.equal(g.event?.body, "You move in to assist.");
-    assert.equal(g.log.includes("You move in to assist."), false);
-    assert.equal(g.event?.choices[0]?.id, "ship-resume");
-    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "quest-fed-assist-asb");
     assert.equal(g.asb, true);
     assert.equal(g.enemy?.faction, "auto");
     assert.equal(pageWin(g, "quest-fed-assist-asb", false), true);
     const body = g.event?.body ?? "";
-    assert.ok(body.startsWith("You scrap the wreckage."));
+    assert.ok(body.startsWith(eventText("ship_AUTO_FEDERATION_BASE_destroyed_text")));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -143,11 +131,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const before = g.scrap;
     choose(g, "q:fed-assist-asb:contact");
     const contact = g.event?.body ?? "";
-    assert.ok(
-      contact.startsWith(
-        "You contact the station once the Rebel ship is destroyed. The lone survivor responds, \"This base is no longer safe. Let me join your crew and I'll have the station's drones patch up your ship.\"",
-      ),
-    );
+    assert.ok(contact.startsWith(eventText("ship_AUTO_FEDERATION_BASE2_destroyed_c1_text")));
     const high = scraps(contact);
     assert.equal(high.length, 1, contact);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, contact);
@@ -164,7 +148,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     choose(killed, "q:fed-base:assist-asb");
     assert.equal(pageWin(killed, "quest-fed-assist-asb", true), true);
     const dead = killed.event?.body ?? "";
-    assert.ok(dead.startsWith("You scrap the wreckage."));
+    assert.ok(dead.startsWith(eventText("ship_AUTO_FEDERATION_BASE_destroyed_text")));
     const low = scraps(dead);
     assert.equal(low.length, 1, dead);
     assert.ok(low[0]! >= 7 && low[0]! <= 10, dead);
@@ -176,14 +160,6 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const destroyed = createGame(3);
     const crew = crewCount(destroyed);
     choose(destroyed, "q:fed-base:assist-wing");
-    assert.equal(destroyed.phase, "event");
-    assert.equal(destroyed.event?.body, "You swoop in to assist, taking down the wing leader.");
-    assert.equal(
-      destroyed.log.includes("You swoop in to assist, taking down the wing leader."),
-      false,
-    );
-    assert.equal(destroyed.event?.choices[0]?.id, "ship-resume");
-    choose(destroyed, "ship-resume");
     assert.equal(destroyed.phase, "combat");
     assert.equal(destroyed.fightEvent, "quest-fed-assist-wing");
     assert.equal(destroyed.asb, true);
@@ -196,7 +172,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     assert.ok(threshold >= 40 && threshold <= 60);
     assert.equal(pageWin(destroyed, "quest-fed-assist-wing", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.ok(body.startsWith("You scrap the wreckage."));
+    assert.ok(body.startsWith(eventText("ship_AUTO_FEDERATION_BASE_destroyed_text")));
     const low = scraps(body);
     assert.equal(low.length, 1, body);
     assert.ok(low[0]! >= 7 && low[0]! <= 10, body);
@@ -209,7 +185,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     choose(killed, "q:fed-base:assist-wing");
     assert.equal(pageWin(killed, "quest-fed-assist-wing", true), true);
     const dead = killed.event?.body ?? "";
-    assert.ok(dead.startsWith("With the crew dead, you scrap the ship."));
+    assert.ok(dead.startsWith(eventText("ship_REBEL_FEDERATION_PDS_deadCrew_text")));
     const mid = scraps(dead);
     assert.equal(mid.length, 1, dead);
     assert.ok(mid[0]! >= 12 && mid[0]! <= 19, dead);
@@ -220,7 +196,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const gone = createGame(5);
     const goneCrew = crewCount(gone);
     pageGotAway(gone, "quest-fed-assist-wing");
-    assert.equal(gone.event?.body, "The Rebel ship jumped away.");
+    assert.equal(gone.event?.body, eventText("ship_REBEL_FEDERATION_PDS_gotaway_text"));
     assert.equal(gone.scrap, 10);
     assert.equal(crewCount(gone), goneCrew);
     assert.deepEqual(
@@ -229,11 +205,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     );
     choose(gone, "q:fed-assist-wing:contact");
     const contact = gone.event?.body ?? "";
-    assert.ok(
-      contact.startsWith(
-        'With the threat gone, you contact the Federation outpost. They respond, "Our location has been compromised! Take everything you can and please drop our survivors off at the next station." One soldier offers to stay and fight.',
-      ),
-    );
+    assert.ok(contact.startsWith(eventText("ship_REBEL_FEDERATION_PDS_gotaway_c1_text")));
     assert.match(contact, /crewmember joins you/);
     assert.equal(gone.scrap, 10);
     assert.equal(crewCount(gone), goneCrew + 1);
@@ -243,11 +215,6 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
   it("steps the friendly battery once across the warn boundary", () => {
     const g = createGame(6);
     choose(g, "q:fed-base:assist-asb");
-    assert.equal(g.phase, "event");
-    assert.equal(g.event?.body, "You move in to assist.");
-    assert.equal(g.log.includes("You move in to assist."), false);
-    assert.equal(g.event?.choices[0]?.id, "ship-resume");
-    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.asb, true);
     assert.equal(g.asbPhase, "warn");

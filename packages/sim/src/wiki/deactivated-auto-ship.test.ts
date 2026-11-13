@@ -3,6 +3,8 @@ import { describe, it } from "node:test";
 import { choose, choiceDisabled, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -46,7 +48,7 @@ describe("Deactivated Auto-ship", () => {
       g.event?.choices.some((c) => c.id === "c:deactivated-auto-ship:2"),
       true,
     );
-    assert.match(g.event?.body ?? "", /de-activated/);
+    assert.equal(g.event?.body, "Inactive Auto-ship.");
   });
 
   it("stripping the ship pays low scrap only", () => {
@@ -91,8 +93,7 @@ describe("Deactivated Auto-ship", () => {
       const parts = g.player.parts;
       const seen = visited(g);
       choose(g, "c:deactivated-auto-ship:1");
-      const reactivate =
-        "You accidentally reactivate the ships AI. Its weapons and shields immediately go online; prepare for a fight!";
+      const reactivate = eventText("event_DOWNLOAD_DRONE_DATA_2_text");
       const armed =
         g.phase === "combat" ||
         (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
@@ -110,7 +111,7 @@ describe("Deactivated Auto-ship", () => {
       } else {
         data = true;
         const body = g.event?.body ?? "";
-        assert.match(body, /map has been updated/);
+        assert.match(body, textRe("event_DOWNLOAD_DRONE_DATA_1_text"));
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
         assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -135,7 +136,7 @@ describe("Deactivated Auto-ship", () => {
     choose(bare, "c:deactivated-auto-ship:2");
     assert.equal(bare.phase, "event");
     assert.equal(bare.scrap, 10);
-    assert.match(bare.event?.body ?? "", /de-activated/);
+    assert.equal(bare.event?.body, "Inactive Auto-ship.");
 
     let safe = false;
     let standby = false;
@@ -149,7 +150,7 @@ describe("Deactivated Auto-ship", () => {
       const seen = visited(g);
       choose(g, "c:deactivated-auto-ship:2");
       const body = g.event?.body ?? "";
-      if (/safe to hack/.test(body)) {
+      if (textRe("event_BROKEN_REBEL_DRONE_SENSORS_1_text").test(body)) {
         safe = true;
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
@@ -160,7 +161,7 @@ describe("Deactivated Auto-ship", () => {
         assert.deepEqual(visited(g), seen);
       } else {
         standby = true;
-        assert.match(body, /on standby/);
+        assert.match(body, textRe("event_BROKEN_REBEL_DRONE_SENSORS_2_text"));
         assert.equal(g.scrap, 10);
         assert.equal(
           g.event?.choices.some((c) => c.id === "q:deactivated-auto:yes"),
@@ -175,14 +176,13 @@ describe("Deactivated Auto-ship", () => {
         no.player.systems.sensors.level = 3;
         choose(no, "c:deactivated-auto-ship:2");
         choose(no, "q:deactivated-auto:no");
-        assert.match(no.event?.body ?? "", /leave the ship alone/);
+        assert.match(no.event?.body ?? "", textRe("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_text"));
         assert.match(no.event?.body ?? "", /Nothing happens/);
         assert.equal(no.scrap, 10);
         assert.equal(no.fleet, 5);
         assert.equal(no.phase, "event");
         choose(g, "q:deactivated-auto:yes");
-        const reactivate =
-          "You accidentally reactivate the ships AI. Its weapons and shields immediately go online; prepare for a fight!";
+        const reactivate = eventText("event_DOWNLOAD_DRONE_DATA_2_text");
         const armed =
           g.phase === "combat" ||
           (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
@@ -200,7 +200,7 @@ describe("Deactivated Auto-ship", () => {
         } else {
           yesData = true;
           const next = g.event?.body ?? "";
-          assert.match(next, /map has been updated/);
+          assert.match(next, textRe("event_DOWNLOAD_DRONE_DATA_1_text"));
           const paid = scraps(next);
           assert.equal(paid.length, 1, next);
           assert.ok(paid[0]! >= 7 && paid[0]! <= 10, next);

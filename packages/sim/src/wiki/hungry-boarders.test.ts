@@ -6,8 +6,7 @@ import type { Beacon, Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 
 const ID = "c:boarders-humans-abandoned:0";
-const BODY =
-  'An image of some weak and hungry humans comes onto your screen. "Those metal bastards think they can just absorb half of our engines and leave us here to die? I hope you understand the need to take your ship by force."';
+const BODY = "3-4 Human boarders.";
 
 function beacon(): Beacon {
   return {

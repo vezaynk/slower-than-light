@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -22,7 +23,7 @@ describe("Rebel ship attacking Federation loyalists", () => {
     choose(g, "c:rebel-ship-attacking-federation-loyalists:1");
     assert.equal(
       g.event?.body,
-      "The Rebel's preoccupation with the Federation ship allows you to slip away undetected. However, you can't help but feel you should have helped them.\n\nNothing happens.",
+      [eventText("event_REBEL_VS_FEDERATION_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.notEqual(g.phase, "combat");

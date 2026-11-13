@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -58,7 +59,7 @@ describe("Rebel fight choice in nebula conceal", () => {
     assert.equal(choiceDisabled(g, "c:rebel-fight-choice-in-nebula:2"), null);
     const fleet = g.fleet;
     choose(g, "c:rebel-fight-choice-in-nebula:2");
-    assert.match(g.event?.body ?? "", /cloaking system/);
+    assert.match(g.event?.body ?? "", textRe("event_NEBULA_REBEL_UNDETECTED_c3_text"));
     assert.match(g.event?.body ?? "", /Nothing happens/);
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
@@ -80,7 +81,8 @@ describe("Rebel fight choice in nebula conceal", () => {
       open(g);
       choose(g, "c:rebel-fight-choice-in-nebula:1");
       const body = g.event?.body ?? "";
-      if (/not quickly enough/.test(body)) {
+      if (g.event?.choices.some((c) => c.id === "q:rebel-nebula:fight")) {
+        assert.match(body, textRe("event_NEBULA_REBEL_UNDETECTED_LIST_1_text"));
         seen.add("caught");
         assert.equal(g.phase, "event");
         assert.deepEqual(
@@ -89,15 +91,15 @@ describe("Rebel fight choice in nebula conceal", () => {
         );
         assert.equal(g.fleet, fleet);
         assert.equal(g.scrap, 10);
-      } else if (/gives chase/.test(body)) {
+      } else if (g.fleet === fleet + 1) {
         seen.add("chase");
+        assert.match(body, textRe("event_NEBULA_REBEL_UNDETECTED_LIST_3_text"));
         assert.match(body, /doubled for 1 jump/);
-        assert.equal(g.fleet, fleet + 1);
         assert.equal(g.scrap, 10);
         assert.notEqual(g.phase, "combat");
       } else {
         seen.add("hidden");
-        assert.match(body, /never noticed you/);
+        assert.match(body, textRe("event_NEBULA_REBEL_UNDETECTED_LIST_2_text"));
         assert.match(body, /Nothing happens/);
         assert.equal(g.fleet, fleet);
         assert.equal(g.scrap, 10);
@@ -118,7 +120,7 @@ describe("Rebel fight choice in nebula conceal", () => {
       const g = createGame(seed);
       open(g);
       choose(g, "c:rebel-fight-choice-in-nebula:1");
-      if (/not quickly enough/.test(g.event?.body ?? "")) caught = g;
+      if (g.event?.choices.some((c) => c.id === "q:rebel-nebula:fight")) caught = g;
     }
     assert.ok(caught);
     assert.equal(choiceDisabled(caught, "q:rebel-nebula:engines"), "Needs level 4 Engines");
@@ -126,12 +128,12 @@ describe("Rebel fight choice in nebula conceal", () => {
     choose(caught, "q:rebel-nebula:engines");
     assert.equal(caught.phase, "event");
     assert.equal(caught.scrap, low);
-    assert.match(caught.event?.body ?? "", /not quickly enough/);
+    assert.match(caught.event?.body ?? "", textRe("event_NEBULA_REBEL_UNDETECTED_LIST_1_text"));
 
     caught.player.systems.engines.level = 4;
     assert.equal(choiceDisabled(caught, "q:rebel-nebula:engines"), null);
     choose(caught, "q:rebel-nebula:engines");
-    assert.match(caught.event?.body ?? "", /powerful engines/);
+    assert.match(caught.event?.body ?? "", textRe("event_NEBULA_REBEL_UNDETECTED_LIST_1_c2_text"));
     assert.match(caught.event?.body ?? "", /Nothing happens/);
     assert.equal(caught.scrap, 10);
 
@@ -140,14 +142,9 @@ describe("Rebel fight choice in nebula conceal", () => {
       const crew = g.crew.filter((c) => c.side === "player").length;
       open(g);
       choose(g, "c:rebel-fight-choice-in-nebula:1");
-      if (!/not quickly enough/.test(g.event?.body ?? "")) continue;
+      if (!g.event?.choices.some((c) => c.id === "q:rebel-nebula:fight")) continue;
+      // The fight has no archive lead-in, so it starts at once.
       choose(g, "q:rebel-nebula:fight");
-      const lead = "Prepare to fight.";
-      assert.equal(g.phase, "event");
-      assert.equal(g.event?.body, lead);
-      assert.equal(g.log.includes(lead), false);
-      assert.equal(g.event?.choices[0]?.id, "ship-resume");
-      choose(g, "ship-resume");
       assert.equal(g.phase, "combat");
       assert.equal(g.enemy?.faction, "rebel");
       assert.equal(g.enemy?.pirate, false);

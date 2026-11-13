@@ -3,9 +3,9 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const OPENING =
-  'You arrive at the primitive planet that you heard about at the cantina and are surprised to see a Zoltan ship facing off against a Rebel assault craft.\n\nYou tap into their frequency and hear the Rebel captain yelling, "We are liberating this planet in the name of the new Galactic government! These aliens will not be left in ignorance where they cannot be of use!"';
+const OPENING = "Zoltan ship and Rebel ship over a planet.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -43,7 +43,7 @@ describe("Zoltan quest primitives leave", () => {
     choose(g, "c:zoltan-quest-primitives:2");
     assert.equal(
       g.event?.body,
-      "You don't want to alert the Rebels of your presence and you don't want to anger the Zoltan in their territory. The best solution is to leave.\n\nNothing happens.",
+      [eventText("event_ZOLTAN_QUEST_PRIMITIVES_c1_c3_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

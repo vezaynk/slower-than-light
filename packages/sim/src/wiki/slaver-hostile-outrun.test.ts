@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const ID = "c:slaver-hostile:1";
-const LABEL = "Attempt to out-run the slaver ship.";
+const LABEL = "1 in 3: fight the pirate ship. 2 in 3: nothing happens.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -32,34 +33,31 @@ describe("Slaver (hostile) Engines out-run", () => {
   });
 
   it("level 6 engines get away or fight the pirate, equal among the three printed results", () => {
-    let divert = false;
-    let pace = false;
-    let fought = false;
-    for (let seed = 1; seed <= 80 && (!divert || !pace || !fought); seed++) {
+    // The divert and pace results share one functional line and the same state, so they count together.
+    let escaped = 0;
+    let fought = 0;
+    for (let seed = 1; seed <= 80; seed++) {
       const g = createGame(seed);
       g.player.systems.engines.level = 6;
       open(g);
       choose(g, ID);
       const body = g.event?.body ?? "";
-      if (body.includes("divert all available power")) {
-        divert = true;
+      if (g.enemy == null) {
+        escaped += 1;
+        assert.ok(
+          body === eventText("event_PIRATE_SLAVER_RUN_2_text") ||
+            body === eventText("event_PIRATE_SLAVER_RUN_3_text"),
+          body,
+        );
         assert.equal(g.phase, "event");
-        assert.equal(g.enemy, null);
         assert.equal(g.scrap, 10);
-        assert.equal(body.includes("Nothing happens."), false);
-      } else if (body.includes("unable to keep pace")) {
-        pace = true;
-        assert.equal(g.phase, "event");
-        assert.equal(g.enemy, null);
-        assert.equal(g.scrap, 10);
-        assert.equal(body.includes("Nothing happens."), false);
       } else {
-        fought = true;
+        fought += 1;
         assert.equal(g.phase, "event");
         assert.equal(g.event?.choices[0]?.id, "ship-resume");
-        assert.ok((g.event?.body ?? "").includes("power up their weapons."));
+        assert.ok((g.event?.body ?? "").includes(eventText("event_PIRATE_SLAVER_RUN_1_text")));
         assert.equal(
-          g.log.some((line) => line.includes("power up their weapons.")),
+          g.log.some((line) => line.includes(eventText("event_PIRATE_SLAVER_RUN_1_text"))),
           false,
         );
         assert.equal(g.enemy?.pirate, true);
@@ -70,8 +68,8 @@ describe("Slaver (hostile) Engines out-run", () => {
         assert.equal(g.scrap, 10);
       }
     }
-    assert.equal(divert, true);
-    assert.equal(pace, true);
-    assert.equal(fought, true);
+    // Two of the three printed results get away.
+    assert.ok(escaped > fought, `${escaped} escaped, ${fought} fought`);
+    assert.ok(fought > 0);
   });
 });

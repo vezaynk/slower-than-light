@@ -4,6 +4,8 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -28,8 +30,7 @@ function resources(body: string): number {
 
 describe("Lanius ship attacking Rock", () => {
   it("attacking shows the Rock distress card and starts a Lanius fight", () => {
-    const lead =
-      "The Rockmen need your help - you target the Lanius ship and grimly prepare for battle.";
+    const lead = eventText("event_LANIUS_ROCK_DISTRESS_c1_text");
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-attacking-rock:0");
@@ -51,7 +52,16 @@ describe("Lanius ship attacking Rock", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "lanius-ship-attacking-rock", dead), true);
       const body = g.event?.body ?? "";
-      assert.match(body, dead ? /no more life-signs/ : /useful scrap material/);
+      assert.match(
+        body,
+        dead
+          ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text")
+          : textRe(
+              "event_DESTROYED_DEFAULT_1_text",
+              "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text",
+              "ship_PIRATE_BRIBER_destroyed_text",
+            ),
+      );
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -77,7 +87,7 @@ describe("Lanius ship attacking Rock", () => {
       const guns = g.player.weapons.length;
       choose(g, "q:lanius-rock:contact");
       const body = g.event?.body ?? "";
-      if (/jumped away during the battle/.test(body)) {
+      if (textRe("event_LANIUS_ROCK_DISTRESS_END_2_text").test(body)) {
         const extra = scraps(body);
         assert.equal(extra.length, 1, body);
         assert.ok(extra[0]! >= 12 && extra[0]! <= 19, body);
@@ -85,7 +95,7 @@ describe("Lanius ship attacking Rock", () => {
         assert.equal(g.scrap, before + extra[0]!);
         paid = true;
       } else {
-        assert.match(body, /awkwardly-translated/);
+        assert.match(body, textRe("event_LANIUS_ROCK_DISTRESS_END_1_text"));
         assert.match(body, /Nothing happens/);
         assert.equal(body.includes("Scrap:"), false);
         assert.equal(g.scrap, before);
@@ -103,7 +113,7 @@ describe("Lanius ship attacking Rock", () => {
     choose(g, "c:lanius-ship-attacking-rock:1");
     assert.equal(
       g.event?.body,
-      "As you make your escape, the Rockman's ship's engines explode, and you watch the Lanius ship slowly feed on the remains - and the crew.\n\nNothing happens.",
+      [eventText("event_LANIUS_ROCK_DISTRESS_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

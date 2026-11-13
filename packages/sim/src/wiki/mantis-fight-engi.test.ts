@@ -5,10 +5,10 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "A mixed radar signal turns out to be a Mantis attack ship scavenging the remains of an Engi carrier. They turn and fight.",
-  "You come across a Mantis raider taking pot shots at a defenceless Engi supply station. Discovering its weapons aren't much of a match for the station's armour, it turns on your ship. Battle stations!",
-  "The area looks clear, and you prepare to jump off, but a Mantis scout jumps in behind you! They're as surprised as you are, but their weapons are already online.",
-  "You find a Mantis ship harrying a small squad of Engi. They make it to the node and jump off, leaving you toe to toe with their pursuer!",
+  "Hostile Mantis ship.",
+  "Hostile Mantis ship.",
+  "Hostile Mantis ship.",
+  "Hostile Mantis ship.",
 ];
 
 function open(g: Game) {
@@ -28,7 +28,7 @@ describe("Mantis fight (Engi)", () => {
     // > "The intro text for this event varies, and could be any of the following:" — [[Mantis fight (Engi)]]
     // > "Fight a Mantis ship (default rewards)." — [[Mantis fight (Engi)]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 200 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 200 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -36,7 +36,7 @@ describe("Mantis fight (Engi)", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:mantis-fight-engi:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     const before = g.crew.filter((c) => c.side === "player").length;

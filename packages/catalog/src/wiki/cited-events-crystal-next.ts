@@ -40,13 +40,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Offer 35 scrap." — [[Crystal scrap collector]]
         // > "Scrap lost: 35" — [[Crystal scrap collector]]
-        label: "Offer 35 scrap",
+        label: "Lose 35 scrap. Then choose: 1 Crystal crew or a weapon.",
         // "Offer 35 scrap."
         // sign -1
         // Crystal crewmember, Crystal Lockdown Bomb, or Crystal Burst Mark II. Branched reward is not granted.
         fx: [
           { k: "res", id: "scrap", sign: -1, lo: 35, hi: 35 },
-          { k: "note", text: "Branched crew and weapon rewards are not granted." },
+          { k: "note", text: "Lose 35 scrap." },
         ],
       },
       {
@@ -54,7 +54,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Turn him down." — [[Crystal scrap collector]]
         // > "Nothing happens." — [[Crystal scrap collector]]
-        label: "Turn him down",
+        label: "Nothing happens.",
         // "Nothing happens."
         fx: [{ k: "nothing" }],
       },

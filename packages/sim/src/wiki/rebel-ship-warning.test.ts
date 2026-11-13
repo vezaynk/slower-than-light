@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -23,10 +24,9 @@ describe("Rebel ship warning", () => {
     // > "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!" — [[Rebel ship warning]]
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.body, "You stumble across a forward scout of the Rebel fleet.");
+    assert.equal(g.event?.body, "Fleeing Rebel ship.");
     assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-ship-warning:0"));
-    const told =
-      "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!";
+    const told = eventText("ship_SQUAT_WARNING_escape_text");
     choose(g, "c:rebel-ship-warning:0");
     assert.equal(g.phase, "event");
     assert.ok(g.event?.body?.includes(told));
@@ -61,9 +61,8 @@ describe("Rebel ship warning", () => {
     g.sector = 1;
     g.phase = "map";
     g.event = null;
-    const scout = "You stumble across a forward scout of the Rebel fleet.";
-    const told =
-      "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!";
+    const scout = "Fleeing Rebel ship.";
+    const told = eventText("ship_SQUAT_WARNING_escape_text");
     commitJump(g, dest.id);
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, scout);

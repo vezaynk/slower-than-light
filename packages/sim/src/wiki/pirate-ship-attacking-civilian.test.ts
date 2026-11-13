@@ -4,6 +4,8 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 /** Weapons held anywhere: rack, cargo, or a make-room choice. */
 function weaponsHeld(g: Game): number {
@@ -44,7 +46,7 @@ describe("Pirate ship attacking civilian", () => {
       true,
     );
     choose(g, "c:pirate-ship-attacking-civilian:0");
-    const lead = "You power up your weapons and engage the pirate ship.";
+    const lead = eventText("event_PIRATE_CIVILIAN_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);
@@ -67,7 +69,10 @@ describe("Pirate ship attacking civilian", () => {
     const parts = destroyed.player.parts;
     assert.equal(pageWin(destroyed, "pirate-ship-attacking-civilian", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /The pirate ship breaks apart/);
+    assert.match(
+      body,
+      textRe("ship_PIRATE_CIVILIAN_destroyed_text", "ship_PIRATE_REFUGEE_destroyed_text"),
+    );
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -90,7 +95,16 @@ describe("Pirate ship attacking civilian", () => {
     const kParts = killed.player.parts;
     assert.equal(pageWin(killed, "pirate-ship-attacking-civilian", true), true);
     const killedBody = killed.event?.body ?? "";
-    assert.match(killedBody, /hasten to contact the civilian ship/);
+    assert.match(
+      killedBody,
+      textRe(
+        "ship_LANIUS_CIVILIAN_deadCrew_text",
+        "ship_LANIUS_CIVILIAN_destroyed_text",
+        "ship_PIRATE_CIVILIAN_deadCrew_text",
+        "ship_PIRATE_CIVILIAN_destroyed_text",
+        "ship_REBEL_AUTO_CIVILIAN_destroyed_text",
+      ),
+    );
     const high = scraps(killedBody);
     assert.equal(high.length, 1, killedBody);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, killedBody);
@@ -116,9 +130,12 @@ describe("Pirate ship attacking civilian", () => {
       choose(g, "q:lanius-civilian:contact");
       const body = g.event?.body ?? "";
       // The shipwright's weapon is unnamed: Rewards, "Weapon": "A random weapon & T scrap."
-      assert.equal(weaponsHeld(g), guns + (/shipwright/.test(body) ? 1 : 0));
+      assert.equal(
+        weaponsHeld(g),
+        guns + (textRe("event_SAVE_CIVILIAN_LIST_LANIUS_4_text").test(body) ? 1 : 0),
+      );
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
-      if (/shipwright/.test(body)) {
+      if (textRe("event_SAVE_CIVILIAN_LIST_LANIUS_4_text").test(body)) {
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
         assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -126,20 +143,24 @@ describe("Pirate ship attacking civilian", () => {
         assert.equal(g.scrap, before + paid[0]!);
         assert.equal(g.player.hull, 20);
         seen.add("weapon");
-      } else if (/patch up some of your hull/.test(body)) {
+      } else if (
+        textRe("event_QUEST_ESCORT_ARRIVE_3_text", "event_SAVE_CIVILIAN_LIST_LANIUS_5_text").test(
+          body,
+        )
+      ) {
         assert.match(body, /Hull repairs: 5/);
         assert.equal(body.includes("Scrap:"), false);
         assert.equal(g.scrap, before);
         assert.equal(g.player.hull, 25);
         seen.add("repair");
-      } else if (/science vessel/.test(body)) {
+      } else if (textRe("event_SAVE_CIVILIAN_LIST_LANIUS_2_text").test(body)) {
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
         assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
         assert.equal(resources(body), 2, body);
         assert.equal(g.scrap, before + paid[0]!);
         seen.add("medium");
-      } else if (/did not survive/.test(body)) {
+      } else if (textRe("event_SAVE_CIVILIAN_LIST_LANIUS_3_text").test(body)) {
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
         assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -147,7 +168,7 @@ describe("Pirate ship attacking civilian", () => {
         assert.equal(g.scrap, before + paid[0]!);
         seen.add("low");
       } else {
-        assert.match(body, /fast retreat/);
+        assert.match(body, textRe("event_SAVE_CIVILIAN_LIST_LANIUS_6_text"));
         assert.match(body, /Nothing happens/);
         assert.equal(body.includes("Scrap:"), false);
         assert.equal(g.scrap, before);
@@ -163,7 +184,10 @@ describe("Pirate ship attacking civilian", () => {
     open(g);
     choose(g, "c:pirate-ship-attacking-civilian:1");
     assert.equal(g.phase, "event");
-    assert.match(g.event?.body ?? "", /distress calls stop/);
+    assert.match(
+      g.event?.body ?? "",
+      textRe("event_PIRATE_CIVILIAN_BEACON_c2_text", "event_PIRATE_CIVILIAN_c2_text"),
+    );
     assert.match(g.event?.body ?? "", /Nothing happens/);
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 5);

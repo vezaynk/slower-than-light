@@ -36,8 +36,7 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     price: 45,
     persDamage: 2,
     sysDamage: 2,
-    blurb:
-      "Self-teleporting explosive that damages systems and crew but not the hull. Can target your own ship.",
+    blurb: "Bomb. Damages systems and crew, not hull. Can target your own ship.",
   },
   {
     id: "BOMB_BREACH_1",
@@ -65,8 +64,7 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     price: 50,
     persDamage: 2,
     sysDamage: 1,
-    blurb:
-      "Self-teleporting explosive designed to damage systems and causes a breach. Can target your own ship.",
+    blurb: "Bomb. Damages the system and breaches the room. Can target your own ship.",
   },
   {
     id: "BOMB_BREACH_2",
@@ -93,8 +91,7 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     price: 60,
     persDamage: 3,
     sysDamage: 3,
-    blurb:
-      "Slower than Mark 1 but breaches and does more damage to systems. Can target your own ship.",
+    blurb: "Bomb. Damages the system and breaches the room. Can target your own ship.",
   },
   {
     id: "BOMB_ION",
@@ -120,8 +117,7 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     // Bomb (Weapons) "Ion Bomb": purchase price 55 (store rarity 3).
     price: 55,
     persDamage: 0,
-    blurb:
-      "Self-teleporting explosive that uses ion damage to disable systems. Can target your own ship.",
+    blurb: "Bomb. Ion damage to the room's system. Can target your own ship.",
   },
   {
     id: "BOMB_STUN",
@@ -147,8 +143,7 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     // Bomb (Weapons) "Stun Bomb": purchase price 45 (store rarity 2, Advanced Edition).
     price: 45,
     persDamage: 0,
-    blurb:
-      "Self-teleporting explosive that does 1 ion damage and stuns all crew inside the room. Can target your own ship.",
+    blurb: "Bomb. Stuns crew in the room. Can target your own ship.",
   },
   {
     id: "BOMB_HEAL",
@@ -174,8 +169,7 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     // Bomb (Weapons) "Healing Burst": purchase price 40 (store rarity 3).
     price: 40,
     persDamage: -10,
-    blurb:
-      "Self-teleporting healing unit that instantly heals all friendly crew in the room. Can target your own ship.",
+    blurb: "Bomb. Heals your crew in the room. Can target your own ship.",
   },
   {
     id: "BOMB_HEAL_SYSTEM",
@@ -202,8 +196,7 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     price: 40,
     persDamage: 0,
     sysDamage: -8,
-    blurb:
-      "Self-teleporting unit that floods a room with nano-bots capable of completely repairing all system damage.",
+    blurb: "Bomb. Repairs all system damage in the room. Can target your own ship.",
   },
   {
     id: "BOMB_LOCK",
@@ -229,8 +222,7 @@ export const BOMB_WEAPONS: WeaponDef[] = [
     // Bomb (Weapons) "Crystal Lockdown Bomb": purchase price 45. Rarity is not one number (0*, with a sector tooltip).
     price: 45,
     persDamage: 0,
-    blurb:
-      "Self-teleporting explosive that does no damage but creates a dense wall preventing movement in or out of the room. Can target your own ship.",
+    blurb: "Bomb. No damage. Crew cannot enter or leave the room. Can target your own ship.",
   },
 ];
 

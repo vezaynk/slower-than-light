@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -16,16 +17,16 @@ function offer(seed: number): Game {
 
 function kind(g: Game): "fail" | "oxygen" | "pirate" | "mold" | "offer" {
   const body = g.event?.body ?? "";
-  if (body.includes("no more powerful")) return "fail";
-  if (body.includes("simple mold")) return "mold";
-  if (body.includes("Oxygen system upgraded")) return "oxygen";
+  if (body.includes(eventText("event_NORMAL_SCAN_TERRAFORMING_1_text"))) return "fail";
+  if (body.includes(eventText("event_HIGH_SCAN_TERRAFORMING_3_text"))) return "mold";
+  if (body.includes(eventText("event_HIGH_SCAN_TERRAFORMING_1_text"))) return "oxygen";
   // A fight now waits on Continue. The enemy is already armed.
   if (
     g.phase === "combat" ||
     (g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume"))
   )
     return "pirate";
-  if (body.includes("schedule to keep")) return "offer";
+  if (body.includes(eventText("event_TERRAFORMING_SCAN_c1_text"))) return "offer";
   return "offer";
 }
 
@@ -68,7 +69,9 @@ describe("Terraforming scan blue options", () => {
       }
       if (sk === "oxygen") assert.equal(sensors.player.systems.oxygen.level, 2);
       assert.equal(
-        `${sensors.event?.body ?? ""}\n${sensors.log.join("\n")}`.includes("modulate the feedback"),
+        `${sensors.event?.body ?? ""}\n${sensors.log.join("\n")}`.includes(
+          eventText("event_NORMAL_SCAN_TERRAFORMING_2_text"),
+        ),
         false,
       );
 
@@ -84,7 +87,9 @@ describe("Terraforming scan blue options", () => {
       seen.zoltan.add(zk);
       if (zk === "oxygen") assert.equal(zoltan.player.systems.oxygen.level, 2);
       assert.equal(
-        `${zoltan.event?.body ?? ""}\n${zoltan.log.join("\n")}`.includes("modulate the feedback"),
+        `${zoltan.event?.body ?? ""}\n${zoltan.log.join("\n")}`.includes(
+          eventText("event_NORMAL_SCAN_TERRAFORMING_2_text"),
+        ),
         false,
       );
     }
@@ -103,10 +108,10 @@ describe("Terraforming scan blue options", () => {
       const shown = `${g.event?.body ?? ""}\n${g.log.join("\n")}`;
       if (k === "fail") {
         failed = true;
-        assert.equal(shown.includes("modulate the feedback"), false);
+        assert.equal(shown.includes(eventText("event_NORMAL_SCAN_TERRAFORMING_2_text")), false);
       } else {
         succeeded = true;
-        assert.equal(shown.includes("modulate the feedback signal"), true);
+        assert.equal(shown.includes(eventText("event_NORMAL_SCAN_TERRAFORMING_2_text")), true);
       }
     }
     assert.ok(failed && succeeded);

@@ -16,8 +16,7 @@ function open(g: Game) {
   assert.equal(g.event?.title, "Auto-ship fight in asteroid field");
 }
 
-const BODY =
-  "You arrive in an asteroid belt to discover that a Rebel automated-scout has been stationed here. Prepare for a fight!";
+const BODY = "Hostile Auto-ship. Asteroid field.";
 
 describe("Auto-ship fight in asteroid field", () => {
   it("starts the fight inside an asteroid field", () => {

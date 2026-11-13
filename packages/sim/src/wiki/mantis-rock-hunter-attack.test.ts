@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -22,8 +23,7 @@ describe("Mantis ship with Rock body parts", () => {
     // > "Fight the Mantis ship (default rewards)." — [[Mantis ship with Rock body parts]]
     const g = createGame(1);
     open(g);
-    const lead =
-      "No species deserves a Mantis hunter on their back - time to make the galaxy a little safer. Engage!";
+    const lead = eventText("event_ROCK_MANTIS_HUNTER_c1_text");
     choose(g, "c:mantis-ship-with-rock-body-parts:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -47,7 +47,7 @@ describe("Mantis ship with Rock body parts", () => {
     choose(g, "c:mantis-ship-with-rock-body-parts:1");
     assert.equal(
       g.event?.body,
-      "The Mantis take no interest in your ship - they're lying in wait for the next Rock ship to venture through. You're able to spin up the engines and jump at your leisure.\n\nNothing happens.",
+      [eventText("event_ROCK_MANTIS_HUNTER_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

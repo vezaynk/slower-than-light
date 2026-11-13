@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game, Kit } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const DOCK = "c:research-station-with-no-response:0";
 const LEAVE = "c:research-station-with-no-response:1";
@@ -52,14 +53,14 @@ describe("Research station with no response", () => {
     assert.deepEqual(pages[0]?.sectors, ["PIRATE_SECTOR"]);
     const g = createGame(1);
     open(g);
-    assert.match(g.event?.body ?? "", /no response to your hails/);
+    assert.match(g.event?.body ?? "", /^Station\. No response\.$/);
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
       [
-        "Dock with the station and investigate.",
-        "Leave it alone.",
-        "Send your battle drone in to help.",
-        "Run advanced life scans.",
+        "1 in 3: gain medium scrap and drone parts. 1 in 3: gain 1 crew, more options. 1 in 3: more options.",
+        "Nothing happens.",
+        "Lose 1 drone part. 1 in 3: gain medium scrap and resources.",
+        "1 in 2: nothing happens. 1 in 2: gain medium scrap and resources.",
       ],
     );
   });
@@ -79,18 +80,18 @@ describe("Research station with no response", () => {
       choose(g, DOCK);
       const body = g.event?.body ?? "";
       assert.equal(g.phase, "event");
-      if (body.includes("brutally dismembered")) {
+      if (body.includes(eventText("event_STATION_SICK_LIST_1_text"))) {
         parts = true;
         const paid = scraps(body);
         assert.equal(paid.length, 1);
         assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
         assert.match(body, /Drone parts: 1/);
-      } else if (body.includes("frantic person")) {
+      } else if (body.includes(eventText("event_STATION_SICK_LIST_2_text"))) {
         survivor = true;
         assert.match(body, /Prepare for a fight|joins the crew|crewmember/);
       } else {
         cough = true;
-        assert.match(body, /starts to cough/);
+        assert.ok(body.includes(eventText("event_STATION_SICK_LIST_3_text")), body);
       }
     }
     assert.equal(parts, true);
@@ -118,7 +119,7 @@ describe("Research station with no response", () => {
     open(bare);
     assert.equal(choiceDisabled(bare, DRONE), "Needs an Anti-Personnel Drone");
     choose(bare, DRONE);
-    assert.match(bare.event?.body ?? "", /no response to your hails/);
+    assert.match(bare.event?.body ?? "", /^Station\. No response\.$/);
     assert.equal(bare.scrap, 10);
 
     const broke = createGame(2);
@@ -147,17 +148,17 @@ describe("Research station with no response", () => {
       g.player.parts = 4;
       choose(g, DRONE);
       const body = g.event?.body ?? "";
-      if (body.includes("tear each other")) {
+      if (body.includes(eventText("event_STATION_SICK_DRONE_LIST_1_text"))) {
         tear = true;
         assert.match(body, /Nothing happens/);
         assert.match(body, /Drone parts: -1/);
         assert.equal(g.player.parts, 3);
         assert.equal(g.scrap, 10);
-      } else if (body.includes("torn apart")) {
+      } else if (body.includes(eventText("event_STATION_SICK_DRONE_LIST_2_text"))) {
         mob = true;
         assert.match(body, /Nothing happens/);
         assert.equal(g.player.parts, 3);
-      } else if (body.includes("cameras mounted")) {
+      } else if (body.includes(eventText("event_STATION_SICK_DRONE_LIST_3_text"))) {
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
         assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -194,14 +195,14 @@ describe("Research station with no response", () => {
       const scrap = g.scrap;
       choose(g, DRONE);
       const body = g.event?.body ?? "";
-      if (body.includes("cameras mounted")) {
+      if (body.includes(eventText("event_STATION_SICK_DRONE_LIST_3_text"))) {
         ran = true;
         assert.ok(g.player.parts > 0);
         assert.match(body, /Drone parts: \d+/);
         assert.equal(/Drone parts: -1/.test(body), false);
       } else {
         held = true;
-        assert.match(body, /no response to your hails/);
+        assert.match(body, /^Station\. No response\.$/);
         assert.equal(g.player.parts, 0);
         assert.equal(g.scrap, scrap);
       }
@@ -221,7 +222,7 @@ describe("Research station with no response", () => {
     open(bare);
     assert.equal(choiceDisabled(bare, SCAN), "Needs a Lifeform Scanner");
     choose(bare, SCAN);
-    assert.match(bare.event?.body ?? "", /no response to your hails/);
+    assert.match(bare.event?.body ?? "", /^Station\. No response\.$/);
 
     let clear = false;
     let life = false;
@@ -232,7 +233,7 @@ describe("Research station with no response", () => {
       const parts = g.player.parts;
       choose(g, SCAN);
       const body = g.event?.body ?? "";
-      if (body.includes("no life signs")) {
+      if (body.includes(eventText("event_STATION_SICK_SCANNER_2_text"))) {
         clear = true;
         const paid = scraps(body);
         assert.equal(paid.length, 1);
@@ -240,7 +241,7 @@ describe("Research station with no response", () => {
         assert.equal(resources(body), 2, body);
       } else {
         life = true;
-        assert.match(body, /violent and unstable/);
+        assert.ok(body.includes(eventText("event_STATION_SICK_SCANNER_1_text")), body);
         assert.match(body, /Nothing happens/);
         assert.equal(g.scrap, 10);
         assert.equal(g.player.parts, parts);

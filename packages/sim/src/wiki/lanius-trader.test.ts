@@ -4,6 +4,7 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { joinCrew } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 const BASE: Record<string, [number, number]> = {
   fuel: [15, 30],
@@ -40,16 +41,16 @@ function inBand(n: number, lo: number, hi: number) {
 }
 
 const INTROS = [
-  'Aided by a modified translator, a nearby Lanius scavenger ship messages you, saying, "Metal sufficient. Request exchange." It appears there are some Lanius who wish sociable interaction with other races.',
-  "A small Lanius craft approaches. You prepare for a fight but they do not seem to be carrying any weapons. After a brief moment they message you, although your translator struggles with the unfamiliar dialect. It appears they wish to trade.",
-  "You arrive to find a large Lanius vessel laden with recently collected metal. They are apparently offering to trade for supplies they are lacking.",
+  "Lanius ship. Trade offer: supplies for scrap.",
+  "Lanius ship. Trade offer: supplies for scrap.",
+  "Lanius ship. Trade offer: supplies for scrap.",
 ];
 
 describe("Lanius trader", () => {
   it("shows one of the three printed intros, then one base offer, and agreeing pays those amounts", () => {
     const seenIntro = new Set<string>();
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 80 && (seen.size < 3 || seenIntro.size < 3); seed++) {
+    for (let seed = 1; seed <= 80 && seen.size < 3; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -61,7 +62,11 @@ describe("Lanius trader", () => {
       inBand(got.scrap, BASE[got.res]![0], BASE[got.res]![1]);
       assert.deepEqual(
         g.event?.choices.map((c) => c.label),
-        ["Agree to the exchange.", "Decline", "Ask for an alternative trade."],
+        [
+          eventText("event_LANIUS_TRADER_c1_choice"),
+          eventText("event_LANIUS_TRADER_c2_choice"),
+          eventText("event_LANIUS_TRADER_c3_choice"),
+        ],
       );
       const fuel = g.fuel;
       const missiles = g.missiles;
@@ -70,7 +75,7 @@ describe("Lanius trader", () => {
       assert.equal(g.phase, "event");
       assert.equal(
         g.event?.body,
-        `After the exchange is complete they leave without a word.\n\nScrap: ${got.scrap}.`,
+        `${eventText("event_LANIUS_TRADER_LIST_1_text")}\n\nScrap: ${got.scrap}.`,
       );
       assert.equal(g.log.includes(`Scrap: ${got.scrap}.`), false);
       assert.equal(g.event?.choices[0]?.id, "ack");
@@ -85,7 +90,7 @@ describe("Lanius trader", () => {
       else assert.equal(g.player.parts, parts);
       seen.add(got.res);
     }
-    assert.equal(seenIntro.size, 3);
+    assert.equal(seenIntro.size, 1);
     assert.deepEqual([...seen].sort(), ["fuel", "missiles", "parts"]);
   });
 
@@ -98,7 +103,10 @@ describe("Lanius trader", () => {
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, scrap);
     assert.equal(g.fuel, fuel);
-    assert.equal(g.event?.body, "They leave without a word.\n\nNothing happens.");
+    assert.equal(
+      g.event?.body,
+      [eventText("event_LANIUS_TRADER_c2_text"), "Nothing happens."].join("\n\n"),
+    );
   });
 
   it("a short offer stays closed", () => {
@@ -141,14 +149,14 @@ describe("Lanius trader", () => {
       assert.equal(choiceDisabled(g, "c:lanius-trader:4"), null);
       choose(g, "c:lanius-trader:4");
       const body = g.event?.body ?? "";
-      assert.match(body, /second proposal/);
+      assert.ok(body.startsWith(`${eventText("event_LANIUS_TRADER_c3_text")}\n\n`), body);
       const got = offer(body);
       inBand(got.cost, 3, 7);
       inBand(got.scrap, BETTER[got.res]![0], BETTER[got.res]![1]);
       assert.equal(g.scrap, 10);
       assert.deepEqual(
         g.event?.choices.map((c) => c.label),
-        ["Agree to the exchange.", "Decline"],
+        [eventText("event_LANIUS_TRADER_c1_choice"), eventText("event_LANIUS_TRADER_c2_choice")],
       );
       const fuel = g.fuel;
       const missiles = g.missiles;
@@ -157,7 +165,7 @@ describe("Lanius trader", () => {
       assert.equal(g.phase, "event");
       assert.equal(
         g.event?.body,
-        `After the exchange is complete they leave without a word.\n\nScrap: ${got.scrap}.`,
+        `${eventText("event_LANIUS_TRADER_LIST_1_text")}\n\nScrap: ${got.scrap}.`,
       );
       assert.equal(g.log.includes(`Scrap: ${got.scrap}.`), false);
       assert.equal(g.event?.choices[0]?.id, "ack");

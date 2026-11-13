@@ -4,6 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
@@ -64,9 +65,15 @@ describe("Slug hacker (choice) reward", () => {
       false,
       "c:slug-hacker-choice:0",
       [12, 19],
-      /The Slug ship breaks apart and your shields return to normal/,
+      textRe("ship_JELLY_STATUS_SHIELDS_destroyed_text"),
     );
-    paid(createGame(2), true, "c:slug-hacker-choice:0", [19, 23], /your shields return to normal/);
+    paid(
+      createGame(2),
+      true,
+      "c:slug-hacker-choice:0",
+      [19, 23],
+      textRe("ship_JELLY_STATUS_SHIELDS_deadCrew_text"),
+    );
   });
 
   it("oxygen pays medium scrap with resources either way", () => {
@@ -75,9 +82,15 @@ describe("Slug hacker (choice) reward", () => {
       false,
       "c:slug-hacker-choice:1",
       [12, 19],
-      /The Slug ship breaks apart and your systems return to normal/,
+      textRe("ship_JELLY_STATUS_OXYGEN_destroyed_text"),
     );
-    paid(createGame(4), true, "c:slug-hacker-choice:1", [12, 19], /your systems return to normal/);
+    paid(
+      createGame(4),
+      true,
+      "c:slug-hacker-choice:1",
+      [12, 19],
+      textRe("ship_JELLY_STATUS_OXYGEN_deadCrew_text"),
+    );
   });
 
   it("weapons pays high scrap with resources either way", () => {
@@ -86,14 +99,14 @@ describe("Slug hacker (choice) reward", () => {
       false,
       "c:slug-hacker-choice:2",
       [19, 23],
-      /The Slug ship breaks apart and your weapon system returns to normal/,
+      textRe("ship_JELLY_STATUS_WEAPONS_destroyed_text"),
     );
     paid(
       createGame(6),
       true,
       "c:slug-hacker-choice:2",
       [19, 23],
-      /your weapon system returns to normal/,
+      textRe("ship_JELLY_STATUS_WEAPONS_deadCrew_text"),
     );
   });
 
@@ -103,14 +116,14 @@ describe("Slug hacker (choice) reward", () => {
       false,
       "c:slug-hacker-choice:4",
       [19, 23],
-      /their hacking module is destroyed/,
+      textRe("ship_JELLY_STATUS_HACKING_destroyed_text"),
     );
     paid(
       createGame(8),
       true,
       "c:slug-hacker-choice:4",
       [19, 23],
-      /your weapon system returns to normal/,
+      textRe("ship_JELLY_STATUS_WEAPONS_deadCrew_text"),
     );
   });
 });

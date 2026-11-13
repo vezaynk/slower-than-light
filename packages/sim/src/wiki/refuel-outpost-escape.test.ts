@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -20,7 +21,7 @@ describe("Rebel ship attacking refueling outpost escape", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:rebel-ship-attacking-refueling-outpost:0");
-    const lead = `The rebel responds to your threat, "I don't know who you are, but no one defies the Rebel Fleet!" They move in to engage.`;
+    const lead = eventText("event_SQUAT_REFUEL_STATION_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);

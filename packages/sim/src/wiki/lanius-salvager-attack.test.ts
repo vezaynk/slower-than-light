@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -17,8 +18,7 @@ function open(g: Game) {
 
 describe("Lanius ship salvager attack", () => {
   it("attacking shows the printed weapons sentence and fights a Lanius ship", () => {
-    const lead =
-      "You move in and power up your weapons. Detecting the threat, they stop what they are doing and prepare for a fight.";
+    const lead = eventText("event_LANIUS_SOLO_SALVAGE_c1_text");
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-salvager:0");

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { skillRank } from "../content.ts";
 import { xpNeedFor } from "../extras/lineage.ts";
@@ -59,6 +60,11 @@ function scrapOf(body: string): number {
   return m ? Number(m[1]) : 0;
 }
 
+/** The card's first paragraph is that result's archive line. */
+function lead(body: string, id: string): boolean {
+  return body.split("\n\n")[0] === eventText(id);
+}
+
 describe("Skipped blue options", () => {
   it("nebula lost ship beams a crewmember for medium scrap, or tracks them with scanners", () => {
     const plain = createGame(1);
@@ -81,7 +87,7 @@ describe("Skipped blue options", () => {
     const scrap = beam.scrap;
     openFiller(beam, "nebula-lost-ship", "Nebula lost ship");
     choose(beam, "c:nebula-lost-ship:2");
-    assert.match(beam.event?.body ?? "", /beam the Federation crew aboard/);
+    assert.ok((beam.event?.body ?? "").includes(eventText("event_NEBULA_LOST_SHIP_c3_text")));
     assert.equal(beam.crew.filter((c) => c.side === "player").length, crew + 1);
     const gained = beam.scrap - scrap;
     assert.ok(gained >= 12 && gained <= 19, String(gained));
@@ -93,11 +99,11 @@ describe("Skipped blue options", () => {
       const before = g.scrap;
       const n = g.crew.filter((c) => c.side === "player").length;
       choose(g, "c:nebula-lost-ship:3");
-      if ((g.event?.body ?? "").includes("faint signatures")) {
+      if ((g.event?.body ?? "").includes(eventText("event_NEBULA_LOST_SHIP_LIST2_2_text"))) {
         seen.add("crew");
         assert.equal(g.scrap, before);
         assert.equal(g.crew.filter((c) => c.side === "player").length, n + 1);
-      } else if ((g.event?.body ?? "").includes("empty hull")) {
+      } else if ((g.event?.body ?? "").includes(eventText("event_NEBULA_LOST_SHIP_LIST2_1_text"))) {
         seen.add("scrap");
         const got = g.scrap - before;
         assert.ok(got >= 12 && got <= 19, String(got));
@@ -125,23 +131,22 @@ describe("Skipped blue options", () => {
       const guns = g.player.weapons.length;
       choose(g, "c:plasma-storm-incapacitated-ships:2");
       const body = g.event?.body ?? "";
-      if (body.includes("unconscious passenger")) {
+      if (lead(body, "event_STORM_ITEMS_LIST_2_text")) {
         seen.add("passenger");
         assert.equal(g.crew.filter((c) => c.side === "player").length, crew + 1);
         assert.ok(g.scrap > scrap);
-      } else if (body.includes("salvageable drone schematic")) {
+      } else if (lead(body, "event_STORM_ITEMS_PILOTING_2_text")) {
         seen.add("schematic");
         const got = scrapOf(body);
         assert.ok(got >= 12 && got <= 19, String(got));
-      } else if (body.includes("intact weapon")) {
+      } else if (lead(body, "event_STORM_ITEMS_PILOTING_3_text")) {
         seen.add("weapon");
         const got = scrapOf(body);
         assert.ok(got >= 7 && got <= 10, String(got));
         assert.equal(g.player.weapons.length, guns + 1);
-      } else if (body.includes("carefully explores the wrecks")) {
+      } else if (lead(body, "event_STORM_ITEMS_PILOTING_4_text")) {
         seen.add("nothing");
         assert.equal(g.scrap, scrap);
-        assert.match(body, /Nothing happens/);
       }
     }
     assert.deepEqual([...seen].sort(), ["nothing", "passenger", "schematic", "weapon"]);
@@ -173,7 +178,7 @@ describe("Skipped blue options", () => {
     const before = g.fuel;
     openCited(g, "no-fuel-engi-ship-repair", "No fuel: Engi ship repair");
     choose(g, "c:no-fuel-engi-ship-repair:2");
-    assert.match(g.event?.body ?? "", /happily accept your offer for help/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_FUEL_OFF_ENGI_DUBIOUS_c3_text")));
     assert.equal(g.player.parts, 0);
     const got = g.fuel - before;
     assert.ok(got >= 4 && got <= 6, String(got));
@@ -186,23 +191,28 @@ describe("Skipped blue options", () => {
     g.player.kits.clonebay = kit("clonebay");
     assert.equal(choiceDisabled(g, "s:abandoned-station:dna"), null);
 
+    // The two calm results ("seems to accept", "calms down") share one functional line and the same state: one
+    // crewmember joins. The crazed clone beams one boarder aboard instead.
     const seen = new Set<string>();
-    for (let seed = 1; seed < 80 && seen.size < 3; seed++) {
+    for (let seed = 1; seed < 80 && seen.size < 2; seed++) {
       const run = createGame(seed);
       run.player.kits.clonebay = kit("clonebay");
       const crew = run.crew.filter((c) => c.side === "player").length;
       fillerChoose(run, "s:abandoned-station:dna");
       const body = run.event?.body ?? run.log.join("\n");
-      if (body.includes("seems to accept")) {
-        seen.add("accept");
+      const rebuilt = eventText("event_EMPTY_STATION2_LIST_4_c1_text");
+      const joined = [
+        `${rebuilt} ${eventText("event_EMPTY_STATION2_CLONE_1_text")}`,
+        `${rebuilt} ${eventText("event_EMPTY_STATION2_CLONE_2_text")}`,
+      ];
+      const crazed = `${rebuilt} ${eventText("event_EMPTY_STATION2_CLONE_3_text")}`;
+      if (joined.some((line) => body.startsWith(line))) {
+        seen.add("joined");
         assert.equal(run.crew.filter((c) => c.side === "player").length, crew + 1);
-      } else if (body.includes("calms down")) {
-        seen.add("calm");
-        assert.equal(run.crew.filter((c) => c.side === "player").length, crew + 1);
-      } else if ((run.event?.body ?? "").includes("crazed frenzy")) {
+      } else if ((run.event?.body ?? "").startsWith(crazed)) {
         seen.add("crazed");
         assert.equal(
-          run.log.some((line) => line.includes("crazed frenzy")),
+          run.log.some((line) => line.includes(crazed)),
           false,
         );
         assert.ok(run.log.some((line) => line.includes("boarder beams aboard")));
@@ -214,17 +224,17 @@ describe("Skipped blue options", () => {
         assert.equal(run.crew.filter((c) => c.side === "enemy" && c.aboard === "player").length, 1);
       }
     }
-    assert.deepEqual([...seen].sort(), ["accept", "calm", "crazed"]);
+    assert.deepEqual([...seen].sort(), ["crazed", "joined"]);
 
     const quest = new Set<string>();
     for (let seed = 1; seed < 80 && quest.size < 2; seed++) {
       const run = createGame(seed);
+      const crew = run.crew.filter((c) => c.side === "player").length;
       questChoose(run, "q:station:dna");
-      const body = run.event?.body ?? "";
-      if (body.includes("seems to accept")) quest.add("accept");
-      if (body.includes("calms down")) quest.add("calm");
+      if (run.crew.filter((c) => c.side === "player").length === crew + 1) quest.add("joined");
+      if (run.crew.some((c) => c.side === "enemy" && c.aboard === "player")) quest.add("crazed");
     }
-    assert.deepEqual([...quest].sort(), ["accept", "calm"]);
+    assert.deepEqual([...quest].sort(), ["crazed", "joined"]);
   });
 
   it("a Damaged Stasis Pod at the Zoltan research facility yields Ruwen", () => {
@@ -243,7 +253,7 @@ describe("Skipped blue options", () => {
     const ruwen = g.crew.find((c) => c.name === "Ruwen");
     assert.ok(ruwen);
     assert.equal(ruwen?.kin, "crystal");
-    assert.match(g.event?.body ?? "", /cryogenic system/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_ZOLTAN_CREW_STUDY_c4_text")));
     assert.doesNotMatch(g.event?.body ?? "", /lose the augment/i);
   });
 
@@ -262,14 +272,20 @@ describe("Skipped blue options", () => {
       if (!plain) {
         const g = createGame(seed);
         questChoose(g, "q:loyalists:contact");
-        if ((g.event?.body ?? "").includes("verge of destruction")) plain = g;
+        if (
+          (g.event?.body ?? "").includes(eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_text"))
+        )
+          plain = g;
       }
       if (!card) {
         const g = createGame(seed + 100);
         g.player.weapons.push(heal);
         g.missiles = 0;
         questChoose(g, "q:loyalists:contact");
-        if ((g.event?.body ?? "").includes("verge of destruction")) card = g;
+        if (
+          (g.event?.body ?? "").includes(eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_text"))
+        )
+          card = g;
       }
     }
     assert.ok(plain);
@@ -284,8 +300,12 @@ describe("Skipped blue options", () => {
     const before = new Set(card.crew.map((c) => c.id));
     choose(card, "q:loyalists:heal");
     assert.equal(card.missiles, 1);
-    assert.match(card.event?.body ?? "", /healing bomb/);
-    assert.match(card.event?.body ?? "", /quest marker/);
+    assert.ok(
+      (card.event?.body ?? "").startsWith(
+        eventText("event_REBEL_VS_FEDERATION_SAVED_LIST_2_c4_text"),
+      ),
+    );
+    assert.match(card.event?.body ?? "", /Quest marker added/);
     const joined = card.crew.filter((c) => c.side === "player" && !before.has(c.id));
     assert.equal(joined.length, 1);
     assert.equal(skillRank(joined[0].skills?.engines ?? 0, xpNeedFor(joined[0], "engines")), 1);

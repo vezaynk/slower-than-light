@@ -5,13 +5,14 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { scrapBand } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 const ENGAGE = "c:zoltan-retake-the-ship:0";
-const SALVAGE = "You salvage what you can from the ship.";
-const AIM = "deeply dissatisfied with your aiming";
-const CREW = "The last pirate life-signs blink out and the Zoltan returns to his bridge.";
-const ACCEPT = "I accept your offer.";
-const REFUSE = "I must decline.";
+const SALVAGE = eventText("ship_ZOLTAN_LIFERAFT_destroyed_text");
+const AIM = eventText("ship_ZOLTAN_LIFERAFT_destroyed_c1_text");
+const CREW = eventText("ship_ZOLTAN_LIFERAFT_deadCrew_text");
+const ACCEPT = eventText("event_ZOLTAN_LIFERAFT_HIRE_2_text");
+const REFUSE = eventText("event_ZOLTAN_LIFERAFT_HIRE_1_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

@@ -4,6 +4,8 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game, Kit } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -38,7 +40,7 @@ describe("Auto-ship near radar station", () => {
       g.event?.choices.some((c) => c.id === "c:auto-ship-near-radar-station:2"),
       true,
     );
-    const lead = "The ship powers up and targets you.";
+    const lead = eventText("event_AUTO_DEFENSE_RADAR_c1_text");
     choose(g, "c:auto-ship-near-radar-station:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -66,7 +68,7 @@ describe("Auto-ship near radar station", () => {
     const guns = g.player.weapons.length;
     assert.equal(pageWin(g, "auto-ship-near-radar-station", false), true);
     const body = g.event?.body ?? "";
-    assert.match(body, /salvage what you can/);
+    assert.match(body, textRe("ship_REBEL_AUTO_RADAR_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -105,7 +107,6 @@ describe("Auto-ship near radar station", () => {
 
     let fight = 0;
     let station = 0;
-    const leads = new Set<string>();
     for (let seed = 1; seed <= 90; seed++) {
       const g = createGame(seed);
       open(g);
@@ -122,20 +123,23 @@ describe("Auto-ship near radar station", () => {
         g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
       if (fighting) {
         fight += 1;
-        assert.match(body, /shoots it down/);
+        assert.match(body, textRe("event_AUTO_DEFENSE_RADAR_COMBAT_3_text"));
         choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
         assert.equal(g.fightEvent, "auto-ship-near-radar-station");
         assert.equal(g.fleet, 5);
       } else {
         station += 1;
-        if (body.includes("luring it away")) leads.add("lure");
-        if (body.includes("repeatedly fires")) leads.add("fire");
-        assert.match(body, /luring it away|repeatedly fires/);
+        assert.match(
+          body,
+          textRe(
+            "event_AUTO_DEFENSE_RADAR_COMBAT_1_text",
+            "event_AUTO_DEFENSE_RADAR_COMBAT_2_text",
+          ),
+        );
       }
     }
     assert.ok(fight > 0 && station > fight, `${station} station, ${fight} fight`);
-    assert.equal(leads.size, 2);
   });
 
   it("hacking the station by hand delays the fleet, doubles pursuit, or pays nothing", () => {
@@ -156,11 +160,11 @@ describe("Auto-ship near radar station", () => {
         seen.add("delay");
         assert.equal(g.fleet, 4);
         assert.equal(g.pursuitDouble, undefined);
-      } else if (body.includes("map is updated")) {
+      } else if (body.includes(eventText("event_DEFENSE_RADAR_LIST_2_text"))) {
         seen.add("map");
         assert.equal(g.fleet, 5);
         assert.equal(g.pursuitDouble, undefined);
-      } else if (body.includes("pursuit is doubled")) {
+      } else if (g.pursuitDouble === true) {
         seen.add("pursuit");
         assert.equal(g.fleet, 5);
         assert.equal(g.pursuitDouble, true);
@@ -202,7 +206,7 @@ describe("Auto-ship near radar station", () => {
     choose(g, "q:auto-radar:drone");
     assert.equal(g.player.parts, 2);
     assert.equal(g.fleet, 4);
-    assert.match(g.event?.body ?? "", /download data about the surrounding beacons/);
+    assert.match(g.event?.body ?? "", textRe("ship_REBEL_AUTO_RADAR_destroyed_c3_text"));
     assert.match(g.event?.body ?? "", /delayed for 1 turn/);
     assert.equal(g.scrap, 10);
     assert.deepEqual(

@@ -3,6 +3,8 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -28,13 +30,13 @@ function cloak(g: Game) {
 }
 
 const CONCEAL_FIGHT = [
-  "You power down non-essential systems in an attempt to remain unnoticed. It looks like they are about to leave when suddenly they turn and set course toward you, weapons powered.",
-  "Before you have a chance to slink away the Mantis ship notices you and powers up their weapons.",
+  eventText("event_MANTIS_FIGHT_CHOICE_AVOID_3_text"),
+  eventText("event_MANTIS_FIGHT_CHOICE_AVOID_2_text"),
 ];
 
 const CLOAK_AWAY = [
-  "You cloak and shut down non-essential systems. In a short time the Mantis ship jumps away, no doubt in search of prey.",
-  "You quickly cloak the ship and move out of immediate scanning range. You appear to have gotten away undetected.",
+  eventText("event_MANTIS_FIGHT_CHOICE_CLOAK_2_text"),
+  eventText("event_MANTIS_FIGHT_CHOICE_CLOAK_1_text"),
 ];
 
 describe("Mantis fight choice conceal", () => {
@@ -82,13 +84,14 @@ describe("Mantis fight choice conceal", () => {
         assert.equal(g.scrap, 10);
       } else {
         hidden += 1;
-        assert.match(g.event?.body ?? "", /failed to notice your ship/);
+        assert.match(g.event?.body ?? "", textRe("event_MANTIS_FIGHT_CHOICE_AVOID_1_text"));
         assert.match(g.event?.body ?? "", /Nothing happens/);
         assert.equal(g.scrap, 10);
         assert.notEqual(g.phase, "combat");
       }
     }
-    assert.equal(lines.size, CONCEAL_FIGHT.length);
+    // Lines that print the same functional text count once.
+    assert.equal(lines.size, new Set(CONCEAL_FIGHT).size);
     assert.ok(fights > hidden, `${fights} fights, ${hidden} hidden`);
     assert.ok(hidden > 0);
   });
@@ -108,8 +111,7 @@ describe("Mantis fight choice conceal", () => {
       cloak(g);
       assert.equal(choiceDisabled(g, "c:mantis-fight-choice:2"), null);
       choose(g, "c:mantis-fight-choice:2");
-      const spotted =
-        "You quickly cloak the ship, but not quickly enough. They spot you and move in to engage.";
+      const spotted = eventText("event_MANTIS_FIGHT_CHOICE_CLOAK_3_text");
       const fightCard =
         g.phase === "combat" ||
         (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
@@ -132,7 +134,7 @@ describe("Mantis fight choice conceal", () => {
         assert.equal(g.scrap, 10);
       }
     }
-    assert.equal(lines.size, CLOAK_AWAY.length);
+    assert.equal(lines.size, new Set(CLOAK_AWAY).size);
     assert.ok(away > fights, `${away} away, ${fights} fights`);
     assert.ok(fights > 0);
   });

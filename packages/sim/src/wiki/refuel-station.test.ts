@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, createGame } from "../sim.ts";
 import { fillerChoose, pageForRow } from "./filler-events.ts";
@@ -26,8 +27,8 @@ describe("Refueling station", () => {
       fillerChoose(g, id);
       assert.equal(g.scrap, 40 - cost);
       assert.equal(g.fuel, had + fuel);
-      assert.match(g.event?.body ?? "", /Thank you for your business/);
-      assert.match(g.event?.body ?? "", new RegExp(`You receive ${fuel} fuel`));
+      assert.ok((g.event?.body ?? "").includes(eventText("event_REFUEL_STATION_c1_text")));
+      assert.match(g.event?.body ?? "", new RegExp(`Fuel: ${fuel}\\.`));
     }
   });
 

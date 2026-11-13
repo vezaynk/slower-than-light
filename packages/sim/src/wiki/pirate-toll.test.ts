@@ -3,8 +3,9 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const BODY = `Upon completing your jump, you receive a message from a nearby ship. "Greetings and welcome to our beacon! For a small fee, we'll let you continue on your way."`;
+const BODY = "Pirate ship. Toll: 15-25 scrap.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -45,8 +46,7 @@ describe("Pirate toll", () => {
     g.scrap = 40;
     choose(g, "c:pirate-toll:0");
     assert.equal(g.phase, "event");
-    assert.match(g.event?.body ?? "", /You made the right decision, friend/);
-    assert.match(g.event?.body ?? "", /You avoid the fight/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_PIRATE_CHOICE_c1_text")));
     assert.ok(g.scrap <= 25 && g.scrap >= 15, String(g.scrap));
     assert.equal(g.enemy, null);
   });

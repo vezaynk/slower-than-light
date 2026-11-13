@@ -8,7 +8,7 @@ const ID = "c:boarders-rockmen-near-sun:0";
 const DEST = "Boarders: Rockmen near sun";
 const INTROS = [
   'As soon as you arrive you hear the telltale sounds of a teleporter and shouts reverberating through the ship, "Prepare to burn, fleshy meat-sack aliens!"',
-  "With their high resistance to heat, outlaw Rocks often settle very close to stars. That is why it is hardly surprising when your ship gets boarded as you stumble past a hidden settlement.",
+  "Sun: fires break out. 2-3 Rock boarders.",
 ];
 const SECTORS = ["ROCK_SECTOR", "ROCK_HOME"];
 

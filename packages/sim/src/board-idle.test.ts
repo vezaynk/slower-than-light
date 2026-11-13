@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "./event-text.ts";
 import { describe, it } from "node:test";
 import { beginBoarding, choose, step } from "./sim.ts";
 import type { Crew, Game } from "./types.ts";
@@ -145,10 +146,7 @@ describe("Boarders with no enemy ship", () => {
   it("turns one crewmember and beams 3-4 more on the drag", () => {
     const g = startedGame(1);
     PART_B.choices["q:research:drag"](g);
-    resumeBoarding(
-      g,
-      "As you get back on board, your injured friend rises up and starts to attack you, screaming. Caught off-guard, your remaining crew fall back as the other scientists fight their way onto the ship.",
-    );
+    resumeBoarding(g, eventText("event_STATION_SICK_LIST_3_c1_text"));
     assert.match(g.log.join("\n"), /\d+ human boarders beam aboard\./);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
@@ -163,10 +161,7 @@ describe("Boarders with no enemy ship", () => {
   it("turns one crewmember and no extras on the teleporter retrieve", () => {
     const g = startedGame(1);
     PART_B.choices["q:research:beam"](g);
-    resumeBoarding(
-      g,
-      "You beam your away team back to the ship and disengage from the station. Although the ship is safe, the infected crew member quickly becomes frenzied and attacks.",
-    );
+    resumeBoarding(g, eventText("event_STATION_SICK_LIST_3_c2_text"));
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
     assert.equal(humans(g).length, 0);
@@ -187,10 +182,7 @@ describe("Boarders with no enemy ship", () => {
   it("keeps the crew and beams 3-4 boarders from the medbay", () => {
     const g = startedGame(1);
     PART_B.choices["q:research:medbay"](g);
-    resumeBoarding(
-      g,
-      "You hold him down and the medbay is able to stop whatever neurotoxin was on the ship from fully infecting your crew. Once he recovers, you prepare to fight off the scientists, who are beyond help.",
-    );
+    resumeBoarding(g, eventText("event_STATION_SICK_LIST_3_c3_text"));
     assert.match(g.log.join("\n"), /\d+ human boarders beam aboard\./);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
@@ -207,8 +199,9 @@ describe("Boarders with no enemy ship", () => {
       const dna = startedGame(seed);
       questChoose(dna, "q:station:dna");
       if (pausedBoarding(dna) && humans(dna).length === 1) {
-        assert.match(dna.event?.body ?? "", /crazed frenzy/);
-        assert.equal(dna.log.join("\n").includes("crazed frenzy"), false);
+        const frenzy = eventText("event_EMPTY_STATION2_CLONE_3_text");
+        assert.ok((dna.event?.body ?? "").includes(frenzy));
+        assert.equal(dna.log.join("\n").includes(frenzy), false);
         assert.match(dna.log.join("\n"), /boarder beams aboard/);
         crazed = true;
       }
@@ -216,8 +209,11 @@ describe("Boarders with no enemy ship", () => {
       fillerChoose(ref, "c:refugee-comms-down:0");
       const aboard = humans(ref);
       if (pausedBoarding(ref) && aboard.length >= 2 && aboard.length <= 4 && !ref.asb) {
-        assert.match(ref.event?.body ?? "", /cannibalistic refugees/);
-        assert.equal(ref.log.join("\n").includes("cannibalistic refugees"), false);
+        assert.ok((ref.event?.body ?? "").includes(eventText("event_REFUGEE_GHOST_LIST_5_text")));
+        assert.equal(
+          ref.log.join("\n").includes(eventText("event_REFUGEE_GHOST_LIST_5_text")),
+          false,
+        );
         assert.match(ref.log.join("\n"), /human boarders beam aboard/);
         refugee = true;
       }
@@ -225,8 +221,13 @@ describe("Boarders with no enemy ship", () => {
       fillerChoose(station, "c:abandoned-station:0");
       const pirates = humans(station);
       if (pausedBoarding(station) && station.asb && pirates.length >= 2 && pirates.length <= 4) {
-        assert.match(station.event?.body ?? "", /planetary defense system/);
-        assert.equal(station.log.join("\n").includes("planetary defense system"), false);
+        assert.ok(
+          (station.event?.body ?? "").includes(eventText("event_EMPTY_STATION2_LIST_6_text")),
+        );
+        assert.equal(
+          station.log.join("\n").includes(eventText("event_EMPTY_STATION2_LIST_6_text")),
+          false,
+        );
         assert.match(station.log.join("\n"), /boarders beam aboard/);
         battery = true;
       }

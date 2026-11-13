@@ -5,6 +5,8 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { surrenderPlan } from "../rules/surrender.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -45,7 +47,7 @@ describe("Mantis ship attacking Slug ship", () => {
     assert.equal(out.phase, "map");
     assert.equal(out.scrap, 10);
 
-    const mantisLead = "You lock onto the Mantis ship and engage.";
+    const mantisLead = eventText("event_SLUG_DISTRESS_MANTIS_c1_text");
     const mantis = createGame(2);
     open(mantis);
     choose(mantis, "c:mantis-ship-attacking-slug-ship:0");
@@ -61,7 +63,7 @@ describe("Mantis ship attacking Slug ship", () => {
     assert.equal(mantis.scrap, 10);
     assert.equal(mantis.log.includes(mantisLead), false);
 
-    const slugLead = "You move to finish what the Mantis have started.";
+    const slugLead = eventText("event_SLUG_DISTRESS_MANTIS_c2_text");
     const slug = createGame(3);
     open(slug);
     choose(slug, "c:mantis-ship-attacking-slug-ship:1");
@@ -105,7 +107,7 @@ describe("Mantis ship attacking Slug ship", () => {
     const augs = saved.augments.length;
     assert.equal(pageWin(saved, "mantis-ship-attacking-slug-ship", false), true);
     const body = saved.event?.body ?? "";
-    assert.match(body, /liquid asssets/);
+    assert.match(body, textRe("ship_SLUG_DISTRESS_MANTIS_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -122,7 +124,7 @@ describe("Mantis ship attacking Slug ship", () => {
     pageWin(leave, "mantis-ship-attacking-slug-ship", true);
     const scrap = leave.scrap;
     choose(leave, "q:mantis-slug:leave");
-    assert.match(leave.event?.body ?? "", /aren't worth fighting/);
+    assert.match(leave.event?.body ?? "", textRe("ship_SLUG_DISTRESS_MANTIS_destroyed_c1_text"));
     assert.match(leave.event?.body ?? "", /Nothing happens/);
     assert.equal(leave.scrap, scrap);
     assert.equal(leave.augments.length, augs);
@@ -146,10 +148,10 @@ describe("Mantis ship attacking Slug ship", () => {
       const queued = (g.overflow ?? []).filter((x) => x.kind === "augment").length;
       assert.equal(
         g.augments.length + queued,
-        beforeAugs + (/augmentation has already transported/.test(text) ? 1 : 0),
+        beforeAugs + (textRe("event_SLUG_DISTRESS_MANTIS_SURRENDER_2_text").test(text) ? 1 : 0),
       );
       const n = scraps(text)[0]!;
-      if (/augmentation has already transported/.test(text)) {
+      if (textRe("event_SLUG_DISTRESS_MANTIS_SURRENDER_2_text").test(text)) {
         paidLow = true;
         assert.equal(resources(text), 0, text);
         assert.ok(n >= 7 && n <= 10, text);
@@ -158,7 +160,7 @@ describe("Mantis ship attacking Slug ship", () => {
         assert.equal(g.missiles, beforeMissiles);
         assert.equal(g.player.parts, beforeParts);
       } else {
-        assert.match(text, /breaks apart/);
+        assert.match(text, textRe("event_SLUG_DISTRESS_MANTIS_SURRENDER_1_text"));
         assert.equal(resources(text), 2, text);
         assert.equal(g.scrap, before + n);
         if (n >= 7 && n <= 10) tiers.add("low");
@@ -183,7 +185,7 @@ describe("Mantis ship attacking Slug ship", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "mantis-ship-attacking-slug-ship-slug", dead), true);
       const body = g.event?.body ?? "";
-      assert.match(body, /prized possessions/);
+      assert.match(body, textRe("ship_SLUG_DISTRESS_MANTIS_SLUG_destroyed_text"));
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.ok(paid[0]! >= 19 && paid[0]! <= 23, body);

@@ -1,6 +1,6 @@
 /**
  * Overlay a label that prints a packed stock count, when the card is shown.
- * The page tables keep the campaign sentence. A missing row drops that button.
+ * The words are functional: what the button spends and gains. A missing row drops that button.
  * A label that does not print the count is left as it was.
  */
 import { stockCount } from "./choice-locks.ts";
@@ -36,39 +36,39 @@ function scrapForFuel(
 function stockLabel(id: string): string | null | undefined {
   if (id === "q:lanius-translator:buy") {
     const n = stockCount(id, "scrap");
-    return n == null ? null : `Purchase the translator for ${n} scrap.`;
+    return n == null ? null : `Lose ${n} scrap. Gain 1 Lanius crew.`;
   }
   if (id === "s:zoltan-raft:hire") {
     const n = stockCount(id, "scrap");
-    return n == null ? null : `Offer to hire him for ${n} scrap.`;
+    return n == null ? null : `Lose ${n} scrap. Gain 1 crew.`;
   }
   if (id === "q:engi-distress:scrap") {
     const n = stockCount(id, "scrap");
-    return n == null ? null : `Give them ${n} scrap.`;
+    return n == null ? null : `Lose ${n} scrap.`;
   }
   if (id === "q:engi-distress:supplies") {
     const scrap = stockCount(id, "scrap");
     const missiles = stockCount(id, "missiles");
     const fuel = stockCount(id, "fuel");
     if (scrap == null || missiles == null || fuel == null) return null;
-    return `Give them ${scrap} scrap, ${missiles} missiles and ${fuel} fuel.`;
+    return `Lose ${scrap} scrap, ${missiles} missiles, and ${fuel} fuel.`;
   }
   if (id === "c:no-fuel-slug-fuel-trader:pay") {
-    return scrapForFuel(id, (n, fuel) => `Pay ${n} scrap for ${fuel} fuel.`);
+    return scrapForFuel(id, (n, fuel) => `Lose ${n} scrap. Gain ${fuel} fuel.`);
   }
   if (id === "c:no-fuel-refugee-trading:trade") {
-    return scrapForFuel(id, (n, fuel) => `Trade ${n} scrap for ${fuel} fuel.`);
+    return scrapForFuel(id, (n, fuel) => `Lose ${n} scrap. Gain ${fuel} fuel.`);
   }
   if (id === "c:no-fuel-refugee-trading:better" || id === "c:no-fuel-refugee-trading:again") {
-    return scrapForFuel(id, (n, fuel) => `Accept it. ${fuel} fuel for ${n} scrap.`);
+    return scrapForFuel(id, (n, fuel) => `Lose ${n} scrap. Gain ${fuel} fuel.`);
   }
   if (id === "c:slug-repair-station:fuel") {
     const n = stockCount(id, "fuel");
-    return n == null ? null : `Give them the ${n} fuel they demand.`;
+    return n == null ? null : `Lose ${n} fuel.`;
   }
   if (id === "c:slug-repair-station:scrap50") {
     const n = stockCount(id, "scrap");
-    return n == null ? null : `Give them the ${n} scrap they demand.`;
+    return n == null ? null : `Lose ${n} scrap.`;
   }
   if (
     id === "c:refueling-station:0" ||
@@ -77,23 +77,23 @@ function stockLabel(id: string): string | null | undefined {
   ) {
     const n = stockCount(id, "scrap");
     if (n == null) return null;
-    return `Buy ${REFUEL_FUEL[id]} Fuel for ${n} Scrap.`;
+    return `Lose ${n} scrap. Gain ${REFUEL_FUEL[id]} fuel.`;
   }
   if (id === "c:asteroid-mining-colony:1") {
     const n = stockCount(id, "missiles");
-    return n == null ? null : `Give them the requested ${n} missiles.`;
+    return n == null ? null : `Lose ${n} missiles. A reward follows.`;
   }
   if (id === "c:asteroid-mining-colony:2") {
     const n = stockCount(id, "missiles");
-    return n == null ? null : `Give them ${n} missiles.`;
+    return n == null ? null : `Lose ${n} missiles. A reward follows.`;
   }
   if (id === "q:station:fuel4") {
     const n = stockCount(id, "fuel");
-    return n == null ? null : `Give them the requested ${n} fuel.`;
+    return n == null ? null : `Lose ${n} fuel. Gain medium scrap.`;
   }
   if (id === "q:station:fuel1") {
     const n = stockCount(id, "fuel");
-    return n == null ? null : `Give them ${n} fuel.`;
+    return n == null ? null : `Lose ${n} fuel.`;
   }
   return undefined;
 }

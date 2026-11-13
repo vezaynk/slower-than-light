@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -32,7 +33,7 @@ describe("Lanius ship absorbing rebel base", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-absorbing-rebel-base:1");
-    assert.match(g.event?.body ?? "", /leave them be/);
+    assert.ok((g.event?.body ?? "").startsWith(eventText("event_LANIUS_GROUP_AUTO_c2_text")));
     assert.match(g.event?.body ?? "", /Nothing happens/);
     assert.equal(g.scrap, 10);
     assert.equal(g.fleet, 5);
@@ -55,9 +56,9 @@ describe("Lanius ship absorbing rebel base", () => {
       choose(g, "c:lanius-ship-absorbing-rebel-base:0");
       if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight = true;
-        assert.match(g.event?.body ?? "", /scoff/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_GROUP_AUTO_LIST_2_text")));
         assert.equal(
-          g.log.some((line) => line.includes("scoff")),
+          g.log.some((line) => line.includes(eventText("event_LANIUS_GROUP_AUTO_LIST_2_text"))),
           false,
         );
         assert.equal(g.scrap, 10);
@@ -69,20 +70,22 @@ describe("Lanius ship absorbing rebel base", () => {
         assert.equal(g.scrap, 10);
         assert.equal(g.fleet, 5);
         assert.equal(
-          g.log.some((line) => line.includes("scoff")),
+          g.log.some((line) => line.includes(eventText("event_LANIUS_GROUP_AUTO_LIST_2_text"))),
           false,
         );
-      } else if (/delayed for 1 turn/.test(g.event?.body ?? "")) {
+      } else if (g.fleet === 4) {
         delay = true;
-        assert.equal(g.fleet, 4);
         const body = g.event?.body ?? "";
+        assert.ok(body.startsWith(eventText("event_LANIUS_GROUP_AUTO_LIST_3_text")), body);
         const paid = [...body.matchAll(/Scrap: (\d+)/g)].map((m) => Number(m[1]));
         assert.equal(paid.length, 1, body);
         assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
         assert.equal(resources(body), 2, body);
       } else {
         nothing = true;
-        assert.match(g.event?.body ?? "", /Nothing happens/);
+        assert.ok(
+          (g.event?.body ?? "").startsWith(eventText("event_LANIUS_GROUP_AUTO_LIST_1_text")),
+        );
         assert.equal(g.scrap, 10);
         assert.equal(g.fleet, 5);
       }
@@ -112,7 +115,7 @@ describe("Lanius ship absorbing rebel base", () => {
     choose(g, "c:lanius-ship-absorbing-rebel-base:2");
     assert.equal(g.fleet, 4);
     const body = g.event?.body ?? "";
-    assert.match(body, /delayed for 1 turn/);
+    assert.ok(body.startsWith(eventText("event_LANIUS_GROUP_AUTO_c3_text")), body);
     const paid = [...body.matchAll(/Scrap: (\d+)/g)].map((m) => Number(m[1]));
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);

@@ -111,7 +111,7 @@ describe("flak and crystal wiki weapons", () => {
     assert.equal(section.includes("Purchase price"), false);
     assert.equal(row.price, 60);
     assert.notEqual(row.price, field(section, "Sells for"));
-    assert.equal(row.blurb, quote(section));
+    assert.notEqual(row.blurb, quote(section));
     const extra = gap("SHOTGUN_PLAYER");
     assert.equal(extra.radius, field(section, "Targeting area radius"));
     assert.equal(extra.fake, field(section, "Additional fake flak"));
@@ -135,7 +135,7 @@ describe("flak and crystal wiki weapons", () => {
     assert.equal(row.fire, 0);
     assert.equal(row.breach, 0);
     assert.equal(row.ammo, false);
-    assert.equal(row.blurb, quote(section));
+    assert.notEqual(row.blurb, quote(section));
     const extra = gap("SHOTGUN_2");
     assert.equal(extra.radius, field(section, "Targeting area radius"));
     assert.equal(extra.fake, field(section, "Additional fake flak"));
@@ -176,7 +176,7 @@ describe("flak and crystal wiki weapons", () => {
       assert.equal(row.ion, 0);
       assert.equal(row.fire, 0);
       assert.equal(row.ammo, false);
-      assert.equal(row.blurb, quote(section));
+      assert.notEqual(row.blurb, quote(section));
       const effect = section.match(/^\*Effect: (.+)$/m);
       assert.ok(effect);
       assert.equal(effect[1].includes("%"), false);

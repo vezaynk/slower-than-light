@@ -5,8 +5,8 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "Minute fissures in the shields spark and crackle as the ship jumps into the wake of a huge asteroid. More asteroids follow, as does a lost and aggressive Rock pirate ship.",
-  "You exit the jump surrounded by dirt and rocks. Before long a blast is deflected by your shield, but that was no asteroid... Incoming pirate!",
+  "Hostile Rock pirate ship. Asteroid field.",
+  "Hostile Rock pirate ship. Asteroid field.",
 ];
 
 function open(g: Game) {
@@ -28,7 +28,7 @@ describe("Rock pirates fight in asteroid field", () => {
     // > "You exit the jump surrounded by dirt and rocks. Before long a blast is deflected by your shield, but that was no asteroid... Incoming pirate!" — [[Rock pirates fight in asteroid field]]
     // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight in asteroid field]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 40 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -36,7 +36,7 @@ describe("Rock pirates fight in asteroid field", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:rock-pirates-fight-in-asteroid-field:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);

@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -22,7 +23,7 @@ describe("Rebel ship attacking refueling outpost avoid", () => {
     choose(g, "c:rebel-ship-attacking-refueling-outpost:1");
     assert.equal(
       g.event?.body,
-      "The Rebel ship fires some warning shots but eventually powers down their weapons. The outpost seems to have given them what they demanded.\n\nNothing happens.",
+      [eventText("event_SQUAT_REFUEL_STATION_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

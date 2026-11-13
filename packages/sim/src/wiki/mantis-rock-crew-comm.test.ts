@@ -3,9 +3,9 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const LEAD =
-  'The two aliens face one another over the vidscreen. "Cave-dwelling pebble-man!" yells the furious Mantis captain. "See, I paint my ship with your companions! I paint my ship with you!"';
+const LEAD = eventText("event_ROCK_MANTIS_HUNTER_c4_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -28,7 +28,7 @@ describe("Mantis ship with Rock body parts Rock crew", () => {
       g.event?.choices.some(
         (c) =>
           c.id === "c:mantis-ship-with-rock-body-parts:2" &&
-          c.label === "Put your Rock crewmember on the comm.",
+          c.label === "Fight. Enemy engines offline.",
       ),
     );
     assert.equal(

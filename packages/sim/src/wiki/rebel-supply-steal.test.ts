@@ -5,23 +5,22 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { scrapBand } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 const WAIT = "c:rebel-ship-supplying-civilians:2";
 const ATTACK = "c:rebel-ship-supplying-civilians:0";
 const LEAVE = "c:rebel-ship-supplying-civilians:1";
-const FARM = "mostly equipment meant for automated farming";
-const SCRAP = "building construction supplies";
-const TRAP = "The cargo was booby-trapped!";
-const PLAGUE = "vaccinations for a local plague";
-const DESTROYED =
-  "With the Rebel ship destroyed, you take the time to collect what little scrap remains. They had already made the delivery to the civilians.";
-const CREW =
-  "With the Rebel crew dead, you strip their ship for equipment. They had already made their delivery to the civilians.";
+const FARM = eventText("event_REBEL_HELPERS_SUPPLIES_1_text");
+const SCRAP = eventText("event_REBEL_HELPERS_SUPPLIES_3_text");
+const TRAP = eventText("event_REBEL_HELPERS_SUPPLIES_4_text");
+const PLAGUE = eventText("event_REBEL_HELPERS_SUPPLIES_2_text");
+const DESTROYED = eventText("ship_REBEL_HELPERS_SHIP_destroyed_text");
+const CREW = eventText("ship_REBEL_HELPERS_SHIP_deadCrew_text");
 const LEAVE_LINES = [
-  "You have doomed us all.",
-  "its unlikely they'll live long.",
-  "a few more dead Rebels matter more",
-  "My son was on that ship.",
+  eventText("text_REBEL_HELPER_NO_SUPPLIES_TEXT_1"),
+  eventText("text_REBEL_HELPER_NO_SUPPLIES_TEXT_2"),
+  eventText("text_REBEL_HELPER_NO_SUPPLIES_TEXT_3"),
+  eventText("text_REBEL_HELPER_NO_SUPPLIES_TEXT_4"),
 ];
 
 type Kind = "parts" | "scrap" | "trap" | "plague";
@@ -77,7 +76,10 @@ describe("Rebel ship supplying civilians supplies", () => {
     open(g0);
     assert.equal(
       g0.event?.choices.some(
-        (c) => c.id === WAIT && c.label === "Wait and steal the supplies from the civilians",
+        (c) =>
+          c.id === WAIT &&
+          c.label ===
+            "1 in 4: gain drone parts. 1 in 4: nothing happens. 1 in 4: gain scrap. 1 in 4: take 2 system damage.",
       ),
       true,
     );

@@ -5,6 +5,8 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { heldSchematics } from "../rules/make-room.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 /** Weapons held anywhere: rack, cargo, or a make-room choice. */
 function weaponsHeld(g: Game): number {
@@ -48,10 +50,7 @@ describe("Auto-ship near storage station", () => {
     // > "Fight the Auto-ship." — [[Auto-ship near storage station]]
     const g = createGame(1);
     open(g);
-    assert.equal(
-      g.event?.body,
-      "An advanced Rebel automated ship remains stationed near a small Rebel space-station. Sensors indicate it's a storage vessel for military goods.",
-    );
+    assert.equal(g.event?.body, "Auto-ship guarding a storage station.");
     assert.equal(
       g.event?.choices.some((c) => c.id === "c:auto-ship-near-storage-station:2"),
       true,
@@ -68,7 +67,7 @@ describe("Auto-ship near storage station", () => {
     const guns = g.player.weapons.length;
     assert.equal(pageWin(g, "auto-ship-near-storage-station", false), true);
     const body = g.event?.body ?? "";
-    assert.match(body, /salvage what you can/);
+    assert.match(body, textRe("ship_REBEL_AUTO_ITEM_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -111,8 +110,7 @@ describe("Auto-ship near storage station", () => {
       };
       assert.equal(choiceDisabled(g, "c:auto-ship-near-storage-station:2"), null);
       choose(g, "c:auto-ship-near-storage-station:2");
-      const detected =
-        "Before you can get close enough to scan the station, the automated ship detects you and moves in to attack!";
+      const detected = eventText("event_AUTO_DEFENSE_ITEM_CLOAK_2_text");
       const fightCard =
         g.phase === "combat" ||
         (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
@@ -128,7 +126,7 @@ describe("Auto-ship near storage station", () => {
         assert.equal(g.scrap, 10);
       } else {
         station = true;
-        assert.match(g.event?.body ?? "", /avoiding detection/);
+        assert.match(g.event?.body ?? "", textRe("event_AUTO_DEFENSE_ITEM_CLOAK_1_text"));
         assert.equal(g.scrap, 10);
         assert.equal(
           g.event?.choices.some((c) => c.id === "q:auto-storage:investigate"),
@@ -153,17 +151,26 @@ describe("Auto-ship near storage station", () => {
       choose(g, "q:auto-storage:investigate");
       const body = g.event?.body ?? "";
       // The weapon and the schematic are unnamed: Rewards, "Weapon" / "Drone": a random one & T scrap.
-      assert.equal(weaponsHeld(g), guns + (/military grade weapons/.test(body) ? 1 : 0));
-      assert.equal(schematicsHeld(g), kits + (/functioning Schematic/.test(body) ? 1 : 0));
+      assert.equal(
+        weaponsHeld(g),
+        guns + (textRe("event_DEFENSE_ITEM_LIST_3_text").test(body) ? 1 : 0),
+      );
+      assert.equal(
+        schematicsHeld(g),
+        kits + (textRe("event_DEFENSE_ITEM_LIST_2_text").test(body) ? 1 : 0),
+      );
       assert.equal(g.augments.length, augs);
-      if (/military grade weapons/.test(body) || /functioning Schematic/.test(body)) {
+      if (
+        textRe("event_DEFENSE_ITEM_LIST_3_text").test(body) ||
+        textRe("event_DEFENSE_ITEM_LIST_2_text").test(body)
+      ) {
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
         assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
         assert.equal(resources(body), 0, body);
         assert.equal(g.scrap, before + paid[0]!);
-        seen.add(/Schematic/.test(body) ? "schematic" : "weapon");
-      } else if (/various resources/.test(body)) {
+        seen.add(textRe("event_DEFENSE_ITEM_LIST_2_text").test(body) ? "schematic" : "weapon");
+      } else if (textRe("event_DEFENSE_ITEM_LIST_4_text").test(body)) {
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
         assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);

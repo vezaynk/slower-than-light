@@ -3,12 +3,13 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 // Three printed intros, no odds. INFERRED: equal.
 const INTROS = [
-  "Upon arriving at this beacon, you detect a distress call. Local scans reveal that a Federation transport is under attack from a Rebel scout!",
-  "You immediately notice a Rebel ship chasing what appears to be a civilian transport. However you are detecting chatter on an encrypted Federation channel... That transport is carrying Federation loyalists!",
-  "Your sensors are picking up a distress call on an encrypted Federation channel. You eventually find a Federation scout being chased by a Rebel fighter!",
+  "Rebel ship attacking a Federation ship.",
+  "Rebel ship attacking a Federation ship.",
+  "Rebel ship attacking a Federation ship.",
 ];
 
 function open(g: Game) {
@@ -25,9 +26,8 @@ function open(g: Game) {
 describe("Rebel ship attacking Federation loyalists intro", () => {
   it("shows one of the three printed intros, then aids against a Rebel ship", () => {
     assert.equal(INTROS.length, 3);
-    assert.equal(new Set(INTROS).size, 3);
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 200 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 200 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -40,12 +40,12 @@ describe("Rebel ship attacking Federation loyalists intro", () => {
       );
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);
     choose(g, "c:rebel-ship-attacking-federation-loyalists:0");
-    const lead = "You power up your weapons and engage the Rebel ship.";
+    const lead = eventText("event_REBEL_VS_FEDERATION_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);

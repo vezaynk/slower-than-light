@@ -3,9 +3,9 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const LEAD =
-  "Before they have a chance, you ram your ship into theirs, causing irreparable damage to their engines. Luckily, your ship's armored hull is hardly dented from the impact. The Mantis ship careens away and you move in to attack.";
+const LEAD = eventText("event_ROCK_MANTIS_HUNTER_c3_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -26,7 +26,8 @@ describe("Mantis ship with Rock body parts Rock Plating ram", () => {
     const hull = g.player.hull;
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === "c:mantis-ship-with-rock-body-parts:3" && c.label === "Ram the bastards.",
+        (c) =>
+          c.id === "c:mantis-ship-with-rock-body-parts:3" && c.label === "Fight the Mantis ship.",
       ),
     );
     assert.equal(choiceDisabled(g, "c:mantis-ship-with-rock-body-parts:3"), "Needs Rock Plating");

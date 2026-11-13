@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { joinCrew } from "./surrender.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -31,8 +33,7 @@ describe("Lanius ship attacking civilian distress", () => {
   it("fighting starts a Lanius fight", () => {
     const g = createGame(1);
     open(g);
-    const lead =
-      "You move in to intercept the ship. Detecting a greater threat, the Lanius prepare to fight.";
+    const lead = eventText("event_LANIUS_DISTRESS_FIGHT_c1_text");
     choose(g, "c:lanius-ship-attacking-civilian-distress:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -54,7 +55,12 @@ describe("Lanius ship attacking civilian distress", () => {
       const crew = g.crew.filter((c) => c.side === "player").length;
       assert.equal(pageWin(g, "lanius-ship-attacking-civilian-distress", dead), true);
       const body = g.event?.body ?? "";
-      assert.match(body, dead ? /No more life signs/ : /Lanius craft breaks apart/);
+      assert.match(
+        body,
+        dead
+          ? textRe("ship_LANIUS_CIVILIAN_deadCrew_text")
+          : textRe("ship_LANIUS_AUTO_REBEL_destroyed_text", "ship_LANIUS_CIVILIAN_destroyed_text"),
+      );
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.ok(paid[0]! >= (dead ? 19 : 12) && paid[0]! <= (dead ? 23 : 19), body);
@@ -75,7 +81,7 @@ describe("Lanius ship attacking civilian distress", () => {
     choose(g, "c:lanius-ship-attacking-civilian-distress:1");
     assert.equal(
       g.event?.body,
-      "Your crew seems unhappy to leave the civilians to such a fate but you try to convince them of the greater good. You don't speak of your own misgivings, however.\n\nNothing happens.",
+      [eventText("event_LANIUS_DISTRESS_FIGHT_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.notEqual(g.phase, "combat");
@@ -107,9 +113,13 @@ describe("Lanius ship attacking civilian distress", () => {
         g.event?.choices.some((c) => c.id === "ship-resume") === true && g.enemy != null;
       if (rogue) {
         fight = true;
-        assert.match(g.event?.body ?? "", /gone completely rogue/);
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_LANIUS_DISTRESS_FIGHT_LANIUS_2_text")),
+        );
         assert.equal(
-          g.log.some((line) => line.includes("gone completely rogue")),
+          g.log.some((line) =>
+            line.includes(eventText("event_LANIUS_DISTRESS_FIGHT_LANIUS_2_text")),
+          ),
           false,
         );
         choose(g, "ship-resume");
@@ -119,7 +129,9 @@ describe("Lanius ship attacking civilian distress", () => {
         assert.equal(g.scrap, 10);
       } else {
         peace = true;
-        assert.match(g.event?.body ?? "", /powers down its weapons/);
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_LANIUS_DISTRESS_FIGHT_LANIUS_1_text")),
+        );
         assert.equal(g.event?.body.includes("Scrap:"), false);
         assert.equal(g.scrap, 10);
         assert.equal(

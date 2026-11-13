@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game, Kit, WeaponInst } from "../types.ts";
@@ -61,10 +62,10 @@ describe("Rock live mine", () => {
       const hull = g.player.hull;
       const crew = g.crew.length;
       choose(g, "c:rock-live-mine:0");
-      assert.match(g.event?.body ?? "", /bites down/);
+      assert.ok((g.event?.body ?? "").includes(eventText("event_ROCK_STARSHIP_MINE_c1_text")));
       choose(g, "s:rock-mine:defuse");
       const body = g.event?.body ?? "";
-      if (/good scrap pickings/.test(body)) {
+      if (body.includes(eventText("event_ROCK_STARSHIP_MINE_DEFUSE_1_text"))) {
         paid = true;
         const got = scraps(body);
         assert.equal(got.length, 1, body);
@@ -74,7 +75,7 @@ describe("Rock live mine", () => {
         assert.equal(g.crew.length, crew);
       } else {
         wires = true;
-        assert.match(body, /red wire or the blue/);
+        assert.ok(body.includes(eventText("event_ROCK_STARSHIP_MINE_DEFUSE_2_text")));
         assert.deepEqual(
           g.event?.choices.map((c) => c.id),
           ["s:rock-mine:red", "s:rock-mine:blue"],
@@ -119,7 +120,7 @@ describe("Rock live mine", () => {
         };
       choose(g, seed % 3 === 0 ? "s:rock-mine:blue" : "s:rock-mine:red");
       const body = g.event?.body ?? "";
-      if (/You did it/.test(body)) {
+      if (body.includes(eventText("event_ROCK_STARSHIP_MINE_DEFUSE2_1_text"))) {
         safe = true;
         const got = scraps(body);
         assert.equal(got.length, 1, body);
@@ -128,9 +129,9 @@ describe("Rock live mine", () => {
         assert.equal(g.crew.length, crew);
       } else {
         boom = true;
-        assert.match(body, /weapon detonates/);
+        assert.ok(body.includes(eventText("event_ROCK_STARSHIP_MINE_DEFUSE2_2_text")));
         assert.match(body, /Hull damage: 6/);
-        assert.match(body, /breach opens/);
+        assert.match(body, /Breach: /);
         assert.equal(g.player.hull, hull - 6);
         assert.equal(breaches(g), holes + 1);
         assert.equal(g.scrap, 10);
@@ -139,7 +140,7 @@ describe("Rock live mine", () => {
           assert.match(body, /revived/);
           assert.equal(g.crew.length, crew);
         } else {
-          assert.match(body, /is lost/);
+          assert.match(body, /Crew lost: /);
           assert.equal(g.crew.length, crew - 1);
         }
       }
@@ -162,7 +163,7 @@ describe("Rock live mine", () => {
     const hull = bare.player.hull;
     choose(bare, "s:rock-mine:missile");
     assert.equal(bare.player.hull, hull);
-    assert.match(bare.event?.body ?? "", /bites down/);
+    assert.ok((bare.event?.body ?? "").includes(eventText("event_ROCK_STARSHIP_MINE_c1_text")));
 
     const g = createGame(2);
     open(g);
@@ -174,7 +175,7 @@ describe("Rock live mine", () => {
     assert.equal(choiceDisabled(g, "s:rock-mine:missile"), null);
     choose(g, "s:rock-mine:missile");
     const body = g.event?.body ?? "";
-    assert.match(body, /modified warhead/);
+    assert.ok(body.includes(eventText("event_ROCK_STARSHIP_MINE_c1_c2_text")));
     const got = scraps(body);
     assert.equal(got.length, 1, body);
     assert.ok(got[0]! >= 7 && got[0]! <= 10, body);
@@ -200,7 +201,7 @@ describe("Rock live mine", () => {
     choose(broke, "c:rock-live-mine:0");
     assert.equal(choiceDisabled(broke, "s:rock-mine:beam"), "Need 1 drone part");
     choose(broke, "s:rock-mine:beam");
-    assert.match(broke.event?.body ?? "", /bites down/);
+    assert.ok((broke.event?.body ?? "").includes(eventText("event_ROCK_STARSHIP_MINE_c1_text")));
     assert.equal(broke.player.parts, 0);
 
     const g = createGame(3);
@@ -212,7 +213,7 @@ describe("Rock live mine", () => {
     assert.equal(choiceDisabled(g, "s:rock-mine:beam"), null);
     choose(g, "s:rock-mine:beam");
     const body = g.event?.body ?? "";
-    assert.match(body, /grappling arms/);
+    assert.ok(body.includes(eventText("event_ROCK_STARSHIP_MINE_c1_c3_text")));
     assert.match(body, /Drone parts: -1/);
     const got = scraps(body);
     assert.equal(got.length, 1, body);
@@ -231,7 +232,7 @@ describe("Rock live mine", () => {
     assert.equal(choiceDisabled(low, "c:rock-live-mine:1"), "Needs Engines level 5");
     choose(low, "c:rock-live-mine:1");
     assert.equal(low.scrap, 10);
-    assert.match(low.event?.body ?? "", /live mine/);
+    assert.equal(low.event?.body, "Mine approaching.");
 
     const g = createGame(2);
     open(g);

@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -23,7 +24,7 @@ describe("Rebel ship attacking civilians in Last Stand leave", () => {
     choose(g, "c:rebel-ship-attacking-civilians-in-last-stand:1");
     assert.equal(
       g.event?.body,
-      "You try to block out the horrors of war and focus on your mission.\n\nNothing happens.",
+      [eventText("event_BOSS_SCOUT_RESCUE_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, scrap);

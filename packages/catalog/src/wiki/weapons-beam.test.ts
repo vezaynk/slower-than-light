@@ -57,70 +57,55 @@ describe("beam weapons", () => {
     }
   });
 
-  it("copies power, charge, damage, fire, price, and the italic blurb", () => {
+  it("copies power, charge, damage, fire, price, and a functional blurb", () => {
     assert.equal(byId.BEAM_1.power, 1);
     assert.equal(byId.BEAM_1.charge, 12);
     assert.equal(byId.BEAM_1.damage, 1);
     assert.equal(byId.BEAM_1.fire, 0.1);
     assert.equal(byId.BEAM_1.price, 20);
-    assert.equal(byId.BEAM_1.blurb, "Extremely cheap and weak beam weapon.");
+    assert.equal(byId.BEAM_1.blurb, "Beam. Each shield layer cuts 1 damage per room.");
 
     assert.equal(byId.BEAM_LONG.power, 2);
     assert.equal(byId.BEAM_LONG.charge, 16);
     assert.equal(byId.BEAM_LONG.damage, 1);
     assert.equal(byId.BEAM_LONG.fire, 0);
     assert.equal(byId.BEAM_LONG.price, 55);
-    assert.equal(
-      byId.BEAM_LONG.blurb,
-      "Can cut across entire ships, assuming there's no shield to stop it.",
-    );
+    assert.equal(byId.BEAM_LONG.blurb, "Beam. Each shield layer cuts 1 damage per room.");
 
     assert.equal(byId.BEAM_HULL.power, 2);
     assert.equal(byId.BEAM_HULL.charge, 14);
     assert.equal(byId.BEAM_HULL.damage, 1);
     assert.equal(byId.BEAM_HULL.fire, 0);
     assert.equal(byId.BEAM_HULL.price, 70);
-    assert.equal(
-      byId.BEAM_HULL.blurb,
-      "This beam is most powerful when targeting large, empty sections of hull.",
-    );
+    assert.equal(byId.BEAM_HULL.blurb, "Beam. Double damage to rooms without a system.");
 
     assert.equal(byId.BEAM_2.power, 3);
     assert.equal(byId.BEAM_2.charge, 17);
     assert.equal(byId.BEAM_2.damage, 2);
     assert.equal(byId.BEAM_2.fire, 0);
     assert.equal(byId.BEAM_2.price, 65);
-    assert.equal(byId.BEAM_2.blurb, "Slow but reliably powerful standard beam weapon.");
+    assert.equal(byId.BEAM_2.blurb, "Beam. Each shield layer cuts 1 damage per room.");
 
     assert.equal(byId.BEAM_3.power, 4);
     assert.equal(byId.BEAM_3.charge, 25);
     assert.equal(byId.BEAM_3.damage, 3);
     assert.equal(byId.BEAM_3.fire, 0);
     assert.equal(byId.BEAM_3.price, 95);
-    assert.equal(
-      byId.BEAM_3.blurb,
-      "One of the most powerful weapons of war ever created. Known to take out some ships in a single blast.",
-    );
+    assert.equal(byId.BEAM_3.blurb, "Beam. Each shield layer cuts 1 damage per room.");
 
     assert.equal(byId.BEAM_FIRE.power, 2);
     assert.equal(byId.BEAM_FIRE.charge, 20);
     assert.equal(byId.BEAM_FIRE.damage, 0);
     assert.equal(byId.BEAM_FIRE.fire, 0.8);
     assert.equal(byId.BEAM_FIRE.price, 50);
-    assert.equal(
-      byId.BEAM_FIRE.blurb,
-      "This terrifying beam does no physical damage but ignites fires.",
-    );
+    assert.equal(byId.BEAM_FIRE.blurb, "Beam. No hull damage. Starts fires.");
 
     assert.equal(byId.BEAM_BIO.power, 2);
     assert.equal(byId.BEAM_BIO.charge, 16);
     assert.equal(byId.BEAM_BIO.damage, 0);
     assert.equal(byId.BEAM_BIO.fire, 0);
     assert.equal(byId.BEAM_BIO.price, 50);
-    assert.equal(
-      byId.BEAM_BIO.blurb,
-      "This terrifying beam does no physical damage, but rips through organic material, dealing heavy damage to crew members.",
-    );
+    assert.equal(byId.BEAM_BIO.blurb, "Beam. No hull damage. Damages crew.");
   });
 
   it("stores printed crew-damage HP and leaves the dash and blocked beams out", () => {

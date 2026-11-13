@@ -5,6 +5,8 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { joinCrew } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -43,8 +45,7 @@ describe("Lanius ship salvager", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-salvager:0");
-    const lead =
-      "You move in and power up your weapons. Detecting the threat, they stop what they are doing and prepare for a fight.";
+    const lead = eventText("event_LANIUS_SOLO_SALVAGE_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);
@@ -61,7 +62,10 @@ describe("Lanius ship salvager", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-salvager:1");
-    assert.equal(g.event?.body, "You ignore the ship and prepare to jump.\n\nNothing happens.");
+    assert.equal(
+      g.event?.body,
+      [eventText("event_LANIUS_SOLO_SALVAGE_c2_text"), "Nothing happens."].join("\n\n"),
+    );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.enemy, null);
@@ -103,14 +107,14 @@ describe("Lanius ship salvager", () => {
       assert.equal(g.missiles, missiles);
       assert.equal(g.player.parts, parts);
       assert.equal(g.player.weapons.length, guns);
-      if (/happy to share/.test(body)) {
+      if (textRe("event_LANIUS_SOLO_SALVAGE_LIST_1_text").test(body)) {
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
         inBand(paid[0]!, 12, 19);
         assert.equal(resources(body), 0, body);
         assert.equal(g.scrap, 10 + paid[0]!);
         seen.add("share");
-      } else if (/lazy solder/.test(body)) {
+      } else if (textRe("event_LANIUS_SOLO_SALVAGE_LIST_3_text").test(body)) {
         assert.equal(g.scrap, 10);
         assert.equal(g.phase, "event");
         assert.deepEqual(
@@ -119,7 +123,7 @@ describe("Lanius ship salvager", () => {
         );
         seen.add("scoff");
       } else {
-        assert.match(body, /extremely low/);
+        assert.match(body, textRe("event_LANIUS_SOLO_SALVAGE_LIST_2_text"));
         assert.match(body, /Nothing happens/);
         assert.equal(g.scrap, 10);
         seen.add("low");
@@ -134,7 +138,7 @@ describe("Lanius ship salvager", () => {
     for (let seed = 1; seed <= 80 && (!fight || !leave); seed++) {
       const g = withLanius(seed);
       choose(g, "c:lanius-ship-salvager:2");
-      if (/lazy solder/.test(g.event?.body ?? "")) {
+      if (g.event?.choices.some((c) => c.id === "q:lanius-salvager:leave")) {
         if (!fight) fight = g;
         else if (!leave) leave = g;
       }
@@ -143,8 +147,7 @@ describe("Lanius ship salvager", () => {
     assert.ok(leave);
     const fuel = fight.fuel;
     choose(fight, "q:lanius-salvager:attack");
-    const lead =
-      "You move in and power up your weapons. Detecting the threat, they stop what they were doing and prepare for a fight.";
+    const lead = eventText("event_LANIUS_SOLO_SALVAGE_LIST_3_c1_text");
     assert.equal(fight.phase, "event");
     assert.equal(fight.event?.body, lead);
     assert.equal(fight.log.includes(lead), false);
@@ -158,7 +161,7 @@ describe("Lanius ship salvager", () => {
     assert.equal(pageWin(fight, "lanius-ship-salvager", true), false);
 
     choose(leave, "q:lanius-salvager:leave");
-    assert.match(leave.event?.body ?? "", /derisive tone/);
+    assert.match(leave.event?.body ?? "", textRe("event_LANIUS_SOLO_SALVAGE_LIST_3_c2_text"));
     assert.match(leave.event?.body ?? "", /Nothing happens/);
     assert.equal(leave.scrap, 10);
     assert.equal(leave.fuel, fuel);

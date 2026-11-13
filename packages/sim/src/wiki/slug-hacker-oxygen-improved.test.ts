@@ -3,9 +3,9 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame, step } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const LEAD =
-  "Thankfully your improved subsystem is able to counter their hacking enough to keep the life support barely functional. That should keep you alive at least...";
+const LEAD = eventText("event_NEBULA_SLUG_OXYGEN_c2_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

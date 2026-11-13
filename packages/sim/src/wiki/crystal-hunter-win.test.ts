@@ -4,6 +4,7 @@ import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -37,10 +38,7 @@ describe("Crystal fight with surrender offer (Human crew) reward", () => {
     const augments = destroyed.augments.length;
     assert.equal(pageWin(destroyed, "crystal-fight-with-surrender-offer-human-crew", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(
-      body,
-      /The Crystalline ship shatters and you pick what you can from the debris\. Who knows how many people you've saved by stopping this ship\./,
-    );
+    assert.match(body, textRe("ship_CRYSTAL_HUNTER_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -58,10 +56,7 @@ describe("Crystal fight with surrender offer (Human crew) reward", () => {
     const killedCrew = killed.crew.filter((c) => c.side === "player").length;
     assert.equal(pageWin(killed, "crystal-fight-with-surrender-offer-human-crew", true), true);
     const killedBody = killed.event?.body ?? "";
-    assert.match(
-      killedBody,
-      /The crew of the enemy ship has been eliminated\. You scrap what you can\. Who knows how many people you've saved by stopping this ship\./,
-    );
+    assert.match(killedBody, textRe("ship_CRYSTAL_HUNTER_deadCrew_text"));
     const medium = scraps(killedBody);
     assert.equal(medium.length, 1, killedBody);
     assert.ok(medium[0]! >= 12 && medium[0]! <= 19, killedBody);

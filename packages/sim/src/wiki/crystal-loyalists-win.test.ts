@@ -4,6 +4,8 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -38,7 +40,14 @@ describe("Crystal ship attacking Federation loyalists reward", () => {
     const augments = destroyed.augments.length;
     assert.equal(pageWin(destroyed, "crystal-ship-attacking-federation-loyalists", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /The Crystalline ship shatters and you pick what you can from the debris/);
+    assert.match(
+      body,
+      textRe(
+        "ship_CRYSTAL_CONVOY_destroyed_text",
+        "ship_CRYSTAL_FED_destroyed_text",
+        "ship_CRYSTAL_HUNTER_destroyed_text",
+      ),
+    );
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -59,7 +68,11 @@ describe("Crystal ship attacking Federation loyalists reward", () => {
     const killedBody = killed.event?.body ?? "";
     assert.match(
       killedBody,
-      /The crew of the enemy ship has been eliminated\. You scrap what you can/,
+      textRe(
+        "ship_CRYSTAL_CONVOY_deadCrew_text",
+        "ship_CRYSTAL_FED_deadCrew_text",
+        "ship_CRYSTAL_HUNTER_deadCrew_text",
+      ),
     );
     const high = scraps(killedBody);
     assert.equal(high.length, 1, killedBody);
@@ -90,8 +103,8 @@ describe("Crystal ship attacking Federation loyalists reward", () => {
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
       assert.equal(g.player.weapons.length, guns);
       assert.equal(g.augments.length, augments);
-      if (body.includes("only one person made it")) survivor = true;
-      if (body.includes("They transfer some excess materials")) materials = true;
+      if (body.includes(eventText("event_CRYSTAL_FED_LIST_2_text"))) survivor = true;
+      if (body.includes(eventText("event_CRYSTAL_FED_LIST_1_text"))) materials = true;
     }
     assert.equal(survivor && materials, true);
   });

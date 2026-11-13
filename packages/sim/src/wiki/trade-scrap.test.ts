@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, createGame } from "../sim.ts";
 import type { Game, SysId } from "../types.ts";
@@ -41,7 +42,7 @@ describe("Trade scrap for upgrades", () => {
       seen.add(card.body);
       assert.equal(card.choices[0]?.id, INQUIRE);
     }
-    assert.equal(seen.size, 4);
+    assert.equal(seen.size, 1);
   });
 
   it("spends the shown oxygen band and raises that system one level", () => {
@@ -51,7 +52,7 @@ describe("Trade scrap for upgrades", () => {
     const deal = agree(g);
     assert.ok(deal);
     assert.ok(deal.cost >= 15 && deal.cost <= 20);
-    assert.match(g.event?.body ?? "", /Oxygen system/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_TRADER_UPGRADES_LIST_1_text")));
     g.scrap = deal.cost - 1;
     assert.equal(choiceDisabled(g, deal.id), `Need ${deal.cost} scrap`);
     fillerChoose(g, deal.id);
@@ -60,7 +61,7 @@ describe("Trade scrap for upgrades", () => {
     fillerChoose(g, deal.id);
     assert.equal(g.player.systems.oxygen.level, 2);
     assert.equal(g.scrap, 80 - deal.cost);
-    assert.match(g.event?.body ?? "", /Oxygen system is upgraded to level 2/);
+    assert.match(g.event?.body ?? "", /Oxygen: level 2\./);
   });
 
   it("raises Sensors from 2 to 3 inside 35-45 scrap", () => {
@@ -74,7 +75,7 @@ describe("Trade scrap for upgrades", () => {
     fillerChoose(g, deal.id);
     assert.equal(g.player.systems.sensors.level, 3);
     assert.equal(g.player.systems.sensors.power, 3);
-    assert.match(g.event?.body ?? "", /Sensors are upgraded to level 3/);
+    assert.match(g.event?.body ?? "", /Sensors: level 3\./);
   });
 
   it("adds one reactor bar and does not count it as a bought upgrade", () => {
@@ -87,7 +88,7 @@ describe("Trade scrap for upgrades", () => {
     fillerChoose(g, deal.id);
     assert.equal(g.player.reactor, 25);
     assert.equal(g.reactorEvent, 1);
-    assert.match(g.event?.body ?? "", /reactor is upgraded/);
+    assert.match(g.event?.body ?? "", /Reactor \+1\./);
   });
 
   it("a decline spends nothing", () => {
@@ -99,7 +100,7 @@ describe("Trade scrap for upgrades", () => {
     fillerChoose(g, "s:trade-scrap-for-upgrades:decline");
     assert.equal(g.scrap, before);
     assert.equal(g.player.systems.pilot.level, level);
-    assert.match(g.event?.body ?? "", /prepare to move on/);
+    assert.equal(g.event?.body, eventText("event_TRADER_UPGRADES_LIST_1_c3_text"));
   });
 
   it("offers nothing when every printed specialty is closed", () => {
@@ -108,7 +109,7 @@ describe("Trade scrap for upgrades", () => {
       g.player.systems[id].level = 0;
     fillerChoose(g, INQUIRE);
     assert.equal(agree(g), null);
-    assert.match(g.event?.body ?? "", /prepare to move on/);
+    assert.equal(g.event?.body, eventText("event_TRADER_UPGRADES_LIST_1_c3_text"));
     assert.equal(g.scrap, 80);
   });
 

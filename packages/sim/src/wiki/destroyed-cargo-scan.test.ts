@@ -3,15 +3,12 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const DULL =
-  "The cargo appears to contain nothing of much interest. You salvage some scrap from the destroyed ship.";
-const SUPPLIES =
-  "Your Advanced Sensors are able to breach the protective barrier and scan the cargo. It appears to be filled with military supplies! You take everything you can use.";
-const AMBUSH =
-  "Your advanced sensors pick up faint life signatures inside the cargo. The life forms appear to be armed. This looks like a planned pirate ambush.";
-const FIRE =
-  'You fire on the crates, breaking them open and scattering the pirates into empty space. A pirate ship appears out of nowhere with a message, "You will pay for that!"';
+const DULL = eventText("event_FLOATING_CARGO_SCAN_LIST_1_text");
+const SUPPLIES = eventText("event_FLOATING_CARGO_SCAN_LIST_2_text");
+const AMBUSH = eventText("event_FLOATING_CARGO_SCAN_LIST_3_text");
+const FIRE = eventText("event_FLOATING_CARGO_SCAN_LIST_3_c1_text");
 const SENSORS = "c:destroyed-cargo-ship:2";
 const SCANNERS = "c:destroyed-cargo-ship:3";
 
@@ -37,12 +34,18 @@ describe("Destroyed cargo ship scan", () => {
     open(g);
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === SENSORS && c.label === "Run an advanced scan on the boxes.",
+        (c) =>
+          c.id === SENSORS &&
+          c.label ===
+            "1 in 3: gain 20-35 scrap. 1 in 3: gain medium scrap and resources. 1 in 3: more options.",
       ),
     );
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === SCANNERS && c.label === "Run an advanced scan on the boxes.",
+        (c) =>
+          c.id === SCANNERS &&
+          c.label ===
+            "1 in 3: gain 20-35 scrap. 1 in 3: gain medium scrap and resources. 1 in 3: more options.",
       ),
     );
     // INFERRED: the refusal lines. The page names the requirement and prints no sentence.
@@ -53,7 +56,7 @@ describe("Destroyed cargo ship scan", () => {
     assert.equal(g.phase, "event");
     assert.equal(g.enemy, null);
     assert.equal(g.scrap, 10);
-    assert.match(g.event?.body ?? "", /destroyed cargo ship/);
+    assert.equal(g.event?.body, "Cargo near a wreck.");
   });
 
   it("Sensors level 2 scans without the augment, and the augment scans at level 1", () => {

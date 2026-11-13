@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -25,7 +26,7 @@ describe("Large asteroid field", () => {
       const g = createGame(seed);
       const hull = g.player.hull;
       fillerChoose(g, ID);
-      if (!g.event?.body.includes("more dangerous")) {
+      if (!g.event?.body.startsWith(eventText("event_ASTEROID_EXPLORE_RESULTS_5_text"))) {
         assert.ok(g.player.rooms.every((r) => r.fire === 0));
         continue;
       }
@@ -41,7 +42,7 @@ describe("Large asteroid field", () => {
       if (dmg === 1) oneBar = true;
       else twoBars = true;
       assert.equal(g.phase, "event");
-      assert.match(g.event.body, /[12] fires? in /);
+      assert.match(g.event.body, /Fires: [12] in /);
     }
     assert.ok(hits >= 20, String(hits));
     assert.ok(saw1 && saw2);
@@ -54,7 +55,7 @@ describe("Large asteroid field", () => {
       const g = createGame(seed);
       for (const r of g.player.rooms) r.system = null;
       fillerChoose(g, ID);
-      if (!g.event?.body.includes("more dangerous")) continue;
+      if (!g.event?.body.startsWith(eventText("event_ASTEROID_EXPLORE_RESULTS_5_text"))) continue;
       hits++;
       const rooms = burning(g);
       assert.equal(rooms.length, 1);

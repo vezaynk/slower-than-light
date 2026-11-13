@@ -4,8 +4,7 @@ import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const BODY =
-  'You arrive at a Zoltan security checkpoint set up in a perimeter around the beacon. "Traveling vessel, you will submit to crew profiling to identify fugitives of the empire."';
+const BODY = "Checkpoint. Crew scan.";
 
 describe("Zoltan security checkpoint intro", () => {
   it("prints the hail with the checkpoint sentence", () => {

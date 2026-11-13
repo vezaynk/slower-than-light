@@ -55,6 +55,7 @@ import {
   type SurrenderOffer,
 } from "./surrender.ts";
 import { queueSfx } from "../sfx-queue.ts";
+import { eventText } from "../event-text.ts";
 
 // ---------------------------------------------------------------------------------------------------------------
 // Helpers
@@ -236,25 +237,34 @@ function asteroidCard(g: Game) {
   const choices: Choice[] = [
     {
       id: "q:asteroid:shield",
-      label: "Try to shield their ship with yours and escort them out of the field.",
+      label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c1_choice"),
     },
-    { id: "q:asteroid:leave", label: "Don't risk our ship. Leave them to their fate." },
+    { id: "q:asteroid:leave", label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c2_choice") },
   ];
   // {{Blue Option|Defense Drone|...}} / {{Blue Option|Repair Drone|...}}, each [1 drone part]. INFERRED: "Repair Drone"
   // is the System Repair drone ("REPAIR"): it is sent "to fix their Shields", a system.
   if (hasDrone(g, ["DEFENSE_1", "DEFENSE_2"]))
-    choices.push({ id: "q:asteroid:defense", label: "Use a Defense Drone to protect their ship." });
+    choices.push({
+      id: "q:asteroid:defense",
+      label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c3_choice"),
+    });
   if (hasDrone(g, ["REPAIR"]))
-    choices.push({ id: "q:asteroid:repair", label: "Send a Repair Drone to fix their Shields." });
+    choices.push({
+      id: "q:asteroid:repair",
+      label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c4_choice"),
+    });
   if (hasTeleporter(g))
-    choices.push({ id: "q:asteroid:teleport", label: "Offer to beam them aboard your ship." });
+    choices.push({
+      id: "q:asteroid:teleport",
+      label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c5_choice"),
+    });
   // {{Blue Option|Rock Armor|...|shortreq=Rock Plating}}. Rock Plating is fitted as "ROCK_ARMOR" (extras/augments.ts).
   if (g.augments.includes("ROCK_ARMOR"))
     choices.push({
       id: "q:asteroid:rock",
-      label: "Shield their ship with yours and escort them out.",
+      label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c6_choice"),
     });
-  card(g, 'They respond: "Help! Our shields are down and we won\'t last long!"', choices);
+  card(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_text"), choices);
 }
 
 function asteroidDrone(g: Game, id: string) {
@@ -272,19 +282,16 @@ function asteroidDrone(g: Game, id: string) {
     if (damageHull(g, 4)) return;
     const sys = systemHit(g);
     const fire = roomHit(g);
-    result(
-      g,
-      "Your drone succeeds in keeping their ship from breaking apart while they fix it, however you take some damage while attempting to leave the asteroid field. They offer you some military supplies as thanks for saving them.",
-      scrapOnly(g, "medium"),
-      ["Hull damage: 4.", sys, fire, grantRandomItem(g, "weapon")],
-    );
+    result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST2_1_text"), scrapOnly(g, "medium"), [
+      "Hull damage: 4.",
+      sys,
+      fire,
+      grantRandomItem(g, "weapon"),
+    ]);
   } else {
-    result(
-      g,
-      "The drone keeps the ship stable enough to allow them to escape the asteroid field. They message you with map coordinates, \"You're that Federation ship the Rebels are after, aren't you? I can't offer much but I heard there was a Federation loyalist base nearby. Maybe they can help you?\"",
-      undefined,
-      [addQuest(g, "fed-base")],
-    );
+    result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST2_2_text"), undefined, [
+      addQuest(g, "fed-base"),
+    ]);
   }
 }
 
@@ -297,14 +304,10 @@ function captureOffer(g: Game) {
   // > "Offer a solution." — [[Capture the ship]]
   // > "Agree to capture the ship." — [[Capture the ship#Offer a solution]]
   // > "A quest marker is added to your map." — [[Capture the ship#Offer a solution]]
-  card(
-    g,
-    'They quickly scan your ship and say, "It appears you could help. A bandit has made off with some very important cargo, though I doubt they have any understanding of what it is they stole. We need you to capture the ship intact."',
-    [
-      { id: "q:capture:agree", label: "Agree to capture the ship." },
-      { id: "q:capture:decline", label: "Decline." },
-    ],
-  );
+  card(g, eventText("event_QUEST_CREWDEAD_CONTINUE_text"), [
+    { id: "q:capture:agree", label: eventText("event_QUEST_CREWDEAD_CONTINUE_c1_choice") },
+    { id: "q:capture:decline", label: eventText("event_QUEST_CREWDEAD_CONTINUE_c2_choice") },
+  ]);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -318,48 +321,34 @@ const ENGI_PAGE_ENGI = "engi-ship-attacked-by-mantis-ship-engi";
 function engiContact(g: Game) {
   const r = pick(g, ["crew", "fuel", "empty", "request"] as const);
   if (r === "crew") {
-    result(
-      g,
-      "They thank you for the assistance and when you tell them of your mission, one of the Engi asks if he can assist your crew. You welcome him aboard.",
-      rollStandard(g, "low"),
-      [crew(g, "Engi")],
-    );
+    result(g, eventText("event_SAVE_ENGI_STATION_4_text"), rollStandard(g, "low"), [
+      crew(g, "Engi"),
+    ]);
   } else if (r === "fuel") {
     // Rewards, "Fuel only": medium (2-4) fuel.
-    result(
-      g,
-      "The station was in the process of being evacuated. A number of civilian Engi offer their gratitude as they finalize their preparations to leave. They offer some fuel as a reward.",
-      {
-        tier: "medium",
-        scrap: 0,
-        eligible: 0,
-        fuel: rollFuel("q:engi-station:contact", (lo, hi) => between(g, [lo, hi])),
-        missiles: 0,
-        parts: 0,
-      },
-    );
+    result(g, eventText("event_SAVE_ENGI_STATION_2_text"), {
+      tier: "medium",
+      scrap: 0,
+      eligible: 0,
+      fuel: rollFuel("q:engi-station:contact", (lo, hi) => between(g, [lo, hi])),
+      missiles: 0,
+      parts: 0,
+    });
   } else if (r === "empty") {
-    result(
-      g,
-      "The Engi station is stripped bare and there are signs of a fierce battle. The Mantis must have left the distress call active to lure other ships into a trap.",
-    );
+    result(g, eventText("event_SAVE_ENGI_STATION_1_text"));
   } else {
     const choices: Choice[] = [
-      { id: "q:engi-station:fuel", label: "Request fuel." },
-      { id: "q:engi-station:weapon", label: "Request weapon." },
-      { id: "q:engi-station:drone", label: "Request drone." },
+      { id: "q:engi-station:fuel", label: eventText("event_SAVE_ENGI_STATION_3_c1_choice") },
+      { id: "q:engi-station:weapon", label: eventText("event_SAVE_ENGI_STATION_3_c2_choice") },
+      { id: "q:engi-station:drone", label: eventText("event_SAVE_ENGI_STATION_3_c3_choice") },
     ];
     // {{Blue Option|Engi Crew|Threat unresolved. Current Mission imperative: Protocol 52.34.}}
     if (hasEngi(g))
       choices.push({
         id: "q:engi-station:protocol",
-        label: "Threat unresolved. Current Mission imperative: Protocol 52.34.",
+        label: eventText("event_SAVE_ENGI_STATION_3_c4_choice"),
       });
-    card(
-      g,
-      'The station hails you, "Gratitude. Expected probability of defeat without assistance... 86.2 percent. Request suitable reward."',
-      choices,
-    );
+    card(g, eventText("event_SAVE_ENGI_STATION_3_text"), choices);
   }
 }
 
@@ -371,8 +360,8 @@ const PARTS_OWED = 5;
 
 function fullPriceCard(g: Game, text: string) {
   card(g, text, [
-    { id: "q:merchant:full", label: "Accept the new offer." },
-    { id: "q:merchant:leave", label: "Leave." },
+    { id: "q:merchant:full", label: eventText("event_MERCHANT_DELIVER_BLUFF_LIST_1_c1_choice") },
+    { id: "q:merchant:leave", label: eventText("event_MERCHANT_DELIVER_BLUFF_LIST_1_c2_choice") },
   ]);
 }
 
@@ -387,55 +376,34 @@ function payParts(g: Game, id: string): string | null {
 function investigateCargo(g: Game) {
   const r = pick(g, ["note", "weapon", "supplies"] as const);
   if (r === "note") {
-    result(
-      g,
-      "The cargo was some food and medical supplies, nothing that you need right now. You make a note of the delivery destination in case you want to drop off the cargo for the payment.",
-      undefined,
-      [addQuest(g, "merchant-station")],
-    );
+    result(g, eventText("event_MERCHANT_INVESTIGATE_CARGO_LIST_1_text"), undefined, [
+      addQuest(g, "merchant-station"),
+    ]);
   } else if (r === "weapon") {
     // "You receive a weapon." Not named: a random one, as Rewards, "Weapon": "A random weapon & T scrap." (no scrap here).
-    result(
-      g,
-      "You find a prototype weapon inside. You quickly install it on the ship.",
-      undefined,
-      [grantRandomItem(g, "weapon")],
-    );
+    result(g, eventText("event_MERCHANT_INVESTIGATE_CARGO_LIST_2_text"), undefined, [
+      grantRandomItem(g, "weapon"),
+    ]);
   } else {
-    result(
-      g,
-      "There were general military supplies in the cargo crates. You take what you can use.",
-      rollStandard(g, "high"),
-    );
+    result(g, eventText("event_MERCHANT_INVESTIGATE_CARGO_LIST_3_text"), rollStandard(g, "high"));
   }
 }
 
 /** Research station with no response, as the Merchant's Delivery "station doesn't respond" subevent ({{:...}} include). */
 function researchStation(g: Game, intro: string) {
   // The include lists the Anti-Personnel Drone beside dock and leave. Lifeform Scanner stays on the standalone card.
-  card(
-    g,
-    `${intro}
-
-You find the small research station and discover that it's putting out a distress signal. Strangely, there is no response to your hails.`,
-    [
-      { id: "q:research:dock", label: "Dock with the station and investigate." },
-      { id: "q:research:leave", label: "Leave it alone." },
-      { id: "q:research:drone", label: "Send your battle drone in to help." },
-    ],
-  );
+  card(g, `${intro}\n\n${eventText("event_MERCHANT_DELIVER_LIST_1_text")}`, [
+    { id: "q:research:dock", label: eventText("event_MERCHANT_DELIVER_LIST_1_c1_choice") },
+    { id: "q:research:leave", label: eventText("event_MERCHANT_DELIVER_LIST_1_c2_choice") },
+    { id: "q:research:drone", label: eventText("event_MERCHANT_DELIVER_LIST_1_c3_choice") },
+  ]);
 }
 
-const APD_TEAR =
-  "You send your Anti-Personnel drone to explore the station. What you find is disconcerting... It appears that something has caused the scientists and guards to tear each other to pieces. You abandon the drone on the station for fear that it is contagious.";
-const APD_MOB =
-  "Once on board the station, your drone is immediately beset by frenzied scientists and guards. It eventually gets torn apart by the mob but it has bought you enough time to disengage from the station and escape into empty space.";
-const APD_CAMERAS =
-  "The cameras mounted to your Anti-Personnel drone show a chaotic scene. No people are to be found but the remnants of a recent battle on-board the ship are obvious. You instruct the drone to retrieve some useful materials before leaving.";
-const SCAN_CLEAR =
-  "There are no life signs detected on the ship although there appears to be a number of deceased crew. There does not appear to be any airborn contagions so your crew quickly salvages what they can before moving on. You can only wonder what befell the station.";
-const SCAN_LIFE =
-  "Sensors show scattered signs of life although most of the crew are deceased. However the health signatures of the living indicate they are violent and unstable. You decide it's better to move on than risk engaging the remaining crew.";
+const APD_TEAR = "event_STATION_SICK_DRONE_LIST_1_text";
+const APD_MOB = "event_STATION_SICK_DRONE_LIST_2_text";
+const APD_CAMERAS = "event_STATION_SICK_DRONE_LIST_3_text";
+const SCAN_CLEAR = "event_STATION_SICK_SCANNER_2_text";
+const SCAN_LIFE = "event_STATION_SICK_SCANNER_1_text";
 
 /** Dock with the station. Three results and no odds. INFERRED: equal. Shared with Merchant's Delivery. */
 function researchDock(g: Game) {
@@ -447,11 +415,7 @@ function researchDock(g: Game) {
     // > "You receive medium drone parts and scrap." — [[Research station with no response]]
     const offer = scrapOnly(g, "medium");
     offer.parts = 1;
-    result(
-      g,
-      "Inside there are signs of a great struggle; scientists lie dead where they fell, brutally dismembered. You grab a few research drone parts lying on a desk near the door and leave quickly.",
-      offer,
-    );
+    result(g, eventText("event_STATION_SICK_LIST_1_text"), offer);
   } else if (r === "survivor") {
     // Wiki citations:
     // > "You dock with the station and see a frantic person banging on the airlock door. Once inside your ship, he drops to the floor saying, \"My... friends... They've gone insane... They're coming!\" You hand him a blaster and turn to see a number of people charging toward the ship." — [[Research station with no response]]
@@ -459,20 +423,16 @@ function researchDock(g: Game) {
     // > "Prepare for a fight!" — [[Research station with no response]]
     // > "(Medbay) Have the advanced medbay analyze their condition. (Requires level 3 Medbay)" — [[Research station with no response]]
     const joined = crew(g, randomRace(g));
-    const choices: Choice[] = [{ id: "q:research:brace", label: "Prepare for a fight!" }];
+    const choices: Choice[] = [
+      { id: "q:research:brace", label: eventText("event_STATION_SICK_LIST_2_c1_choice") },
+    ];
     // {{Blue Option|Medbay|Have the advanced medbay analyze their condition.|level=3}}
     if (medbay(g) >= 3)
       choices.push({
         id: "q:research:antidote",
-        label: "Have the advanced medbay analyze their condition.",
+        label: eventText("event_STATION_SICK_LIST_2_c2_choice"),
       });
-    card(
-      g,
-      `You dock with the station and see a frantic person banging on the airlock door. Once inside your ship, he drops to the floor saying, "My... friends... They've gone insane... They're coming!" You hand him a blaster and turn to see a number of people charging toward the ship.
-
-${joined}`,
-      choices,
-    );
+    card(g, `${eventText("event_STATION_SICK_LIST_2_text")}\n\n${joined}`, choices);
   } else {
     // Wiki citations:
     // > "As you explore the base, crazed screams are heard. Your team retreats back to your ship with a number of armed scientists in pursuit. One of your team starts to cough and falls in a spasm onto the floor." — [[Research station with no response]]
@@ -481,22 +441,24 @@ ${joined}`,
     // > "(Medbay) Drag him back to the Medbay. (Requires level 2 Medbay)" — [[Research station with no response]]
     // > "(Medbay) Have the Advanced Medbay analyze their condition. (Requires level 3 Medbay)" — [[Research station with no response]]
     const choices: Choice[] = [
-      { id: "q:research:drag", label: "Drag him back to the ship and prepare for a fight." },
+      { id: "q:research:drag", label: eventText("event_STATION_SICK_LIST_3_c1_choice") },
     ];
     if (hasTeleporter(g))
-      choices.push({ id: "q:research:beam", label: "Use your Teleporter to retrieve your crew." });
+      choices.push({
+        id: "q:research:beam",
+        label: eventText("event_STATION_SICK_LIST_3_c2_choice"),
+      });
     if (medbay(g) >= 2)
-      choices.push({ id: "q:research:medbay", label: "Drag him back to the Medbay." });
+      choices.push({
+        id: "q:research:medbay",
+        label: eventText("event_STATION_SICK_LIST_3_c3_choice"),
+      });
     if (medbay(g) >= 3)
       choices.push({
         id: "q:research:cure",
-        label: "Have the Advanced Medbay analyze their condition.",
+        label: eventText("event_STATION_SICK_LIST_3_c4_choice"),
       });
-    card(
-      g,
-      "As you explore the base, crazed screams are heard. Your team retreats back to your ship with a number of armed scientists in pursuit. One of your team starts to cough and falls in a spasm onto the floor.",
-      choices,
-    );
+    card(g, eventText("event_STATION_SICK_LIST_3_text"), choices);
   }
 }
 
@@ -526,7 +488,7 @@ function researchDrone(g: Game) {
     // > "Drone parts lost: 1" — [[Research station with no response]]
     if (!spendDronePart(g)) return;
     const text = pick(g, [APD_TEAR, APD_MOB] as const);
-    result(g, text, undefined, ["Nothing happens.", "Drone parts: -1."]);
+    result(g, eventText(text), undefined, ["Nothing happens.", "Drone parts: -1."]);
     return;
   }
   // Wiki citations:
@@ -541,7 +503,7 @@ function researchDrone(g: Game) {
     g.log = lines;
     return;
   }
-  result(g, APD_CAMERAS, offer, offer.parts <= 0 ? ["Drone parts: -1."] : []);
+  result(g, eventText(APD_CAMERAS), offer, offer.parts <= 0 ? ["Drone parts: -1."] : []);
 }
 
 /** Lifeform Scanner. Two results and no odds. INFERRED: equal. Standalone card only. */
@@ -556,13 +518,13 @@ function researchScan(g: Game) {
     // Wiki citations:
     // > "There are no life signs detected on the ship although there appears to be a number of deceased crew. There does not appear to be any airborn contagions so your crew quickly salvages what they can before moving on. You can only wonder what befell the station." — [[Research station with no response]]
     // > "You receive medium scrap with resources." — [[Research station with no response]]
-    result(g, SCAN_CLEAR, rollStandard(g, "medium"));
+    result(g, eventText(SCAN_CLEAR), rollStandard(g, "medium"));
     return;
   }
   // Wiki citations:
   // > "Sensors show scattered signs of life although most of the crew are deceased. However the health signatures of the living indicate they are violent and unstable. You decide it's better to move on than risk engaging the remaining crew." — [[Research station with no response]]
   // > "Nothing happens." — [[Research station with no response]]
-  result(g, SCAN_LIFE, undefined, ["Nothing happens."]);
+  result(g, eventText(SCAN_LIFE), undefined, ["Nothing happens."]);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -571,39 +533,39 @@ function researchScan(g: Game) {
 
 /** The two choices that follow a found survivor. INVENTED: the label "Assist the survivor." (the page links a section). */
 const survivorChoices = (): Choice[] => [
-  { id: "q:nebula:assist", label: "Assist the survivor." },
-  { id: "q:nebula:leave", label: "Leave the battlefield before other ships arrive." },
+  { id: "q:nebula:assist", label: eventText("event_NEBULA_BATTLEFIELD_c1_c1_choice") },
+  { id: "q:nebula:leave", label: eventText("event_NEBULA_BATTLEFIELD_c1_c2_choice") },
 ];
 
 function zoltanCard(g: Game, lead: string) {
   const choices: Choice[] = [
-    { id: "q:abadoth:explain", label: "Explain about finding the dead crewman." },
+    { id: "q:abadoth:explain", label: eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c1_choice") },
   ];
   // {{Blue Option|Engi Crew|Say ABADOTH.}}
-  if (hasEngi(g)) choices.push({ id: "q:abadoth:engi", label: "Say ABADOTH." });
+  if (hasEngi(g))
+    choices.push({
+      id: "q:abadoth:engi",
+      label: eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c2_choice"),
+    });
   choices.push(
-    { id: "q:abadoth:anodyne", label: "Say ANODYNE." },
-    { id: "q:abadoth:abadoth", label: "Say ABADOTH." },
-    { id: "q:abadoth:abatodh", label: "Say ABATODH." },
+    { id: "q:abadoth:anodyne", label: eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c3_choice") },
+    { id: "q:abadoth:abadoth", label: eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c4_choice") },
+    { id: "q:abadoth:abatodh", label: eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c5_choice") },
   );
-  const body = "A Zoltan ship decloaks and demands your reason for being here!";
+  const body = eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_text");
   card(g, lead ? `${lead}\n\n${body}` : body, choices);
 }
 
-const ZOLTAN_FIGHT =
-  "There is a moment of silence, and suddenly the Zoltan ship cloaks - must have been the wrong word to use... now you've got a fight on your hands!";
+const ZOLTAN_FIGHT = "event_SECRET_WORD_ABADOTH_CONCLUSION_c1_text";
 /** "Fight a Zoltan ship (default rewards)": no PAGE_WINS row, so winCombat pays the default salvage. */
 function zoltanFight(g: Game) {
   // Wiki citations:
   // > "Fight a Zoltan ship (default rewards)." — [[Nebula wreckage#Find a Zoltan ship]]
-  pageFight(g, ZOLTAN_FIGHT, "Zoltan ship", "quest-abadoth-zoltan");
+  pageFight(g, eventText(ZOLTAN_FIGHT), "Zoltan ship", "quest-abadoth-zoltan");
 }
-function zoltanThanks(g: Game, lead: string) {
-  result(
-    g,
-    `${lead}There is a moment of silence, and the ship's captain solemnly thanks you for the information. He wishes you well on your journey, and he offers several upgrades to assist you in exchange for your service to the Zoltan race.`,
-    rollStandard(g, "medium"),
-  );
+/** The thanks page by ftl.dat id: c4 (Say ABADOTH) or c2 (the Engi crew's recall, which carries the same thanks). */
+function zoltanThanks(g: Game, id: string) {
+  result(g, eventText(id), rollStandard(g, "medium"));
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -614,7 +576,7 @@ export const PART_B: QuestPart = {
   quests: {
     // Asteroid belt distress, Encrypted federation signal and Engi ship attacked by Mantis ship also add the existing
     // "fed-base" marker ({{Hidden federation base}}, wiki/quests.ts).
-    "capture-ship": { page: "Capture the ship", title: "Bandit ship" },
+    "capture-ship": { page: "Capture the ship", title: "Quest: capture the ship" },
     "fed-assist": { page: "Encrypted federation signal", title: "Federation outpost" },
     "merchant-delivery": { page: "Merchant's request", title: "Delivery station" },
     "merchant-investigation": { page: "Merchant's request", title: "Lost freighter" },
@@ -629,87 +591,72 @@ export const PART_B: QuestPart = {
     },
     // Merchant's request, "Merchant's Delivery": the station doesn't respond / responds.
     "merchant-delivery": (g) => {
-      const intro =
-        "You arrive at the location given to you by the merchant. You are supposed to deliver drone parts to a station here.";
+      const intro = eventText("event_MERCHANT_DELIVER_text");
       if (rand(g) < 0.5) {
         researchStation(g, intro);
         return;
       }
       const choices: Choice[] = [
-        { id: "q:merchant:paltry", label: "Accept the paltry payment." },
-        { id: "q:merchant:refuse", label: "Refuse and keep the drone parts." },
+        { id: "q:merchant:paltry", label: eventText("event_MERCHANT_DELIVER_LIST_2_c1_choice") },
+        { id: "q:merchant:refuse", label: eventText("event_MERCHANT_DELIVER_LIST_2_c2_choice") },
       ];
       // {{Blue Option|Mind Control|...}} (the Mind Control system is the "mind" kit); {{Blue Option|Weapons|...|level=6+}}.
       if ((g.player.kits.mind?.level ?? 0) > 0)
-        choices.push({ id: "q:merchant:mind", label: "Convince him that he's being 'unfair'." });
+        choices.push({
+          id: "q:merchant:mind",
+          label: eventText("event_MERCHANT_DELIVER_LIST_2_c3_choice"),
+        });
       if ((g.player.systems.weapons?.level ?? 0) >= 6)
         choices.push({
           id: "q:merchant:weapons",
-          label: "Remain silent but power up your weapons.",
+          label: eventText("event_MERCHANT_DELIVER_LIST_2_c4_choice"),
         });
-      card(
-        g,
-        `${intro}
-
-You find the station and they respond to your hails immediately, saying, "It took you long enough! We have practically no use for these now... I refuse to pay full price, take this and leave the cargo in our holds."`,
-        choices,
-      );
+      card(g, `${intro}\n\n${eventText("event_MERCHANT_DELIVER_LIST_2_text")}`, choices);
     },
     // Merchant's request, "Merchant's Investigation": three results.
     "merchant-investigation": (g) => {
-      const intro =
-        "You arrive at the last known location of the merchant's delivery. You begin to scan for the lost ship.";
+      const intro = eventText("event_MERCHANT_INVESTIGATE_text");
       const r = pick(g, ["remains", "crew", "pirate"] as const);
       if (r === "remains") {
         result(
           g,
-          `${intro}
-
-You find the remains of the ship. It seems to have severe external damage, but you cannot pinpoint a cause. The majority of its cargo seems intact. You manage to discern the ship's intended destination.`,
+          `${intro}\n\n${eventText("event_MERCHANT_INVESTIGATE_LIST_1_text")}`,
           rollStandard(g, "medium"),
           [],
           [
             {
               id: "q:merchant:cargo-deliver",
-              label: "Take the cargo and head to its original destination in search of a reward.",
+              label: eventText("event_MERCHANT_INVESTIGATE_LIST_1_c1_choice"),
             },
-            { id: "q:merchant:cargo-take", label: "Take the cargo for yourself." },
+            {
+              id: "q:merchant:cargo-take",
+              label: eventText("event_MERCHANT_INVESTIGATE_LIST_1_c2_choice"),
+            },
           ],
         );
       } else if (r === "crew") {
         const choices: Choice[] = [
           {
             id: "q:merchant:promise",
-            label:
-              "Promise to deliver the cargo and ask if any would be interested in joining your crew.",
+            label: eventText("event_MERCHANT_INVESTIGATE_LIST_2_c1_choice"),
           },
           {
             id: "q:merchant:cargo-drop",
-            label: "Take the cargo but drop them off at a nearby station.",
+            label: eventText("event_MERCHANT_INVESTIGATE_LIST_2_c2_choice"),
           },
         ];
         if (hasTeleporter(g))
           choices.push({
             id: "q:merchant:cargo-beam",
-            label: "Beam the cargo aboard and leave them to their fate.",
+            label: eventText("event_MERCHANT_INVESTIGATE_LIST_2_c3_choice"),
           });
-        card(
-          g,
-          `${intro}
-
-You find a severely damaged ship floating among some debris. The crew hails you, "I can't believe that cheap bastard sent someone after us! I thought we would freeze to death. If you help us complete the delivery, we'll share the reward and join your crew."`,
-          choices,
-        );
+        card(g, `${intro}\n\n${eventText("event_MERCHANT_INVESTIGATE_LIST_2_text")}`, choices);
       } else {
         // An arrival must leave a card (sim.ts eventFor falls through when questEvent returns no event), so the fight
         // starts from a button. Merchant's request, Merchant's Investigation: "Fight a Pirate ship."
-        card(
-          g,
-          `${intro}
-
-After a quick scan, you find a ship being chased by a pirate. This must be the missing delivery ship! You move in to rescue them.`,
-          [{ id: "q:merchant:pirate", label: "Fight a Pirate ship." }],
-        );
+        card(g, `${intro}\n\n${eventText("event_MERCHANT_INVESTIGATE_LIST_3_text")}`, [
+          { id: "q:merchant:pirate", label: "Fight a Pirate ship." },
+        ]);
       }
     },
     // Merchant's request, "Deliver to the Station quest marker": "a drone schematic with medium scrap". Rewards,
@@ -717,12 +664,9 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
     "merchant-station": (g) => {
       // Wiki citations:
       // > "You receive a drone schematic with medium scrap." — [[Merchant's request#Deliver to the Station quest marker]]
-      result(
-        g,
-        'You find the station that had ordered your cargo. You drop it off and they respond, "Ignoring the fact that this is days late, we really appreciate that you delivered our materials. We realize how dangerous this sector is these days. Take this as payment."',
-        scrapOnly(g, "medium"),
-        [grantRandomItem(g, "drone")],
-      );
+      result(g, eventText("event_MERCHANT_INVESTIGATE_DELIVER_text"), scrapOnly(g, "medium"), [
+        grantRandomItem(g, "drone"),
+      ]);
     },
     // Nebula wreckage, "Quest Marker".
     abadoth: (g) => {
@@ -731,18 +675,13 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       if (hasSlug(g))
         choices.push({
           id: "q:abadoth:slug",
-          label: "Ask your Slug crewmember to scan for life forms.",
+          label: eventText("event_SECRET_WORD_ABADOTH_c1_choice"),
         });
       choices.push({
         id: "q:abadoth:scan",
-        label:
-          "Do a full system scan - though you're sure to lose some of your lead with the Rebels.",
+        label: eventText("event_SECRET_WORD_ABADOTH_c2_choice"),
       });
-      card(
-        g,
-        "You have arrived at the coordinates given to you by the dead crewman you attempted to save. There doesn't seem to be anything here - no planets, no vessels, and no clue as to what he meant by sending you here.",
-        choices,
-      );
+      card(g, eventText("event_SECRET_WORD_ABADOTH_text"), choices);
     },
   },
 
@@ -763,24 +702,17 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
         const fire = roomHit(g);
         result(
           g,
-          "You succeed in preventing them from being entirely destroyed, but your ship took a number of hits in the process. They offer some of the scrap and fuel they were mining out of the asteroid as thanks.",
+          eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST1_1_text"),
           fuelAndScrap(g, "high"),
           ["Hull damage: 1.", fire],
         );
       } else if (r === "lost") {
         if (damageHull(g, 4)) return;
-        result(
-          g,
-          "Despite your best efforts, the civilian ship breaks apart from the constant barrage. You are barely able to break out of the asteroid field yourself. The ship sustains some damage in the process.",
-          scrapOnly(g, "low"),
-          ["Hull damage: 4."],
-        );
+        result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST1_3_text"), scrapOnly(g, "low"), [
+          "Hull damage: 4.",
+        ]);
       } else {
-        result(
-          g,
-          "You try your best but one stray rock hits a key structure in their ship. It breaks apart in front of your eyes. You salvage what you can before leaving, and try not to think about the lost crew.",
-          scrapOnly(g, "low"),
-        );
+        result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST1_2_text"), scrapOnly(g, "low"));
       }
     },
     "q:asteroid:leave": (g) => {
@@ -788,14 +720,11 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       // > "Rebel Fleet pursuit is doubled for 1 jump." — [[Asteroid belt distress]]
       // > "Nothing happens." — [[Asteroid belt distress]]
       if (rand(g) < 0.5) {
-        result(
-          g,
-          "You regretfully leave the area, not able to watch them get destroyed. A short while later you get a second message, \"We survived, no thanks to you! Don't think I don't know that the Rebels are hunting for you. I'll be sure to tell them where you are the next time I see them!\"",
-          undefined,
-          [doublePursuit(g)],
-        );
+        result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST4_1_text"), undefined, [
+          doublePursuit(g),
+        ]);
       } else {
-        result(g, "You watch helplessly as their ship smashes against a cruiser-sized rock...");
+        result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST4_2_text"));
       }
     },
     "q:asteroid:defense": (g) => asteroidDrone(g, "q:asteroid:defense"),
@@ -806,77 +735,51 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       // > "Take them to the nearby planet, where they're from." — [[Asteroid belt distress]]
       if (rand(g) < 0.5) {
         // "You receive a crewmember." Race not named: INFERRED random.
-        result(
-          g,
-          "They reluctantly agree. Once aboard, you watch as their ship crashes against a massive rock. They thank you, but say \"I don't know what we'll do without our ship. As the Captain, I feel obligated to help you with your mission.\"",
-          undefined,
-          [crew(g, randomRace(g))],
-        );
+        result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST3_1_text"), undefined, [
+          crew(g, randomRace(g)),
+        ]);
       } else {
-        card(
-          g,
-          'They refuse at first, but after another blast rocks their ship they agree and beam aboard your ship. They say, "Thank you but we really should return to our families... I\'m sure we can muster up a reward if you take us home."',
-          [{ id: "q:asteroid:home", label: "Take them to the nearby planet, where they're from." }],
-        );
+        card(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST3_2_text"), [
+          {
+            id: "q:asteroid:home",
+            label: eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST3_2_c1_choice"),
+          },
+        ]);
       }
     },
     // Template:ReturnSurvivor|Asteroid belt distress: three results.
     "q:asteroid:home": (g) => {
       const r = pick(g, ["rich", "modest", "repair"] as const);
       if (r === "rich") {
-        result(
-          g,
-          "The family apparently owns one of the most valuable mining enterprises in the sector. For the safe return of his son, the patron of the family offers you a substantial reward.",
-          scrapOnly(g, "high"),
-        );
+        result(g, eventText("event_FAMILY_RETURN_1_text"), scrapOnly(g, "high"));
       } else if (r === "modest") {
-        result(
-          g,
-          "The survivor's family is of modest means, yet they manage to offer you a reward for your virtuous deed.",
-          scrapOnly(g, "medium"),
-        );
+        result(g, eventText("event_FAMILY_RETURN_2_text"), scrapOnly(g, "medium"));
       } else {
-        result(
-          g,
-          "Overjoyed with the return of their son, the family of the survivor arranges to repair your ship's hull as compensation.",
-          undefined,
-          [repair(g, 10)],
-        );
+        result(g, eventText("event_FAMILY_RETURN_3_text"), undefined, [repair(g, 10)]);
       }
     },
     "q:asteroid:rock": (g) => {
       // Wiki citations:
       // > "You receive medium fuel and scrap." — [[Asteroid belt distress]]
-      result(
-        g,
-        "You succeed in preventing them from being entirely destroyed, your improved hull taking the brunt of the asteroids that make it past your defenses. They offer you some of the scrap and fuel they were mining out of the asteroid as thanks.",
-        fuelAndScrap(g, "medium"),
-      );
+      result(g, eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c6_text"), fuelAndScrap(g, "medium"));
     },
 
     // ---- Capture the ship ----
     "c:capture-the-ship:0": (g) => {
-      result(
-        g,
-        'They briefly scan your ship and inform you that you are not "properly equipped" for this type of mission.',
-      );
+      result(g, eventText("event_QUEST_CREWDEAD_START_2_c1_text"));
     },
-    "c:capture-the-ship:1": (g) =>
-      result(g, "If they wanted your help they would surely ask for it. You prepare to leave."),
+    "c:capture-the-ship:1": (g) => result(g, eventText("event_QUEST_CREWDEAD_START_2_c2_text")),
     "c:capture-the-ship:2": (g) => captureOffer(g),
     "c:capture-the-ship:3": (g) => captureOffer(g),
     "c:capture-the-ship:4": (g) => captureOffer(g),
     "q:capture:decline": (g) => {
-      result(
-        g,
-        '"We understand. Hopefully we can find a solution to this on our own." You prepare to jump.',
-      );
+      result(g, eventText("event_QUEST_CREWDEAD_CONTINUE_c2_text"));
     },
     // PIRATE_QUEST_CREWDEAD, {{SurrenderEscape(alt)|no|...}}. INVENTED: the log line (the page prints none).
     "q:capture:fight": (g) => {
       // Wiki citations:
       // > "Fight a Pirate ship." — [[Capture the ship#Quest Marker]]
-      noRun(g, "The pirate ship moves to engage.", "Pirate ship", "quest-capture-ship");
+      noRun(g, "", "Pirate ship", "quest-capture-ship");
     },
     // {{Winning|destroyed=true}}: "15 hull damage, 1 damage to a random system, 1 damage with fire and a breach to a
     // random room". Applied on this card's button, not inside winCombat: a hull loss there would be overwritten by the
@@ -895,41 +798,31 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       // > "You find a small cache of supplies that were surely left for any loyal Federation ships in trouble." — [[Encrypted federation signal]]
       const r = pick(g, ["base", "assist", "cache", "trap", "empty"] as const);
       if (r === "base") {
-        result(
-          g,
-          "You find a secret federation outpost. They are regrettably out of supplies but are eager to tell you of another secret base. They give you the coordinates.",
-          undefined,
-          [addQuest(g, "fed-base")],
-        );
+        result(g, eventText("event_FEDERATION_PLANET_SIGNAL_LIST_1_text"), undefined, [
+          addQuest(g, "fed-base"),
+        ]);
       } else if (r === "assist") {
         // "medium (fuel: 2-4 ; missiles: 2-4 ; drone parts: 1) resources with some scrap" (Rewards#Stuff).
         result(
           g,
-          'You find a hidden federation outpost. They message you, "Quick, we just got word from a sister outpost that they\'ve been discovered by the Rebels and are under attack! If you are still loyal to the Federation, go save them!"',
+          eventText("event_FEDERATION_PLANET_SIGNAL_LIST_2_text"),
           rollSurrenderOffer(g, "medium", true),
           [addQuest(g, "fed-assist")],
         );
       } else if (r === "cache") {
-        result(
-          g,
-          "You find a small cache of supplies that were surely left for any loyal Federation ships in trouble. You take all that you need, leaving some for others to find.",
-          rollStandard(g, "high"),
-        );
+        result(g, eventText("event_FEDERATION_PLANET_SIGNAL_LIST_4_text"), rollStandard(g, "high"));
       } else if (r === "trap") {
         // Wiki citations:
         // > "2-3 human boarders beam aboard your ship and you fight a Rebel ship (default rewards)." — [[Encrypted federation signal]]
         pageFight(
           g,
-          'As you approach the signal you receive a message on a Rebel channel, "I knew we\'d catch some Federation fish with this signal. Prepare to be boarded, scum!"',
+          eventText("event_FEDERATION_PLANET_SIGNAL_LIST_5_text"),
           "Rebel ship",
           "encrypted-federation-signal",
         );
         humanBoarders(g, 2, 3);
       } else {
-        result(
-          g,
-          "You find a secret Federation outpost... but it appears the Rebels have found it before you; the place is empty and faint bloodstains can be seen in the living quarters. You find the encrypted signal emitter and shut it off before leaving.",
-        );
+        result(g, eventText("event_FEDERATION_PLANET_SIGNAL_LIST_3_text"));
       }
     },
 
@@ -939,21 +832,11 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       // > "You fight a normal Mantis ship." — [[Engi ship attacked by Mantis ship]]
       // > "1-2 mantis boarders beam aboard your ship and you fight a mantis-controlled Engi ship (default rewards)." — [[Engi ship attacked by Mantis ship]]
       if (rand(g) < 0.5) {
-        noRun(
-          g,
-          "You approach to find a Mantis ship assaulting a small Engi space station. You prepare for a fight!",
-          "Mantis ship",
-          ENGI_PAGE,
-        );
+        noRun(g, eventText("event_ENGI_STATION_DISTRESS_LIST_2_text"), "Mantis ship", ENGI_PAGE);
       } else {
         // "1-2 mantis boarders beam aboard your ship and you fight a mantis-controlled Engi ship (default rewards)."
         // ENGI_MANTIS_CONTROLLED, {{SurrenderEscape(alt)|no|...}}. INFERRED: its crew are Mantis.
-        noRun(
-          g,
-          'You receive another message from the ship, this time with a Mantis at the comm-log. "Foolish meatsacks," he yells. Sensors indicate the ship is moving in to attack and boarders teleport from the station.',
-          "Engi ship",
-          ENGI_PAGE_ENGI,
-        );
+        noRun(g, eventText("event_ENGI_STATION_DISTRESS_LIST_1_text"), "Engi ship", ENGI_PAGE_ENGI);
         const hp = crewDef("mantis").hp;
         for (const c of g.crew) {
           if (c.side !== "enemy") continue;
@@ -966,20 +849,20 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
     },
     "q:engi-station:contact": (g) => engiContact(g),
     "q:engi-station:fuel": (g) =>
-      result(g, '"Request granted. Fuel transferring."', fuelAndScrap(g, "high")),
+      result(g, eventText("event_SAVE_ENGI_STATION_3_c1_text"), fuelAndScrap(g, "high")),
     // "a weapon with low scrap" / "a drone schematic with low scrap". Rewards, "Weapon": "A random weapon & T scrap."
     // "Drone": "A random drone schematic & T scrap."
     "q:engi-station:weapon": (g) => {
       // Wiki citations:
       // > "You receive a weapon with low scrap." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
-      result(g, '"Request granted. Weapon transferring."', scrapOnly(g, "low"), [
+      result(g, eventText("event_SAVE_ENGI_STATION_3_c2_text"), scrapOnly(g, "low"), [
         grantRandomItem(g, "weapon"),
       ]);
     },
     "q:engi-station:drone": (g) => {
       // Wiki citations:
       // > "You receive a drone schematic with low scrap." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
-      result(g, '"Request granted. Drone schematic transferring."', scrapOnly(g, "low"), [
+      result(g, eventText("event_SAVE_ENGI_STATION_3_c3_text"), scrapOnly(g, "low"), [
         grantRandomItem(g, "drone"),
       ]);
     },
@@ -989,34 +872,34 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       // Wiki citations:
       // > "(Engi Crew) Threat unresolved. Current Mission imperative: Protocol 52.34." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
       // > "You receive a weapon with low scrap, your ship receives 10 repairs and a Hidden Federation Base quest marker is added to your map." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
-      result(
-        g,
-        'They respond, "Understood. Re-establishment of Federation highest import. Transmitting hidden base coordinates. Repairing hull and attaching ship to ship ordnance."',
-        scrapOnly(g, "low"),
-        [grantRandomItem(g, "weapon"), repair(g, 10), addQuest(g, "fed-base")],
-      );
+      result(g, eventText("event_SAVE_ENGI_STATION_3_c4_text"), scrapOnly(g, "low"), [
+        grantRandomItem(g, "weapon"),
+        repair(g, 10),
+        addQuest(g, "fed-base"),
+      ]);
     },
 
     // ---- Merchant's request ----
     "c:merchant-s-request:0": (g) => {
       if (rand(g) < 0.5) {
-        card(
-          g,
-          '"Great, I was worried no one would respond. My usual carrier is days late. I need you to deliver this cargo of drone parts to a small station a few jumps from here. I\'ll pay you a bit of scrap now, but they will surely tip you generously."',
-          [
-            { id: "q:merchant:deliver", label: "Accept." },
-            { id: "q:merchant:deliver-no", label: "Decline." },
-          ],
-        );
+        card(g, eventText("event_MERCHANT_REQUEST_LIST_1_text"), [
+          { id: "q:merchant:deliver", label: eventText("event_MERCHANT_REQUEST_LIST_1_c1_choice") },
+          {
+            id: "q:merchant:deliver-no",
+            label: eventText("event_MERCHANT_REQUEST_LIST_1_c2_choice"),
+          },
+        ]);
       } else {
-        card(
-          g,
-          "\"Your ship seems reasonably equipped... A freighter carrying a shipment of my goods is a week late. The fools flew through a pirate-filled sector in their haste and I fear for the cargo's safety. I'm looking for a less incompetent captain to investigate.\"",
-          [
-            { id: "q:merchant:investigate", label: "Accept." },
-            { id: "q:merchant:investigate-no", label: "Decline" },
-          ],
-        );
+        card(g, eventText("event_MERCHANT_REQUEST_LIST_2_text"), [
+          {
+            id: "q:merchant:investigate",
+            label: eventText("event_MERCHANT_REQUEST_LIST_1_c1_choice"),
+          },
+          {
+            id: "q:merchant:investigate-no",
+            label: eventText("event_MERCHANT_REQUEST_LIST_1_c2_choice"),
+          },
+        ]);
       }
     },
     // "You receive 5 drone parts and Merchant's Delivery quest marker is added to your map."
@@ -1024,20 +907,14 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       // Wiki citations:
       // > "You receive Drone parts gained: 5 and Merchant's Delivery quest marker is added to your map." — [[Merchant's request]]
       g.player.parts += PARTS_OWED;
-      result(
-        g,
-        "Great! I uploaded their location to your star map. I'm running out of options, so I have no choice but to trust you'll do what you have agreed to do.",
-        undefined,
-        [`Drone parts: ${PARTS_OWED}.`, addQuest(g, "merchant-delivery")],
-      );
+      result(g, eventText("event_MERCHANT_REQUEST_LIST_1_c1_text"), undefined, [
+        `Drone parts: ${PARTS_OWED}.`,
+        addQuest(g, "merchant-delivery"),
+      ]);
     },
-    "q:merchant:deliver-no": (g) =>
-      result(g, '"Fine, I\'ll keep looking for someone who wishes to make some easy money..."'),
+    "q:merchant:deliver-no": (g) => result(g, eventText("event_MERCHANT_REQUEST_LIST_1_c2_text")),
     "q:merchant:investigate-no": (g) => {
-      result(
-        g,
-        '"At least YOU are willing to admit your incompetence. Thank you for saving me the cost of paying more fools to go to their death."',
-      );
+      result(g, eventText("event_MERCHANT_REQUEST_LIST_2_c2_text"));
     },
     // "You receive 20-30 scrap and lose 5 drone parts."
     "q:merchant:paltry": (g) => {
@@ -1045,17 +922,16 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       // > "You receive Scrap gained: 20-30 and lose Drone parts lost: 5." — [[Merchant's request#The station responds]]
       const parts = payParts(g, "q:merchant:paltry");
       if (!parts) return;
-      result(g, "You drop the parts off and take your pay.", printedScrap(g, "paltry"), [parts]);
+      result(g, eventText("event_MERCHANT_DELIVER_LIST_2_c1_text"), printedScrap(g, "paltry"), [
+        parts,
+      ]);
     },
     "q:merchant:refuse": (g) => {
-      if (rand(g) < 0.5) fullPriceCard(g, '"Fine, I was bluffing. I\'ll pay the full price."');
-      else result(g, "The merchant disconnects in a huff.");
+      if (rand(g) < 0.5) fullPriceCard(g, eventText("event_MERCHANT_DELIVER_BLUFF_LIST_1_text"));
+      else result(g, eventText("event_MERCHANT_DELIVER_BLUFF_LIST_2_text"));
     },
     "q:merchant:mind": (g) => {
-      fullPriceCard(
-        g,
-        '"I\'m being unfair. You did the job and the parts are here safe and sound. Here is the agreed upon amount."',
-      );
+      fullPriceCard(g, eventText("event_MERCHANT_DELIVER_LIST_2_c3_text"));
     },
     // "You receive 40-55 scrap and lose 5 drone parts." The page prints no text for it.
     "q:merchant:full": (g) => {
@@ -1077,16 +953,10 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
         parts: 0,
       };
       offer.fuel = rollFuel("q:merchant:weapons", (lo, hi) => between(g, [lo, hi]));
-      result(
-        g,
-        '"You make a good point. You traveled all the way out here to fulfill our request, despite what must have been... a difficult scenario to cause such a delay. Here, we\'ll even tip you for the inconvenience you must have gone through..."',
-        offer,
-        [parts],
-      );
+      result(g, eventText("event_MERCHANT_DELIVER_LIST_2_c4_text"), offer, [parts]);
     },
     // JELLY_PIRATE_MERCHANT, {{SurrenderEscape(alt)|no|...}}. INVENTED: the log line.
-    "q:merchant:pirate": (g) =>
-      noRun(g, "The pirate turns on you.", "Pirate ship", "quest-merchant-pirate"),
+    "q:merchant:pirate": (g) => noRun(g, "", "Pirate ship", "quest-merchant-pirate"),
     "q:merchant:cargo-deliver": (g) => paid(g, undefined, [addQuest(g, "merchant-station")]),
     "q:merchant:cargo-take": (g) => investigateCargo(g),
     "q:merchant:cargo-drop": (g) => investigateCargo(g),
@@ -1095,12 +965,10 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
     "q:merchant:promise": (g) => {
       // Wiki citations:
       // > "You receive a crewmember and Deliver to the Station quest marker is added to your map." — [[Merchant's request#Merchant's Investigation]]
-      result(
-        g,
-        "They upload the delivery destination once on board. One takes you up on your offer, the rest you drop off at a nearby station.",
-        undefined,
-        [crew(g, randomRace(g)), addQuest(g, "merchant-station")],
-      );
+      result(g, eventText("event_MERCHANT_INVESTIGATE_LIST_2_c1_text"), undefined, [
+        crew(g, randomRace(g)),
+        addQuest(g, "merchant-station"),
+      ]);
     },
 
     // ---- Research station with no response (Merchant's Delivery and the standalone card) ----
@@ -1128,12 +996,9 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       // Wiki citations:
       // > "You hold them off while retreating into the med-bay. Its advanced systems determine that an alien neurotoxin is the cause of their frenzy. It synthesizes an antidote and releases it into the room. After a time, the scientists recover. One offers their services as thanks for saving them." — [[Research station with no response]]
       // > "You receive a crewmember with 1 skill in repair and medium scrap." — [[Research station with no response]]
-      result(
-        g,
-        "You hold them off while retreating into the med-bay. Its advanced systems determine that an alien neurotoxin is the cause of their frenzy. It synthesizes an antidote and releases it into the room. After a time, the scientists recover. One offers their services as thanks for saving them.",
-        scrapOnly(g, "medium"),
-        [crew(g, randomRace(g), "repair")],
-      );
+      result(g, eventText("event_STATION_SICK_LIST_2_c2_text"), scrapOnly(g, "medium"), [
+        crew(g, randomRace(g), "repair"),
+      ]);
     },
     // "You lose a crewmember, who becomes an enemy, and 3-4 human boarders beam aboard your ship."
     "q:research:drag": (g) => {
@@ -1143,9 +1008,7 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       turnCoat(g);
       humanBoarders(g, 3, 4, "human boarders beam aboard.");
       beginBoarding(g);
-      showEventLines(g, [
-        "As you get back on board, your injured friend rises up and starts to attack you, screaming. Caught off-guard, your remaining crew fall back as the other scientists fight their way onto the ship.",
-      ]);
+      showEventLines(g, [eventText("event_STATION_SICK_LIST_3_c1_text")]);
     },
     // Teleporter: "lose a crewmember, who becomes an enemy." No extra boarders. Last crew stays (the card remains).
     "q:research:beam": (g) => {
@@ -1153,8 +1016,7 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       // > "(Teleporter) Use your Teleporter to retrieve your crew." — [[Research station with no response]]
       // > "You beam your away team back to the ship and disengage from the station. Although the ship is safe, the infected crew member quickly becomes frenzied and attacks." — [[Research station with no response]]
       // > "You lose a crewmember, who becomes an enemy." — [[Research station with no response]]
-      const text =
-        "You beam your away team back to the ship and disengage from the station. Although the ship is safe, the infected crew member quickly becomes frenzied and attacks.";
+      const text = eventText("event_STATION_SICK_LIST_3_c2_text");
       if (!turnCoat(g)) {
         result(g, text);
         return;
@@ -1169,21 +1031,16 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       // > "You hold him down and the medbay is able to stop whatever neurotoxin was on the ship from fully infecting your crew. Once he recovers, you prepare to fight off the scientists, who are beyond help." — [[Research station with no response]]
       humanBoarders(g, 3, 4, "human boarders beam aboard.");
       beginBoarding(g);
-      showEventLines(g, [
-        "You hold him down and the medbay is able to stop whatever neurotoxin was on the ship from fully infecting your crew. Once he recovers, you prepare to fight off the scientists, who are beyond help.",
-      ]);
+      showEventLines(g, [eventText("event_STATION_SICK_LIST_3_c3_text")]);
     },
     "q:research:cure": (g) => {
       // Wiki citations:
       // > "(Medbay) Have the Advanced Medbay analyze their condition. (Requires level 3 Medbay)" — [[Research station with no response]]
       // > "You hold them off while retreating into the med-bay. Its advanced systems determine that an alien neurotoxin is driving your crew member insane. It synthesizes an antidote and releases it into the ship. After a time, the frenzied scientists recover and one offers to help out as thanks for saving them." — [[Research station with no response]]
       // > "You receive a crewmember." — [[Research station with no response]]
-      result(
-        g,
-        "You hold them off while retreating into the med-bay. Its advanced systems determine that an alien neurotoxin is driving your crew member insane. It synthesizes an antidote and releases it into the ship. After a time, the frenzied scientists recover and one offers to help out as thanks for saving them.",
-        undefined,
-        [crew(g, randomRace(g))],
-      );
+      result(g, eventText("event_STATION_SICK_LIST_3_c4_text"), undefined, [
+        crew(g, randomRace(g)),
+      ]);
     },
 
     // ---- Nebula wreckage ----
@@ -1191,11 +1048,7 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
       // Wiki citations:
       // > "(Slug Crew) Ask your Slug crew to scan for survivors." — [[Nebula wreckage]]
       if (!hasSlug(g)) return;
-      card(
-        g,
-        "Despite the destruction filling the system, your crewman is able to pick up the faint thoughts of a life form in the debris - it looks like they won't last much longer without help.",
-        survivorChoices(),
-      );
+      card(g, eventText("event_NEBULA_BATTLEFIELD_c1_text"), survivorChoices());
     },
     "c:nebula-wreckage:1": (g) => {
       // Wiki citations:
@@ -1209,66 +1062,52 @@ After a quick scan, you find a ship being chased by a pirate. This must be the m
         ["survivor", 1],
       ] as ["nothing" | "pummeled" | "survivor", number][]);
       if (r === "nothing") {
-        result(
-          g,
-          "The wreckage is drifting faster than it first appeared. You barely avoid being pummeled by drifting wreckage - unable to detect anything of interest, you decide not to risk your ship and prepare to jump.",
-        );
+        result(g, eventText("event_BATTLEFIELD_INVESTIGAGE_2_text"));
       } else if (r === "pummeled") {
         if (damageHull(g, 5)) return;
-        result(
-          g,
-          "As you investigate the battlefield, your ship is pummeled by drifting wreckage - unable to detect anything of interest, you decide not to risk any further damage to your hull and prepare to jump.",
-          undefined,
-          ["Hull damage: 5.", roomHit(g)],
-        );
+        result(g, eventText("event_BATTLEFIELD_INVESTIGAGE_1_text"), undefined, [
+          "Hull damage: 5.",
+          roomHit(g),
+        ]);
       } else {
-        card(g, "You spot a life form floating within the wreckage.", survivorChoices());
+        card(g, eventText("event_BATTLEFIELD_INVESTIGAGE_5_text"), survivorChoices());
       }
     },
     "q:nebula:leave": (g) => done(g),
     "q:nebula:assist": (g) => {
       const choices: Choice[] = [
-        { id: "q:nebula:comfort", label: "Make them comfortable for their final moments." },
+        { id: "q:nebula:comfort", label: eventText("event_BATTLEFIELD_SURVIVOR_c1_choice") },
       ];
       // {{Blue Option|Advanced Medbay|...|level=2+}}, {{Blue Option|Clonebay|...}}.
       if (medbay(g) >= 2)
-        choices.push({ id: "q:nebula:medbay", label: "Get them into the medbay!" });
+        choices.push({
+          id: "q:nebula:medbay",
+          label: eventText("event_BATTLEFIELD_SURVIVOR_c2_choice"),
+        });
       if (hasClonebay(g))
-        choices.push({ id: "q:nebula:clone", label: "Try to clone them before it's too late." });
-      card(
-        g,
-        "You bring the survivor aboard, but discover their wounds are severe. They won't live much longer.",
-        choices,
-      );
+        choices.push({
+          id: "q:nebula:clone",
+          label: eventText("event_BATTLEFIELD_SURVIVOR_c3_choice"),
+        });
+      card(g, eventText("event_BATTLEFIELD_SURVIVOR_text"), choices);
     },
     // "You receive a crewmember." Race not named: INFERRED random.
     "q:nebula:medbay": (g) => {
-      result(
-        g,
-        "Using your upgraded medical bay, you are able to heal the survivor's wounds and they recover quickly. Grateful to be saved, they offer to join your crew and help however they can.",
-        undefined,
-        [crew(g, randomRace(g))],
-      );
+      result(g, eventText("event_BATTLEFIELD_SURVIVOR_c2_text"), undefined, [
+        crew(g, randomRace(g)),
+      ]);
     },
     "q:nebula:clone": (g) => {
-      result(
-        g,
-        "You clone the individual and let the host pass away. The clone decides to join you - although it has little choice in the matter.",
-        undefined,
-        [crew(g, randomRace(g))],
-      );
+      result(g, eventText("event_BATTLEFIELD_SURVIVOR_c3_text"), undefined, [
+        crew(g, randomRace(g)),
+      ]);
     },
     "q:abadoth:slug": (g) => zoltanCard(g, ""),
     "q:abadoth:scan": (g) => {
       // Wiki citations:
       // > "Rebel Fleet pursuit is doubled for 1 jump and you find a Zoltan ship." — [[Nebula wreckage#Quest Marker]]
       const line = doublePursuit(g);
-      zoltanCard(
-        g,
-        `You start the arduous task of a full system scan. This better be worth it.
-
-${line}`,
-      );
+      zoltanCard(g, `${eventText("event_SECRET_WORD_ABADOTH_c2_text")}\n\n${line}`);
     },
     "q:abadoth:explain": (g) => {
       // Wiki citations:
@@ -1280,13 +1119,9 @@ ${line}`,
     "q:abadoth:abadoth": (g) => {
       // Wiki citations:
       // > "You receive medium scrap with resources." — [[Nebula wreckage#Find a Zoltan ship]]
-      zoltanThanks(g, "");
+      zoltanThanks(g, "event_SECRET_WORD_ABADOTH_CONCLUSION_c4_text");
     },
-    "q:abadoth:engi": (g) =>
-      zoltanThanks(
-        g,
-        "Your Engi crewman easily recalls the phrase the deadman used from its memory banks. ",
-      ),
+    "q:abadoth:engi": (g) => zoltanThanks(g, "event_SECRET_WORD_ABADOTH_CONCLUSION_c2_text"),
   },
 
   disabled: (_g, _id) => {
@@ -1315,19 +1150,14 @@ ${line}`,
       // > "You receive a weapon with high scrap." — [[Capture the ship#Quest Marker]]
       // > "The explosion rocks the pirate ship and a brilliant light begins to shine from the wreckage." — [[Capture the ship#Quest Marker]]
       if (deadCrew) {
-        result(
-          g,
-          'You secure the ship and wait for the merchants to arrive. Upon arrival they message you, saying "Good job. We would prefer if you did not speak of this to anyone."',
-          scrapOnly(g, "high"),
-          [grantRandomItem(g, "weapon")],
-        );
+        result(g, eventText("ship_PIRATE_QUEST_CREWDEAD_deadCrew_text"), scrapOnly(g, "high"), [
+          grantRandomItem(g, "weapon"),
+        ]);
         return;
       }
-      card(
-        g,
-        "The explosion rocks the pirate ship and a brilliant light begins to shine from the wreckage. Before you can react the ship is consumed in a massive chain of explosions that send you careening toward a nearby planet. You struggle to put out the fires and your pilot desperately tries to get the controls online before you're dragged down to the surface. Apparently when they said the ship should not be destroyed they had good reason...",
-        [{ id: "q:capture:blast", label: "Continue" }],
-      );
+      card(g, eventText("ship_PIRATE_QUEST_CREWDEAD_destroyed_text"), [
+        { id: "q:capture:blast", label: "Continue" },
+      ]);
     },
     // Engi ship attacked by Mantis ship: destroyed -> medium, deadCrew -> high scrap with resources, then "Attempt to
     // contact the Engi". The mantis-controlled Engi ship pays the default rewards (no row).
@@ -1341,20 +1171,21 @@ ${line}`,
       std(
         "medium",
         "high",
-        "The Mantis ship breaks apart.",
-        "No more life signs detected on the Mantis ship. You hasten to contact the Engi.",
-        [{ id: "q:engi-station:contact", label: "Attempt to contact the Engi." }],
+        eventText("ship_MANTIS_ENGI_STATION_destroyed_text"),
+        eventText("ship_MANTIS_ENGI_STATION_deadCrew_text"),
+        [
+          {
+            id: "q:engi-station:contact",
+            label: eventText("ship_MANTIS_ENGI_STATION_destroyed_c1_choice"),
+          },
+        ],
       )(g, deadCrew),
     // Merchant's Investigation: {{Winning|destroyed/deadCrew=true}} -> medium scrap with resources.
     // Wiki citations:
     // > "Fight a Pirate ship." — [[Merchant's request#Merchant's Investigation]]
     // > "You receive medium scrap with resources." — [[Merchant's request#Merchant's Investigation]]
     "quest-merchant-pirate": (g, deadCrew) =>
-      std(
-        "medium",
-        "medium",
-        "You contact the delivery ship, who are grateful for your assistance. They offer you a reward for saving them.",
-      )(g, deadCrew),
+      std("medium", "medium", eventText("ship_JELLY_PIRATE_MERCHANT_destroyed_text"))(g, deadCrew),
   },
 
   gotAway: {},

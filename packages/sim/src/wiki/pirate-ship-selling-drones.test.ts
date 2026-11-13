@@ -5,6 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { joinCrew } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -33,20 +34,20 @@ describe("Pirate ship selling drones", () => {
     const g = createGame(1);
     open(g);
     assert.deepEqual(labels(g), [
-      "Hail the ship.",
-      "Attack him before he can attack!",
-      "Quickly prepare to jump away.",
+      eventText("event_PIRATE_SALESMAN_c1_choice"),
+      eventText("event_PIRATE_SALESMAN_c2_choice"),
+      eventText("event_PIRATE_SALESMAN_c3_choice"),
     ]);
     assert.equal(
       labels(g).some((l) => /schematic/i.test(l)),
       false,
     );
     choose(g, "q:pirate-drones:hail");
-    assert.match(g.event?.body ?? "", /extensive stock/);
+    assert.equal(g.event?.body, eventText("event_CONTACT_PIRATE_SALESMAN_text"));
     assert.equal(choiceDisabled(g, "q:pirate-drones:slug"), "Needs a Slug crewmember");
     assert.equal(choiceDisabled(g, "q:pirate-drones:hack"), "Needs a Hacking system");
     choose(g, "q:pirate-drones:dock");
-    assert.match(g.event?.body ?? "", /exquisite suit/);
+    assert.equal(g.event?.body, eventText("event_DOCK_DRONE_SALESMAN_text"));
     assert.equal(
       labels(g).some((l) => /schematic/i.test(l)),
       false,
@@ -85,8 +86,7 @@ describe("Pirate ship selling drones", () => {
     open(leave);
     choose(leave, "q:pirate-drones:hail");
     choose(leave, "q:pirate-drones:leave");
-    const leaveLead =
-      "As soon as you start to reverse your ship, the pirate reveals hidden weaponry and sets off in pursuit. You'll have to fight him to escape!";
+    const leaveLead = eventText("event_CONTACT_PIRATE_SALESMAN_c2_text");
     assert.equal(leave.phase, "event");
     assert.equal(leave.event?.body, leaveLead);
     assert.equal(leave.log.includes(leaveLead), false);
@@ -106,8 +106,7 @@ describe("Pirate ship selling drones", () => {
       choose(g, "q:pirate-drones:hail");
       choose(g, "q:pirate-drones:dock");
       choose(g, "q:pirate-drones:nothing");
-      const nothing =
-        '"Ah, I\'m sorry to hear that! Pleasant journeys." Once back to the helm, a series of explosions rocks your ship. The pirate ship has powered its weapons! You receive a message, "You shouldn\'t waste people\'s time Captain!"';
+      const nothing = eventText("event_DOCK_DRONE_SALESMAN_c6_text");
       assert.equal(g.phase, "event");
       assert.equal(g.event?.body, nothing);
       assert.equal(g.log.includes(nothing), false);
@@ -138,7 +137,7 @@ describe("Pirate ship selling drones", () => {
     dead.hp = dead.maxHp;
     assert.equal(choiceDisabled(slug, "q:pirate-drones:slug"), null);
     choose(slug, "q:pirate-drones:slug");
-    assert.match(slug.event?.body ?? "", /exquisite suit/);
+    assert.equal(slug.event?.body, eventText("event_DOCK_DRONE_SALESMAN_text"));
 
     const hack = createGame(6);
     open(hack);

@@ -141,7 +141,7 @@ describe("escape in a fight", () => {
     g.player.weapons = [];
     startCombat(g, "SQUAT_WARNING");
     run(g, 45);
-    assert.match(g.event?.body ?? "", /The scout jumps away/);
+    assert.match(g.event?.body ?? "", /The scout escapes/);
     assert.ok(g.log.some((line) => line.includes("Rebel Fleet pursuit is doubled")));
     choose(g, "ack");
     assert.equal(g.phase, "map");

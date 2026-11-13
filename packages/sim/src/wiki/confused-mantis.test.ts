@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { CREW_CAP, choose, createGame } from "../sim.ts";
 import type { KinId } from "../extras/kin.ts";
@@ -74,7 +75,7 @@ describe("Confused Mantis", () => {
     const g = createGame(1);
     kin(g, "human");
     listen(g);
-    assert.match(g.event?.body ?? "", /malfunctioning Mantis/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_CONFUSED_MANTIS_c1_text")));
     assert.ok(ids(g).includes("s:confused-mantis:shuttle"));
     assert.ok(ids(g).includes("s:confused-mantis:leave"));
     assert.ok(ids(g).includes("s:confused-mantis:human"));
@@ -95,18 +96,20 @@ describe("Confused Mantis", () => {
       listen(g);
       fillerChoose(g, "s:confused-mantis:shuttle");
       const body = g.event?.body ?? "";
-      if (/introduces himself as Robert Smith/.test(body) && /hour of convincing/.test(body)) {
+      if (
+        body === eventText("event_CONFUSED_MANTIS_DEFAULT_1_text") &&
+        ids(g).includes("s:confused-mantis:return")
+      ) {
         home = true;
         assert.ok(ids(g).includes("s:confused-mantis:return"));
         assert.equal(players(g).length, crew);
-      } else if (/eviscerated/.test(body)) {
+      } else if (body.startsWith(eventText("event_CONFUSED_MANTIS_DEFAULT_2_text"))) {
         lose = true;
         assert.equal(players(g).length, crew - 1);
-        assert.match(body, /is lost/);
+        assert.match(body, /Crew lost: /);
       } else {
         nothing = true;
-        assert.match(body, /subdue him/);
-        assert.match(body, /Nothing happens/);
+        assert.equal(body, eventText("event_CONFUSED_MANTIS_DEFAULT_3_text"));
         assert.equal(players(g).length, crew);
         assert.equal(g.scrap, 10);
       }
@@ -134,10 +137,13 @@ describe("Confused Mantis", () => {
       const crew = players(g).length;
       listen(g);
       fillerChoose(g, "s:confused-mantis:shuttle");
-      if (!/eviscerated/.test(g.event?.body ?? "")) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_CONFUSED_MANTIS_DEFAULT_2_text")))
+        continue;
       seen = true;
       assert.equal(players(g).length, crew);
-      assert.match(g.event?.body ?? "", /clone is waiting/);
+      assert.ok(
+        (g.event?.body ?? "").includes(eventText("event_CONFUSED_MANTIS_DEFAULT_2_c0_clone")),
+      );
       assert.match(g.event?.body ?? "", /revived/);
     }
     assert.equal(seen, true);
@@ -148,11 +154,11 @@ describe("Confused Mantis", () => {
     kin(g, "human");
     listen(g);
     fillerChoose(g, "s:confused-mantis:human");
-    assert.match(g.event?.body ?? "", /another human/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_CONFUSED_MANTIS_c1_c3_text")));
     fillerChoose(g, "s:confused-mantis:return");
-    assert.match(g.event?.body ?? "", /mining operation/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_CONFUSED_MANTIS_HOME_text")));
     fillerChoose(g, "s:confused-mantis:hire");
-    const robert = players(g).find((c) => c.name === "Robert Smith");
+    const robert = players(g).find((c) => c.name === eventText("name_RobertSmith"));
     assert.ok(robert);
     assert.equal(robert.kin, "mantis");
     assert.equal(robert.skills, undefined);
@@ -165,7 +171,7 @@ describe("Confused Mantis", () => {
     fillerChoose(full, "s:confused-mantis:return");
     fillerChoose(full, "s:confused-mantis:hire");
     // Crew: a 9th comes aboard and the player picks who is relieved (make-room.ts).
-    assert.equal(players(full).filter((c) => c.name === "Robert Smith").length, 1);
+    assert.equal(players(full).filter((c) => c.name === eventText("name_RobertSmith")).length, 1);
     assert.equal(players(full).length, CREW_CAP + 1);
     assert.deepEqual(full.overflow, [{ kind: "crew" }]);
   });
@@ -181,7 +187,7 @@ describe("Confused Mantis", () => {
     fillerChoose(g, "s:confused-mantis:engines");
     assert.equal(g.player.systems.engines.level, before + 1);
     assert.equal(g.player.systems.engines.power, power);
-    assert.match(g.event?.body ?? "", /Engines upgraded/);
+    assert.match(g.event?.body ?? "", /Engines \+1 level\./);
 
     const maxed = createGame(3);
     kin(maxed, "human");
@@ -191,7 +197,7 @@ describe("Confused Mantis", () => {
     fillerChoose(maxed, "s:confused-mantis:return");
     fillerChoose(maxed, "s:confused-mantis:engines");
     assert.equal(maxed.player.systems.engines.level, 8);
-    assert.match(maxed.event?.body ?? "", /cannot take the upgrade/);
+    assert.match(maxed.event?.body ?? "", /Engines: no upgrade\./);
   });
 
   it("a Mantis crewmember pays low scrap and does not join", () => {
@@ -207,7 +213,7 @@ describe("Confused Mantis", () => {
     standard(g.event?.body ?? "", 7, 10);
     assert.equal(players(g).length, crew);
     assert.equal(
-      players(g).some((c) => c.name === "Robert Smith"),
+      players(g).some((c) => c.name === eventText("name_RobertSmith")),
       false,
     );
   });
@@ -233,7 +239,7 @@ describe("Confused Mantis", () => {
     fillerChoose(g, "s:confused-mantis:mind");
     standard(g.event?.body ?? "", 12, 19);
     assert.equal(players(g).length, crew);
-    assert.match(g.event?.body ?? "", /calms down/);
+    assert.ok((g.event?.body ?? "").startsWith(eventText("event_CONFUSED_MANTIS_c1_c5_text")));
   });
 
   it("leaving the cornered Mantis spends nothing", () => {

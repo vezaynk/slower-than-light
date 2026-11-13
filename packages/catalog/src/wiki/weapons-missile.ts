@@ -65,7 +65,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     // Wiki page "Missile (Weapons)", ===Hermes Missile===: "Purchase price: 45". Store rarity 2 is not a field.
     price: 45,
     stunChance: 0.1,
-    blurb: "Standard but powerful missile.",
+    blurb: "Missile. Ignores shields.",
   },
   {
     id: "MISSILES_BREACH",
@@ -92,7 +92,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     // Wiki page "Missile (Weapons)", ===Breach Missiles===: "Purchase price: 65". Store rarity 3 is not a field.
     price: 65,
     stunChance: 0.1,
-    blurb: "These missiles are designed to cause maximum destruction to ship hull armor.",
+    blurb: "Missile. Ignores shields.",
   },
   {
     id: "MISSILES_HULL",
@@ -119,7 +119,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     // Wiki page "Missile (Weapons)", ===Hull Missile===: "Purchase price: 65". Store rarity 3 is not a field.
     price: 65,
     stunChance: 0.1,
-    blurb: "High hull damage plus a decent breach chance.",
+    blurb: "Missile. Ignores shields. Double damage to rooms without a system.",
   },
   {
     id: "MISSILE_CHARGEGUN",
@@ -150,7 +150,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     chargeLevels: 3,
     radius: 31,
     droneTargetable: 1,
-    blurb: "If given time to prepare, the 'Swarm' launcher can replicate multiple warheads.",
+    blurb: "Missile. Stores charges, then fires them all in one volley.",
   },
   {
     id: "MISSILES_BURST",
@@ -178,7 +178,7 @@ export const MISSILE_WEAPONS: WeaponDef[] = [
     // Wiki page "Missile (Weapons)", ===Pegasus Missile===: "Purchase price: 60". Store rarity 3 is not a field.
     price: 60,
     stunChance: 0.1,
-    blurb: "Creative missile design allows for two projectiles for the cost of one!",
+    blurb: "Missile. Ignores shields. 2 shots for 1 missile.",
   },
   {
     id: "ARTILLERY_BOSS_2",

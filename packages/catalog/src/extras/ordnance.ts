@@ -25,7 +25,8 @@ export const ORDNANCE: WeaponDef[] = [
     radius: 42,
     spin: 720,
     droneTargetable: 1,
-    blurb: "Three pellets. Each is one damage, can miss alone, and one shield layer stops one.",
+    blurb:
+      "Flak. Projectiles land at random in the target room's area. Each shield layer stops one.",
   },
   // Bomb (Weapons), "Fire Bomb": purchase price 50, power 2, charge 15 seconds, system damage 0.
   // Effect: guaranteed 1-2 fires, so fire is 1. No breach percent is published, so breach is 0.
@@ -46,7 +47,6 @@ export const ORDNANCE: WeaponDef[] = [
     ammo: true,
     price: 50,
     persDamage: 2,
-    blurb:
-      "Hits the room. No hull. One or two fires. Spends a missile. Ignores shields. Can still miss.",
+    blurb: "Bomb. No hull damage. Starts 1-2 fires. Can target your own ship.",
   },
 ];

@@ -4,6 +4,8 @@ import { choose, choiceDisabled, createGame, powerMask } from "../sim.ts";
 import type { Game, Kit } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -36,6 +38,11 @@ function boarders(g: Game): number {
     .length;
 }
 
+/** The wanted card offers to give up the crewmember. */
+function wanted(g: Game): boolean {
+  return g.event?.choices.some((c) => c.id === "q:zoltan-checkpoint:give") === true;
+}
+
 describe("Zoltan security checkpoint", () => {
   it("attacking starts a Zoltan fight, and the blue options stay closed", () => {
     // Wiki citations:
@@ -58,7 +65,7 @@ describe("Zoltan security checkpoint", () => {
     assert.equal(choiceDisabled(g, "c:zoltan-security-checkpoint:2"), "Needs a Slug crewmember");
     assert.equal(choiceDisabled(g, "c:zoltan-security-checkpoint:3"), "Needs Mind Control");
     choose(g, "c:zoltan-security-checkpoint:0");
-    const lead = "Expecting resistance, their Energy Shield is raised and ready for combat.";
+    const lead = eventText("event_ZOLTAN_CREW_SCAN_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);
@@ -89,14 +96,15 @@ describe("Zoltan security checkpoint", () => {
       const crew = g.crew.filter((c) => c.side === "player").length;
       choose(g, "c:zoltan-security-checkpoint:1");
       const body = g.event?.body ?? "";
-      if (/allowed to pass/.test(body)) {
+      if (textRe("event_ZOLTAN_CREW_SCAN_LIST_1_text").test(body)) {
         seen.add("pass");
         assert.match(body, /Nothing happens/);
         assert.equal(g.scrap, 10);
         assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
       } else {
         seen.add("wanted");
-        assert.match(body, /Utter Villainy/);
+        assert.match(body, textRe("event_ZOLTAN_CREW_SCAN_LIST_2_text"));
+        assert.equal(wanted(g), true);
         assert.equal(g.scrap, 10);
       }
     }
@@ -108,12 +116,15 @@ describe("Zoltan security checkpoint", () => {
       const g = createGame(seed);
       open(g);
       choose(g, "c:zoltan-security-checkpoint:1");
-      if (!/Utter Villainy/.test(g.event?.body ?? "")) continue;
+      if (!wanted(g)) continue;
       g.crew = g.crew.filter((c) => c.side === "player").slice(0, 1);
       choose(g, "q:zoltan-checkpoint:give");
       assert.equal(g.crew.filter((c) => c.side === "player").length, 1);
-      assert.match(g.event?.body ?? "", /shifty/);
-      assert.equal(/unharmed/.test(g.event?.body ?? ""), false);
+      assert.match(g.event?.body ?? "", textRe("event_ZOLTAN_CREW_SCAN_LIST_2_c1_text"));
+      assert.equal(
+        textRe("event_ZOLTAN_CREW_SCAN_LIST_2_c1_c0_clone").test(g.event?.body ?? ""),
+        false,
+      );
       break;
     }
 
@@ -125,11 +136,11 @@ describe("Zoltan security checkpoint", () => {
       g.crew.push({ ...g.crew[0]!, id: "spare", name: "Spare" });
       g.player.kits.clonebay = kit("clonebay");
       choose(g, "c:zoltan-security-checkpoint:1");
-      if (!/Utter Villainy/.test(g.event?.body ?? "")) continue;
+      if (!wanted(g)) continue;
       cloned = true;
       choose(g, "q:zoltan-checkpoint:give");
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
-      assert.match(g.event?.body ?? "", /Clone Bay was unable to retrieve them/);
+      assert.match(g.event?.body ?? "", textRe("event_ZOLTAN_CREW_SCAN_LIST_2_c1_c0_clone"));
       assert.equal(g.phase, "event");
     }
     assert.equal(cloned, true);
@@ -149,12 +160,11 @@ describe("Zoltan security checkpoint", () => {
       const g = createGame(seed);
       open(g);
       choose(g, "c:zoltan-security-checkpoint:1");
-      if (!/Utter Villainy/.test(g.event?.body ?? "")) continue;
+      if (!wanted(g)) continue;
       fought = true;
       assert.equal(powerMask(g.player).some(Boolean), true);
       choose(g, "q:zoltan-checkpoint:fight");
-      const lead =
-        "You're not going to leave anyone behind. You pull away from the station with the enemy guards on board. Unfortunately, they are able to sabotage your weapon system in the chaos. It's time to leave!";
+      const lead = eventText("event_ZOLTAN_CREW_SCAN_LIST_2_c2_text");
       assert.equal(g.phase, "event");
       assert.equal(g.event?.body, lead);
       assert.equal(g.log.includes(lead), false);
@@ -174,7 +184,7 @@ describe("Zoltan security checkpoint", () => {
     open(destroyed);
     assert.equal(pageWin(destroyed, "zoltan-security-checkpoint-scan", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /other guards arrive/);
+    assert.match(body, textRe("ship_ZOLTAN_CREW_SCAN_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -205,7 +215,7 @@ describe("Zoltan security checkpoint", () => {
     assert.equal(choiceDisabled(slug, "c:zoltan-security-checkpoint:2"), null);
     choose(slug, "c:zoltan-security-checkpoint:2");
     const body = slug.event?.body ?? "";
-    assert.match(body, /ship checks out/);
+    assert.match(body, textRe("event_ZOLTAN_CREW_SCAN_c3_text"));
     const fuel = Number(body.match(/Fuel: (\d+)/)?.[1]);
     assert.ok(fuel >= 2 && fuel <= 4, body);
     assert.equal(slug.fuel, fuel + createGame(7).fuel);
@@ -226,7 +236,7 @@ describe("Zoltan security checkpoint", () => {
     assert.equal(choiceDisabled(mind, "c:zoltan-security-checkpoint:3"), null);
     choose(mind, "c:zoltan-security-checkpoint:3");
     const mindBody = mind.event?.body ?? "";
-    assert.match(mindBody, /spare fuel canisters/);
+    assert.match(mindBody, textRe("event_ZOLTAN_CREW_SCAN_c4_text"));
     const got = Number(mindBody.match(/Fuel: (\d+)/)?.[1]);
     assert.ok(got >= 2 && got <= 4, mindBody);
     assert.equal(mind.fuel, base + got);

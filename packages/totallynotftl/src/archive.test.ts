@@ -84,8 +84,8 @@ describe("totallynotftl.dat", () => {
     assert.equal(
       extracted.documents.length,
       // ships, sectors, achievements, text lists, the game-over card, the misc button,
-      // hover lines, names, and the Esperanto table.
-      events.length + 9 + pictures.length + media.documents.length,
+      // hover lines, names, the Esperanto table, and the event text.
+      events.length + 10 + pictures.length + media.documents.length,
     );
     assert.match(
       extracted.documents.find((doc) => doc.path === "data/text-eo.xml")?.xml ?? "",
@@ -431,11 +431,11 @@ describe("totallynotftl.dat", () => {
       ],
     );
     assert.deepEqual(merged.textLists?.find((row) => row.id === "STAND_IN_CALM")?.lines, [
-      { text: "Nothing moves." },
-      { text: "The beacon holds still." },
+      { text: "Empty beacon." },
+      { text: "Nothing here." },
     ]);
     assert.deepEqual(merged.textLists?.find((row) => row.id === "STAND_IN_NEST")?.lines, [
-      { text: "The near reading." },
+      { text: "First line." },
       { load: "STAND_IN_MORE" },
     ]);
     assert.deepEqual(merged.lists, pack.lists);

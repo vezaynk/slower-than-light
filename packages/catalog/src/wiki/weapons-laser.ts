@@ -33,7 +33,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     ammo: false,
     // Laser (Weapons), "Burst Laser Mark I": "Purchase price: 50".
     price: 50,
-    blurb: "This simple burst laser isn't flashy but it gets the job done.",
+    blurb: "Laser. Each shield layer stops one shot.",
   },
   {
     id: "LASER_BURST_5",
@@ -58,7 +58,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     ammo: false,
     // Laser (Weapons), "Burst Laser Mark III": "Purchase price: 95".
     price: 95,
-    blurb: "Powerful burst laser that fires off an impressive barrage.",
+    blurb: "Laser. Each shield layer stops one shot.",
   },
   {
     id: "LASER_HEAVY_1_SP",
@@ -85,8 +85,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     // ftl.dat `<cost>` is 55. Sell is half of that, rounded down. Rarity 0 keeps it off the shelf.
     price: 55,
     stunChance: 0.2,
-    blurb:
-      "Heavy lasers can wreak more havoc than their smaller, burst laser counterparts. This modified version pierces 1 shield.",
+    blurb: "Laser. Pierces 1 shield layer.",
   },
   {
     id: "LASER_HEAVY_2",
@@ -112,7 +111,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     // Laser (Weapons), "Heavy Laser Mark II": "Purchase price: 65".
     price: 65,
     stunChance: 0.2,
-    blurb: "This heavy laser fires two shots in quick succession, each dealing 2 damage",
+    blurb: "Laser. Each shield layer stops one shot.",
   },
   {
     id: "LASER_HULL_1",
@@ -137,7 +136,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     ammo: false,
     // Laser (Weapons), "Hull Smasher Laser": "Purchase price: 55".
     price: 55,
-    blurb: "A powerful laser designed to maximize hull damage.",
+    blurb: "Laser. Double damage to rooms without a system.",
   },
   {
     id: "LASER_HULL_2",
@@ -162,7 +161,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     ammo: false,
     // Laser (Weapons), "Hull Smasher Laser Mark II": "Purchase price: 75".
     price: 75,
-    blurb: "This powerful counterpart to the Hull Smasher Mark I fires more projectiles per shot.",
+    blurb: "Laser. Double damage to rooms without a system.",
   },
   {
     id: "LASER_CHAINGUN",
@@ -188,8 +187,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     // Laser (Weapons), "Chain Burst Laser": "Purchase price: 65".
     price: 65,
     boost: { type: "cooldown", amount: 3, count: 3 },
-    blurb:
-      "This dual shot laser decreases in cooldown the more it fires. After 3 volleys it only takes 7 seconds to charge.",
+    blurb: "Laser. Charge time drops after each volley: 7 s after 3 volleys.",
   },
   {
     id: "LASER_CHAINGUN_2",
@@ -215,8 +213,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     // Laser (Weapons), "Chain Vulcan": "Purchase price: 95".
     price: 95,
     boost: { type: "cooldown", amount: 2, count: 5 },
-    blurb:
-      "This laser weapon takes a long time to warm up. Each time it fires it decreases the cooldown, eventually able to take down any amount of shields.",
+    blurb: "Laser. Charge time drops after each volley.",
   },
   {
     id: "LASER_CHARGEGUN_PLAYER",
@@ -243,8 +240,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     // ftl.dat `<cost>` is 30. Sell is half of that. Rarity 0 keeps it off the shelf.
     price: 30,
     chargeLevels: 2,
-    blurb:
-      "This laser weapon can charge two times, giving it an additional projectile. This improved version only requires 1 power.",
+    blurb: "Laser. Stores charges, then fires them all in one volley.",
   },
   {
     id: "LASER_CHARGEGUN",
@@ -270,7 +266,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     // Laser (Weapons), "Laser Charger": "Purchase price: 55".
     price: 55,
     chargeLevels: 2,
-    blurb: "This laser weapon can charge two times, giving it an extra projectile.",
+    blurb: "Laser. Stores charges, then fires them all in one volley.",
   },
   {
     id: "LASER_CHARGEGUN_2",
@@ -296,7 +292,7 @@ export const LASER_WEAPONS: WeaponDef[] = [
     // Laser (Weapons), "Laser Charger Mark II": "Purchase price: 70".
     price: 70,
     chargeLevels: 4,
-    blurb: "This laser weapon can charge multiple times, giving it additional projectiles.",
+    blurb: "Laser. Stores charges, then fires them all in one volley.",
   },
 ];
 

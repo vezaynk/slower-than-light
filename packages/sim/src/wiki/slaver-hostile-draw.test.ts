@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const ID = "c:slaver-hostile:2";
-const LABEL = "Draw straws and send a crew-member over to the slavers.";
-const CLONE =
-  "You briefly consider cloning a replacement, but decide to respect the Federation laws regarding simultaneous duplicates.";
+const LABEL = "Lose 1 crew.";
+const CLONE = eventText("event_PIRATE_SLAVER_c1_c0_clone");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -34,7 +34,7 @@ describe("Slaver (hostile) draw straws", () => {
     const weapons = plain.player.weapons.length;
     choose(plain, ID);
     assert.equal(players(plain).length, before - 1);
-    assert.equal(plain.event?.body?.includes("You lose a crewmember."), true);
+    assert.equal(plain.event?.body?.includes("Crew lost: "), true);
     assert.equal(plain.event?.body?.includes(CLONE), false);
     assert.equal(plain.event?.body?.includes("revived"), false);
     assert.equal(plain.phase, "event");
@@ -57,7 +57,7 @@ describe("Slaver (hostile) draw straws", () => {
     const clonedBefore = players(cloned).length;
     choose(cloned, ID);
     assert.equal(players(cloned).length, clonedBefore - 1);
-    assert.equal(cloned.event?.body?.includes("You lose a crewmember."), true);
+    assert.equal(cloned.event?.body?.includes("Crew lost: "), true);
     assert.equal(cloned.event?.body?.includes(CLONE), true);
     assert.equal(cloned.event?.body?.includes("revived"), false);
     assert.equal(cloned.enemy, null);

@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function beacon(): Beacon {
   return {
@@ -24,10 +25,7 @@ describe("Sell missiles for scrap", () => {
   it("opens on the printed black-market line", () => {
     const g = createGame(1);
     const ev = citedEvent(g, beacon());
-    assert.equal(
-      ev?.body,
-      'There is a black market hub here. You receive a message, "These are dangerous times. If you have extra military-grade explosives, we\'ll gladly pay you for them."',
-    );
+    assert.equal(ev?.body, "Station buying missiles.");
   });
 
   it("sells 5, 10, or 15 missiles for 15, 30, or 45 scrap", () => {
@@ -56,10 +54,10 @@ describe("Sell missiles for scrap", () => {
       assert.equal(g.scrapCollected ?? 0, collected + scrap);
       assert.equal(g.phase, "event");
       assert.equal(g.event?.choices[0]?.id, "ack");
-      assert.match(g.event?.body ?? "", /Thank you, this will help greatly/);
+      assert.ok((g.event?.body ?? "").includes(eventText("event_SELL_MISSILES_STATION_c1_text")));
       assert.match(g.event?.body ?? "", new RegExp(`You receive ${scrap} scrap\\.`));
       assert.equal(
-        g.log.some((line) => line.includes("Thank you, this will help greatly.")),
+        g.log.some((line) => line.includes(eventText("event_SELL_MISSILES_STATION_c1_text"))),
         false,
       );
       assert.equal(

@@ -27,11 +27,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:auto-ship-attacking-civilian",
     aliases: ["Auto-ship attacking civilian", "Rebel Scout Pursuing Civilian Ship"],
     sectors: ["Civilian Sector", "Rebel Controlled Sector", "Rebel Stronghold"],
-    body: "You come across a Rebel automated scout ship pursuing a civilian ship, weapons engaged.",
+    body: "Auto-ship attacking a civilian ship.",
     choices: [
       {
         id: "c:auto-ship-attacking-civilian:0",
-        label: "Aid the civilian ship",
+        label: "Fight the Auto-ship.",
         fx: [
           {
             k: "fight",
@@ -41,7 +41,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:auto-ship-attacking-civilian:1",
-        label: "Stay out of it",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -56,11 +56,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:auto-ship-attacking-outpost",
     aliases: ["Auto-ship attacking outpost"],
     sectors: ["Civilian Sector", "Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "You detect an automated Rebel scout attacking a small refueling outpost.",
+    body: "Auto-ship attacking a refueling outpost.",
     choices: [
       {
         id: "c:auto-ship-attacking-outpost:0",
-        label: "Intervene to defend the outpost",
+        label: "Fight the Auto-ship.",
         fx: [
           {
             k: "fight",
@@ -70,7 +70,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:auto-ship-attacking-outpost:1",
-        label: "Avoid the conflict",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -85,11 +85,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:auto-ship-carrying-shield-virus",
     aliases: ["Auto-ship carrying shield virus"],
     sectors: ["Civilian Sector"],
-    body: "Your arrival is greeted by numerous computer alerts. The nearby automated Rebel scout has deployed a virus and disrupted your shield system. Hopefully it won't cause further problems before you can destroy it.",
+    body: "Hostile Auto-ship. Your shields are hacked.",
     choices: [
       {
         id: "c:auto-ship-carrying-shield-virus:0",
-        label: "Continue",
+        label: "Fight. Shields at half power.",
         fx: [
           {
             k: "fight",
@@ -99,7 +99,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:auto-ship-carrying-shield-virus:1",
-        label: "Counter the remote hacking.",
+        label: "Fight. Hacking offline; shields keep full power.",
         fx: [
           {
             k: "fight",
@@ -117,11 +117,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:auto-ship-fight-crystal",
     aliases: ["Auto-ship fight (Crystal)", "Crystal Auto Fight"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "The Rebels must have sent their automated scouts to find you. One jumps in and immediately moves to attack.",
+    body: "Hostile Auto-ship.",
     choices: [
       {
         id: "c:auto-ship-fight-crystal:0",
-        label: "Fight an Auto-ship",
+        label: "Fight the Auto-ship.",
         fx: [
           {
             k: "fight",
@@ -146,11 +146,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Rebel Controlled Sector",
       "Rebel Stronghold",
     ],
-    body: "You arrive in an asteroid belt to discover that a Rebel automated-scout has been stationed here. Prepare for a fight!",
+    body: "Hostile Auto-ship. Asteroid field.",
     choices: [
       {
         id: "c:auto-ship-fight-in-asteroid-field:0",
-        label: "Fight an Auto-ship",
+        label: "Fight the Auto-ship.",
         fx: [
           {
             k: "fight",
@@ -181,7 +181,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:auto-ship-fight-in-nebula:0",
-        label: "Fight an Auto-ship",
+        label: "Fight the Auto-ship.",
         fx: [
           {
             k: "fight",
@@ -199,11 +199,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:auto-ship-fight-near-sun",
     aliases: ["Auto-ship close to star", "Auto-ship fight near sun", "Auto-ship near sun"],
     sectors: ["Civilian Sector"],
-    body: "You arrive at the beacon to find yourself dangerously close to a star. An automated Rebel ship, impervious to the heat, moves in to engage.",
+    body: "Hostile Auto-ship. Sun: fires break out.",
     choices: [
       {
         id: "c:auto-ship-fight-near-sun:0",
-        label: "Fight an Auto-ship",
+        label: "Fight the Auto-ship.",
         fx: [
           {
             k: "fight",
@@ -219,11 +219,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:auto-ship-near-radar-station",
     aliases: ["Auto-ship near radar station"],
     sectors: ["Rebel Controlled Sector", "Rebel Stronghold"],
-    body: "A Rebel automated ship sits dormant near a Rebel forward radar station.",
+    body: "Dormant Auto-ship by a station.",
     choices: [
       {
         id: "c:auto-ship-near-radar-station:0",
-        label: "Approach the station",
+        label: "Fight the Auto-ship.",
         fx: [
           {
             k: "fight",
@@ -233,7 +233,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:auto-ship-near-radar-station:1",
-        label: "Keep your distance and wait for the FTL to charge",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -252,11 +252,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Rebel Automated Ship Near Sensor Station",
     ],
     sectors: ["Civilian Sector", "Rebel Controlled Sector", "Rebel Stronghold"],
-    body: "You detect a Rebel automated ship nearby. It does not engage and seems to be patrolling around a long-range sensor station.",
+    body: "Auto-ship guarding a sensor station.",
     choices: [
       {
         id: "c:auto-ship-near-sensor-station:0",
-        label: "Attack the automated ship to get to the sensor station",
+        label: "Fight the Auto-ship.",
         fx: [
           {
             k: "fight",
@@ -266,7 +266,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:auto-ship-near-sensor-station:1",
-        label: "Avoid provoking the ship",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -291,11 +291,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "An advance <!-- [sic] -->rebel automated ship remains stationed near a small Rebel space-station. However, without functioning sensors it is impossible to tell what is inside.",
+    body: "Auto-ship guarding a station. Nebula.",
     choices: [
       {
         id: "c:auto-ship-near-storage-station-in-nebula:0",
-        label: "Attack the automated ship to get to the station",
+        label: "Fight the Auto-ship.",
         fx: [
           {
             k: "fight",
@@ -305,7 +305,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:auto-ship-near-storage-station-in-nebula:1",
-        label: "Avoid provoking the ship",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -330,7 +330,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:auto-ship-warning:0",
-        label: "Fight an Auto-ship that is running away",
+        label: "Fight the Auto-ship. It tries to escape.",
         fx: [
           {
             k: "fight",
@@ -350,11 +350,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Human boarders in plasma storm",
     ],
     sectors: ["Civilian Sector", "Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "You find two heavily damaged ships floating nearby, the remains of a battle. You begin to harvest some usable debris when you hear the sounds of someone beaming aboard followed by the shouts of a boarding party.",
+    body: "Plasma storm. 3-4 Human boarders.",
     choices: [
       {
         id: "c:boarders-humans-in-plasma-storm:0",
-        label: "You receive medium scrap with resources",
+        label: "Gain medium scrap and resources.",
         fx: [
           {
             k: "tier",
@@ -371,11 +371,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:crystal-fight-with-surrender-offer-human-crew",
     aliases: ["Crystal fight with surrender offer (Human crew)"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "Crystal shards fly past your ship as soon as you jump. You scan to find the assailant and discover a Crystalline ship carrying a number of humans in it's cargo bay. It must be hunting the intruding ships!",
+    body: "Hostile Crystal ship.",
     choices: [
       {
         id: "c:crystal-fight-with-surrender-offer-human-crew:0",
-        label: "Fight a Crystal ship",
+        label: "Fight the Crystal ship.",
         fx: [
           {
             k: "fight",
@@ -395,11 +395,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Large Convoy",
     ],
     sectors: ["Hidden Crystal Worlds"],
-    body: "A large convoy of lumbering civilian ships appears to be passing through this region. You show no hostile intentions, but they are taking no chances, immediately sending their escort to attack!",
+    body: "Hostile Crystal ship.",
     choices: [
       {
         id: "c:crystal-fight-with-surrender-offer-hull-repairs:0",
-        label: "Fight a Crystal ship",
+        label: "Fight the Crystal ship.",
         fx: [
           {
             k: "fight",
@@ -418,11 +418,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Crystal ship attacking Federation loyalists",
     ],
     sectors: ["Hidden Crystal Worlds"],
-    body: "There appears to be a fight going on nearby. A Crystalline border guard is chasing a small Federation ship!",
+    body: "Crystal ship attacking a Federation ship.",
     choices: [
       {
         id: "c:crystal-ship-attacking-federation-loyalists:0",
-        label: "Save the Federation ship",
+        label: "Fight the Crystal ship.",
         fx: [
           {
             k: "fight",
@@ -432,7 +432,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:crystal-ship-attacking-federation-loyalists:1",
-        label: "Prepare to leave",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -447,11 +447,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:crystalline-ship-messaging-about-rebels",
     aliases: ["Crystalline Ship Messaging About Rebels", "Crystalline ship messaging about Rebels"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "The moment you arrive you notice a Crystalline ship in the vicinity keeping its distance. They message you, \"The 'Rebels' that are trying to hunt YOU down are creating havoc everywhere they go.\" \"To minimize their impact on our people, we would like you to give them your flight path out of our sector. We would like to remain civil and are willing to pay you in 'scrap' for the increased danger it poses.",
+    body: "Crystal ship. Offer: scrap for a fleet advance.",
     choices: [
       {
         id: "c:crystalline-ship-messaging-about-rebels:0",
-        label: "Give them your flight plans",
+        label: "Gain high scrap. Fleet advances 1.",
         fx: [
           {
             k: "nothing",
@@ -460,7 +460,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:crystalline-ship-messaging-about-rebels:1",
-        label: "Accept the scrap but give them false flight plans",
+        label: "1 in 2: gain high scrap, fleet delayed 1. 1 in 2: fight and 1-2 Crystal boarders.",
         fx: [
           {
             k: "nothing",
@@ -469,7 +469,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:crystalline-ship-messaging-about-rebels:2",
-        label: "Accept the scrap but give them falsified flight plans.",
+        label: "Gain high scrap. Fleet delayed 1.",
         fx: [
           {
             k: "nothing",
@@ -478,7 +478,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:crystalline-ship-messaging-about-rebels:3",
-        label: "Refuse",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -505,11 +505,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "You find a Rebel automated scout floating near this beacon. Despite its pristine condition, it appears to be de-activated.",
+    body: "Inactive Auto-ship.",
     choices: [
       {
         id: "c:deactivated-auto-ship:0",
-        label: "Don't risk activating it, and just strip the ship for any useful scrap",
+        label: "Gain low scrap.",
         fx: [
           {
             k: "tier",
@@ -530,11 +530,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Rebel attacking poorly equipped Engi",
     ],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
-    body: "The distress signal originates at a small Engi ship under attack by a rebel fighter - but when they see Federation markings they turn to attack!",
+    body: "Hostile Rebel ship.",
     choices: [
       {
         id: "c:engi-distress-rebel-fight:0",
-        label: "Fight the Rebel Ship",
+        label: "Fight the Rebel ship.",
         fx: [
           {
             k: "fight",
@@ -550,11 +550,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:engi-smashed-ships",
     aliases: ["Engi smashed ships", "Two Smashed Ships"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
-    body: "What appeared to be a single damaged ship is in fact two ships that have smashed into each other... there is a flurry of comm signals and damage, and it's hard to determine what occurred. The vessels appear to be... Engi? They look locked together by the impact and can't free themselves.",
+    body: "Two damaged Engi ships.",
     choices: [
       {
         id: "c:engi-smashed-ships:0",
-        label: "Attempt to help the ships by prying them apart",
+        label: "Fight the Engi ship.",
         fx: [
           {
             k: "fight",
@@ -564,7 +564,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:engi-smashed-ships:1",
-        label: "Ignore the damaged vessels",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -573,11 +573,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:engi-smashed-ships:2",
-        label: "Have your Engi crewmember hail the vessel and assess the damage.",
+        label: "Gain medium resources.",
         fx: [
           {
             k: "note",
-            text: "Random resources with some scrap.",
+            text: "Gain medium resources.",
           },
         ],
       },
@@ -603,7 +603,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:escort-civilians-ftl-haywire:0",
-        label: "Lead them to their destination",
+        label: "Gain low scrap. Quest beacon added.",
         fx: [
           {
             k: "tier",
@@ -617,7 +617,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:escort-civilians-ftl-haywire:1",
-        label: "Decline",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -632,11 +632,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:federation-deserters",
     aliases: ["Federation Deserters", "Federation deserters"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "For a moment you assume it's a glitch, but no... you've found a Federation military ship! They hail you and, after some probing, reveal that they deserted the Federation fleet before stumbling into this sector while seeking refuge.",
+    body: "Federation ship. Offer: supplies for a map.",
     choices: [
       {
         id: "c:federation-deserters:2",
-        label: "Offer supplies.",
+        label: "Lose 15-25 scrap and 1-3 fuel. Reveal the map.",
         fx: [
           {
             k: "res",
@@ -656,7 +656,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:federation-deserters:0",
-        label: "Attack the traitors",
+        label: "Fight the Federation ship.",
         fx: [
           {
             k: "fight",
@@ -666,7 +666,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:federation-deserters:1",
-        label: "Leave them be",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -702,7 +702,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:free-drone-schematic:0",
-        label: "You receive a drone schematic with low scrap",
+        label: "Gain a drone schematic and low scrap.",
         fx: [
           {
             k: "tier",
@@ -743,7 +743,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:free-scrap-with-resources:0",
-        label: "You receive medium scrap with resources",
+        label: "Gain medium scrap and resources.",
         fx: [
           {
             k: "tier",
@@ -760,11 +760,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:free-scrap-with-resources-lanius",
     aliases: ["Free scrap with resources (Lanius)", "Lanius free stuff"],
     sectors: ["Abandoned Sector"],
-    body: "You stumble across a badly damaged Lanius craft. It jumps away as soon as it sees you. Looking around the area, you discover a number of destroyed Rebel automated ships. It must have been quite the fight. You scrap what remains.",
+    body: "Free salvage.",
     choices: [
       {
         id: "c:free-scrap-with-resources-lanius:0",
-        label: "You receive high scrap with resources",
+        label: "Gain high scrap and resources.",
         fx: [
           {
             k: "tier",
@@ -781,11 +781,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:lanius-fight-with-friendly-asb-support",
     aliases: ["Anti-Ship Battery Firing on Lanius Ships", "Lanius fight with friendly ASB support"],
     sectors: ["Abandoned Sector"],
-    body: "After the fight",
+    body: "Hostile Lanius ship. Anti-Ship Battery fires on it.",
     choices: [
       {
         id: "c:lanius-fight-with-friendly-asb-support:0",
-        label: "Fight a Lanius ship with an Anti-Ship Battery on your side",
+        label: "Fight the Lanius ship.",
         fx: [
           {
             k: "fight",
@@ -801,11 +801,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:lanius-ship-absorbing-automated-scout",
     aliases: ["Lanius absorbing automated scout", "Lanius ship absorbing automated scout"],
     sectors: ["Abandoned Sector"],
-    body: "You come across a Lanius ship in the process of absorbing a Rebel automated scout. If you scare off the Lanius you could probably make use of it.",
+    body: "Lanius ship by an Auto-ship.",
     choices: [
       {
         id: "c:lanius-ship-absorbing-automated-scout:0",
-        label: "Fight the ship",
+        label: "Fight the Lanius ship.",
         fx: [
           {
             k: "fight",
@@ -815,7 +815,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-ship-absorbing-automated-scout:1",
-        label: "Leave them alone",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -830,11 +830,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:lanius-ship-attacking-mantis",
     aliases: ["Lanius ship attacking Mantis", "Ship Being Mined by Lanius"],
     sectors: ["Abandoned Sector"],
-    body: "The Mantis ship in this system looks like its distress beacon is malfunctioning... likely due to the Lanius ship mining their hull and sub-systems! It doesn't look like the Mantis ship will last much longer.",
+    body: "Lanius ship attacking a Mantis ship.",
     choices: [
       {
         id: "c:lanius-ship-attacking-mantis:0",
-        label: "Attack the Lanius ship",
+        label: "Fight the Lanius ship.",
         fx: [
           {
             k: "fight",
@@ -844,7 +844,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-ship-attacking-mantis:1",
-        label: "Leave the Mantis to their fate",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -859,11 +859,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:lanius-ship-attacking-rock",
     aliases: ["Lanius attacking Rock", "Lanius ship attacking Rock"],
     sectors: ["Abandoned Sector"],
-    body: "A distress beacon pulses weakly from a Rockman ship in this system... their hull (and their crew) are being mined by the Lanius, lasers and weapons tearing through the ship!",
+    body: "Lanius ship attacking a Rock ship.",
     choices: [
       {
         id: "c:lanius-ship-attacking-rock:0",
-        label: "Attack the Lanius ship",
+        label: "Fight the Lanius ship.",
         fx: [
           {
             k: "fight",
@@ -873,7 +873,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-ship-attacking-rock:1",
-        label: "Leave the Rockmen to their fate",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -892,7 +892,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:lanius-ship-attacking-civilian:0",
-        label: "Attack the Lanius ship",
+        label: "Fight the Lanius ship.",
         fx: [
           {
             k: "fight",
@@ -902,7 +902,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-ship-attacking-civilian:1",
-        label: "Avoid the conflict",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -917,11 +917,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:lanius-ship-attacking-civilian-distress",
     aliases: ["Lanius attacking civilian distress", "Lanius ship attacking civilian distress"],
     sectors: ["Abandoned Sector"],
-    body: "You immediately do a short-range scan after arriving at the beacon. It appears to be coming from a small civilian vessel under fire from a Lanius ship. Not all Lanius are content with simply scavenging the wrecks of previous battles.",
+    body: "Lanius ship attacking a civilian ship.",
     choices: [
       {
         id: "c:lanius-ship-attacking-civilian-distress:0",
-        label: "Fight the Lanius ship",
+        label: "Fight the Lanius ship.",
         fx: [
           {
             k: "fight",
@@ -931,7 +931,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-ship-attacking-civilian-distress:1",
-        label: "Avoid the conflict",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -940,11 +940,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-ship-attacking-civilian-distress:2",
-        label: "Have your crew admonish their captain.",
+        label: "1 in 2: the ship powers down. 1 in 2: fight the Lanius ship.",
         fx: [
           {
             k: "note",
-            text: "A Lanius crewmember starts a fight or powers the ship down.",
+            text: "1 in 2: the ship powers down. 1 in 2: fight the Lanius ship.",
           },
         ],
       },
@@ -956,11 +956,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:lanius-ship-in-rich-debris-field",
     aliases: ["Lanius ship in rich debris field"],
     sectors: ["Abandoned Sector"],
-    body: "Your scans have picked up a Lanius vessel in this system: it appears to be navigating a rich debris field, harvesting the minerals.",
+    body: "Lanius ship in a debris field.",
     choices: [
       {
         id: "c:lanius-ship-in-rich-debris-field:0",
-        label: "Attempt to harvest some for yourself",
+        label: "Fight the Lanius ship.",
         fx: [
           {
             k: "fight",
@@ -970,7 +970,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-ship-in-rich-debris-field:1",
-        label: "Attack the vessel",
+        label: "Fight the Lanius ship.",
         fx: [
           {
             k: "fight",
@@ -980,7 +980,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-ship-in-rich-debris-field:2",
-        label: "Ignore the vessel",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -989,21 +989,21 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-ship-in-rich-debris-field:3",
-        label: "Engage the auto-pilot and safely harvest the debris.",
+        label: "Gain medium scrap and resources.",
         fx: [
           {
             k: "note",
-            text: "Improved Piloting at level 2 pays medium scrap with resources.",
+            text: "Gain medium scrap and resources.",
           },
         ],
       },
       {
         id: "c:lanius-ship-in-rich-debris-field:4",
-        label: "Engage the auto-pilot and safely harvest the debris.",
+        label: "Gain high scrap and resources.",
         fx: [
           {
             k: "note",
-            text: "Advanced Piloting at level 3 pays high scrap with resources.",
+            text: "Gain high scrap and resources.",
           },
         ],
       },
@@ -1019,7 +1019,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:lanius-ship-salvager:0",
-        label: "Attack the ship",
+        label: "Fight the Lanius ship.",
         fx: [
           {
             k: "fight",
@@ -1029,7 +1029,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-ship-salvager:1",
-        label: "Leave them alone",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -1038,11 +1038,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-ship-salvager:2",
-        label: "Request some scrap.",
+        label: "1 in 3: gain medium scrap. 1 in 3: nothing happens. 1 in 3: more options.",
         fx: [
           {
             k: "note",
-            text: "A Lanius crewmember may receive medium scrap only, a scoff, or nothing.",
+            text: "1 in 3: gain medium scrap. 1 in 3: nothing happens. 1 in 3: more options.",
           },
         ],
       },
@@ -1058,7 +1058,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:lanius-trader:0",
-        label: "You lose 3-7 fuel and receive 15-30 scrap",
+        label: "Lose 3-7 fuel. Gain 15-30 scrap.",
         fx: [
           {
             k: "res",
@@ -1078,7 +1078,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-trader:1",
-        label: "You lose 3-7 missiles and receive 20-40 scrap",
+        label: "Lose 3-7 missiles. Gain 20-40 scrap.",
         fx: [
           {
             k: "res",
@@ -1098,7 +1098,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-trader:2",
-        label: "You lose 3-7 drone parts and receive 20-40 scrap",
+        label: "Lose 3-7 drone parts. Gain 20-40 scrap.",
         fx: [
           {
             k: "res",
@@ -1118,7 +1118,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-trader:3",
-        label: "Decline",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -1141,7 +1141,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:lanius-trader-with-translator:0",
-        label: "You lose 3-7 fuel and receive 15-30 scrap",
+        label: "Lose 3-7 fuel. Gain 15-30 scrap.",
         fx: [
           {
             k: "res",
@@ -1161,7 +1161,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-trader-with-translator:1",
-        label: "You lose 3-7 missiles and receive 20-40 scrap",
+        label: "Lose 3-7 missiles. Gain 20-40 scrap.",
         fx: [
           {
             k: "res",
@@ -1181,7 +1181,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-trader-with-translator:2",
-        label: "You lose 3-7 drone parts and receive 20-40 scrap",
+        label: "Lose 3-7 drone parts. Gain 20-40 scrap.",
         fx: [
           {
             k: "res",
@@ -1201,7 +1201,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:lanius-trader-with-translator:3",
-        label: "Decline",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -1220,11 +1220,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Legendary thief KazaaakplethKilik",
     ],
     sectors: ["Mantis Homeworlds"],
-    body: "You cross paths with a Mantis ship that looks to have had dozens of layers of armor-plating added over what must have been a hundred year career. Its captain is legendary thief KazaaakplethKilik. Your crew look frightened.",
+    body: "Hostile Mantis ship. Heavy armor.",
     choices: [
       {
         id: "c:legendary-thief-kazaaakplethkilik:0",
-        label: "Prepare to fight",
+        label: "Fight the Mantis ship.",
         fx: [
           {
             k: "fight",
@@ -1234,7 +1234,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:legendary-thief-kazaaakplethkilik:1",
-        label: "Attempt to hail him.",
+        label: "Fight the Mantis ship.",
         fx: [
           {
             k: "fight",
@@ -1250,12 +1250,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:mantis-outcasts",
     aliases: ["Mantis outcasts"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: "The Mantis outcasts sometimes make the mistake of taking the Zoltan for easy game. A scout moves in to attack while a boarding party beams aboard from a nearby transport!",
+    body: "Hostile Mantis ship. 2-3 Mantis boarders.",
     choices: [
       {
         id: "c:mantis-outcasts:0",
-        label:
-          "2-3 mantis boarders beam aboard your ship and you fight a Mantis Ship (default rewards)",
+        label: "Fight the Mantis ship. 2-3 Mantis boarders.",
         fx: [
           {
             k: "fight",
@@ -1271,11 +1270,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:mantis-ship-attacking-crystal",
     aliases: ["Mantis ship attacking Crystal"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "You discover a number of civilian ships fleeing the area. Shots are fired and you find the assailant; a Mantis ship is attacking one of the smaller ships!",
+    body: "Mantis ship attacking civilian ships.",
     choices: [
       {
         id: "c:mantis-ship-attacking-crystal:0",
-        label: "Attack the Mantis",
+        label: "Fight the Mantis ship.",
         fx: [
           {
             k: "fight",
@@ -1285,7 +1284,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:mantis-ship-attacking-crystal:1",
-        label: "Ignore them",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -1300,11 +1299,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:mantis-war-camp",
     aliases: ["Mantis War Camp", "Mantis war camp"],
     sectors: ["Civilian Sector", "Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: 'You receive a request, "All of our military ships have been destroyed or damaged during the rebellion. However, there have been reports of a Mantis war camp only a few jumps from us. Can you help?"',
+    body: "Quest offer.",
     choices: [
       {
         id: "c:mantis-war-camp:0",
-        label: "Pledge to do what you can",
+        label: "Gain medium scrap. Quest beacon added.",
         fx: [
           {
             k: "tier",
@@ -1318,7 +1317,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:mantis-war-camp:1",
-        label: "Apologize and decline",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -1336,13 +1335,13 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:no-fuel-auto-ship-warning",
     aliases: ["No fuel: Auto-ship fight", "No fuel: Auto-ship warning"],
     sectors: [],
-    body: "A ship responding to your distress moves in. Unfortunately it turns out to be an automated Rebel scout. It immediately reverses thrust after scanning your ship.",
+    body: "Fleeing Auto-ship.",
     choices: [
       {
         id: "c:no-fuel-auto-ship-warning:0",
         // Wiki citations:
         // > "Fight an Auto-ship that is running away." — [[No fuel: Auto-ship warning]]
-        label: "Fight an Auto-ship that is running away",
+        label: "Fight the Auto-ship. It tries to escape.",
         fx: [
           {
             k: "fight",
@@ -1367,7 +1366,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         // Wiki citations:
         // > "Make the trade." — [[No fuel: Engi ship repair]]
         // > "You lose Scrap lost: 10-20 and receive Fuel gained: 4-6." — [[No fuel: Engi ship repair]]
-        label: "Make the trade",
+        label: "Lose 10-20 scrap. Gain 4-6 fuel.",
         fx: [
           {
             k: "res",
@@ -1390,7 +1389,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         // Wiki citations:
         // > "Ignore them." — [[No fuel: Engi ship repair]]
         // > "Nothing happens." — [[No fuel: Engi ship repair]]
-        label: "Ignore them",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -1403,7 +1402,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         // > "(Hull Repair Drone) Offer to help repair their hull. [ Drone parts lost: 1 ]" — [[No fuel: Engi ship repair]]
         // > "They happily accept your offer for help. Once the drone does its work they transfer over some fuel for your trouble." — [[No fuel: Engi ship repair]]
         // > "You receive Fuel gained: 4-6." — [[No fuel: Engi ship repair]]
-        label: "Offer to help repair their hull.",
+        label: "Lose 1 drone part. Gain 4-6 fuel.",
         fx: [
           {
             k: "nothing",
@@ -1426,7 +1425,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         id: "c:no-fuel-mantis-fight:0",
         // Wiki citations:
         // > "Fight a Mantis ship that is running away. (80 seconds escape countdown timer if not interrupted)" — [[No fuel: Mantis fight]]
-        label: "Fight a Mantis ship that is running away",
+        label: "Fight the Mantis ship. It tries to escape.",
         fx: [
           {
             k: "fight",
@@ -1450,7 +1449,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         id: "c:no-fuel-rebel-fight:0",
         // Wiki citations:
         // > "Fight a Rebel ship that is running away. (80 seconds escape countdown timer if not interrupted)" — [[No fuel: Rebel fight]]
-        label: "Fight a Rebel ship that is running away",
+        label: "Fight the Rebel ship. It tries to escape.",
         fx: [
           {
             k: "fight",
@@ -1469,14 +1468,14 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:no-fuel-slug-fuel-depot",
     aliases: ["No fuel: Slug fuel depot", "Slugman Fuel Depot"],
     sectors: [],
-    body: 'A mobile Slugman fuel depot enters scanning range. "My prices are fair, but I ask one thing - do not insult me with negotiation!" You check out his price list.',
+    body: "Fuel seller.",
     choices: [
       {
         id: "c:no-fuel-slug-fuel-depot:0",
         // Wiki citations:
         // > "Buy 5 fuel for 50 scrap." — [[No fuel: Slug fuel depot]]
         // > "You lose Scrap lost: 50 and receive Fuel gained: 5." — [[No fuel: Slug fuel depot]]
-        label: "Buy 5 fuel for 50 scrap",
+        label: "Lose 50 scrap. Gain 5 fuel.",
         fx: [
           {
             k: "res",
@@ -1499,7 +1498,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         // Wiki citations:
         // > "Buy 10 fuel for 95 scrap. (BEST DEAL!)" — [[No fuel: Slug fuel depot]]
         // > "You lose Scrap lost: 95 and receive Fuel gained: 10." — [[No fuel: Slug fuel depot]]
-        label: "Buy 10 fuel for 95 scrap. (BEST DEAL!)",
+        label: "Lose 95 scrap. Gain 10 fuel.",
         fx: [
           {
             k: "res",
@@ -1522,7 +1521,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         // Wiki citations:
         // > "Negotiate." — [[No fuel: Slug fuel depot]]
         // > "Fight a Slug ship that is running away. (80 seconds escape countdown timer if not interrupted)(no surrender offers)" — [[No fuel: Slug fuel depot]]
-        label: "Negotiate",
+        label: "Fight the Slug ship.",
         fx: [
           {
             k: "fight",
@@ -1547,7 +1546,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         // Wiki citations:
         // > "Request emergency fuel reserves." — [[No fuel: automated refueling ship]]
         // > "You receive low fuel." — [[No fuel: automated refueling ship]]
-        label: "Request emergency fuel reserves",
+        label: "Gain 1-3 fuel.",
         fx: [
           {
             k: "res",
@@ -1563,7 +1562,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         // Wiki citations:
         // > "Buy 5 fuel for 20 scrap. [ Scrap lost: 20 ]" — [[No fuel: automated refueling ship]]
         // > "You receive Fuel gained: 5." — [[No fuel: automated refueling ship]]
-        label: "Buy 5 fuel for 20 scrap",
+        label: "Lose 20 scrap. Gain 5 fuel.",
         fx: [
           {
             k: "res",
@@ -1586,7 +1585,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         // Wiki citations:
         // > "Buy 2 fuel for 8 scrap. [ Scrap lost: 8 ]" — [[No fuel: automated refueling ship]]
         // > "You receive Fuel gained: 2." — [[No fuel: automated refueling ship]]
-        label: "Buy 2 fuel for 8 scrap",
+        label: "Lose 8 scrap. Gain 2 fuel.",
         fx: [
           {
             k: "res",
@@ -1609,7 +1608,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         // Wiki citations:
         // > "Attack the automated ship." — [[No fuel: automated refueling ship]]
         // > "Fight an Auto-ship that is running away. (80 seconds escape countdown timer if not interrupted)" — [[No fuel: automated refueling ship]]
-        label: "Attack the automated ship",
+        label: "Fight the Auto-ship.",
         fx: [
           {
             k: "fight",
@@ -1628,14 +1627,14 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:no-fuel-explore-the-system",
     aliases: ["Explore the System", "No fuel: explore the system"],
     sectors: [],
-    body: "Although your lack of fuel cells prevents your ship from jumping, you can still use your impulse engines. Will you spend some time exploring the nearby system?",
+    body: "Out of fuel. Option: explore the system.",
     choices: [
       {
         id: "c:no-fuel-explore-the-system:0",
         // Wiki citations:
         // > "Trade 20 scrap for 5 fuel. [ Scrap lost: 20 ]" — [[No fuel: explore the system]]
         // > "You receive Fuel gained: 5." — [[No fuel: explore the system]]
-        label: "Trade 20 scrap for 5 fuel",
+        label: "Lose 20 scrap. Gain 5 fuel.",
         fx: [
           {
             k: "res",
@@ -1658,7 +1657,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         // Wiki citations:
         // > "Trade 10 scrap for 2 fuel. [ Scrap lost: 10 ]" — [[No fuel: explore the system]]
         // > "You receive Fuel gained: 2." — [[No fuel: explore the system]]
-        label: "Trade 10 scrap for 2 fuel",
+        label: "Lose 10 scrap. Gain 2 fuel.",
         fx: [
           {
             k: "res",
@@ -1681,7 +1680,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         // Wiki citations:
         // > "Trade 5 scrap for 1 fuel. [ Scrap lost: 5 ]" — [[No fuel: explore the system]]
         // > "You receive Fuel gained: 1." — [[No fuel: explore the system]]
-        label: "Trade 5 scrap for 1 fuel",
+        label: "Lose 5 scrap. Gain 1 fuel.",
         fx: [
           {
             k: "res",
@@ -1704,7 +1703,7 @@ export const CORE_EVENTS: CoreEvent[] = [
         // Wiki citations:
         // > "Stay near the beacon." — [[No fuel: explore the system]]
         // > "Nothing happens." — [[No fuel: explore the system]]
-        label: "Stay near the beacon",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -1734,7 +1733,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:pirate-briber:0",
-        label: "Accept their bribe",
+        label: "Gain low scrap and resources.",
         fx: [
           {
             k: "tier",
@@ -1745,7 +1744,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:pirate-briber:1",
-        label: "Try to be a hero. Attack the pirate",
+        label: "Fight the pirate ship.",
         fx: [
           {
             k: "fight",
@@ -1765,7 +1764,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:pirate-ship-attacking-civilian-lanius:0",
-        label: "Attack the pirate",
+        label: "Fight the pirate ship.",
         fx: [
           {
             k: "fight",
@@ -1775,7 +1774,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:pirate-ship-attacking-civilian-lanius:1",
-        label: "Avoid the conflict",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -1801,11 +1800,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Slug Home Nebula",
       "Uncharted Nebula",
     ],
-    body: "The distress beacon is coming from a civilian ship. It appears it is being chased by a pirate.",
+    body: "Pirate ship attacking a civilian ship.",
     choices: [
       {
         id: "c:pirate-ship-attacking-civilian-distress:0",
-        label: "Aid the civilian ship",
+        label: "Fight the pirate ship.",
         fx: [
           {
             k: "fight",
@@ -1815,7 +1814,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:pirate-ship-attacking-civilian-distress:1",
-        label: "Stay out of it",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -1830,11 +1829,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:pirate-ship-selling-drones",
     aliases: ["Drones salesman", "Pirate ship selling drones"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "A ship with conspicuous pirate markings is orbiting a nearby moon, broadcasting a simple message claiming to have equipment available for sale.",
+    body: "Pirate ship. Offer: drone parts for scrap.",
     choices: [
       {
         id: "c:pirate-ship-selling-drones:0",
-        label: "Buy some Drone parts",
+        label: "Lose 25 scrap. Gain 5 drone parts.",
         fx: [
           {
             k: "res",
@@ -1854,7 +1853,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:pirate-ship-selling-drones:1",
-        label: "Attack him before he can attack!",
+        label: "Fight the pirate ship.",
         fx: [
           {
             k: "fight",
@@ -1864,7 +1863,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:pirate-ship-selling-drones:2",
-        label: "Quickly prepare to jump away",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -1879,11 +1878,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:pirate-ship-selling-weapon",
     aliases: ["Black Market Weapon Trader", "Pirate arms dealer", "Pirate ship selling weapon"],
     sectors: ["Civilian Sector", "Slug Controlled Nebula", "Slug Home Nebula", "Uncharted Nebula"],
-    body: "A black market weapons trader spins you a tale of the dangers of the nebula before pushing his wares.",
+    body: "Weapon seller. Nebula.",
     choices: [
       {
         id: "c:pirate-ship-selling-weapon:0",
-        label: "Attack the ship",
+        label: "Fight the pirate ship.",
         fx: [
           {
             k: "fight",
@@ -1893,7 +1892,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:pirate-ship-selling-weapon:1",
-        label: "Ignore the ship",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -1902,11 +1901,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:pirate-ship-selling-weapon:2",
-        label: "Convince him to make it a better deal.",
+        label: "1 in 2: lose 45 scrap, gain a weapon. 1 in 2: lose 45 scrap, more options.",
         fx: [
           {
             k: "note",
-            text: "A declined deal, or a Pirate ship.",
+            text: "1 in 2: lose 45 scrap, gain a weapon. 1 in 2: lose 45 scrap, more options.",
           },
         ],
       },
@@ -1922,7 +1921,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:rebel-checkpoint:0",
-        label: "Fend for yourself, attack, and escape",
+        label: "Fight the Rebel ship.",
         fx: [
           {
             k: "fight",
@@ -1932,7 +1931,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:rebel-checkpoint:1",
-        label: "Fly behind a moon and stay hidden",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -1952,7 +1951,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:rebel-fight-among-federation-and-rebel-fleets:0",
-        label: "Fight a Rebel ship",
+        label: "Fight the Rebel ship.",
         fx: [
           {
             k: "fight",
@@ -1978,11 +1977,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "You arrive in the middle of a plasma storm. Despite the harsh conditions, a Rebel scout seems to be waiting for you.",
+    body: "Hostile Rebel ship. Plasma storm.",
     choices: [
       {
         id: "c:rebel-fight-in-plasma-storm:0",
-        label: "Fight a Rebel ship (default rewards)",
+        label: "Fight the Rebel ship.",
         fx: [
           {
             k: "fight",
@@ -1998,11 +1997,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:rebel-ship-attacking-crystal-ship",
     aliases: ["Crystalline Ship Engaged with Rebel", "Rebel ship attacking Crystal ship"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "Crystal shards fly past the screen as soon as you arrive. Checking the scanners, it looks like a crystalline ship is engaged with a Rebel!",
+    body: "Rebel ship fighting a Crystal ship.",
     choices: [
       {
         id: "c:rebel-ship-attacking-crystal-ship:0",
-        label: "Attack the Rebel",
+        label: "Fight the Rebel ship.",
         fx: [
           {
             k: "fight",
@@ -2012,7 +2011,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:rebel-ship-attacking-crystal-ship:1",
-        label: "Attack the Crystalline ship",
+        label: "Fight the Crystal ship. Fleet advances 1.",
         fx: [
           {
             k: "fleet",
@@ -2027,7 +2026,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:rebel-ship-attacking-crystal-ship:2",
-        label: "Ignore them",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -2054,7 +2053,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:rebel-ship-attacking-federation-loyalists:0",
-        label: "Aid the Federation ship",
+        label: "Fight the Rebel ship.",
         fx: [
           {
             k: "fight",
@@ -2064,7 +2063,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:rebel-ship-attacking-federation-loyalists:1",
-        label: "Use this chance to escape",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -2086,7 +2085,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:rebel-ship-attacking-civilians-in-last-stand:0",
-        label: "Prepare to fight the Rebel ship!",
+        label: "Fight the Rebel ship.",
         fx: [
           {
             k: "fight",
@@ -2096,7 +2095,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:rebel-ship-attacking-civilians-in-last-stand:1",
-        label: "There's no time, get ready to jump",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -2111,11 +2110,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:rebel-ship-attacking-refueling-outpost",
     aliases: ["Rebel ship attacking refueling outpost"],
     sectors: ["Civilian Sector", "Rebel Controlled Sector", "Rebel Stronghold", "The Last Stand"],
-    body: "You detect a Rebel scout on an attack approach to a small refueling outpost. Their weapons are charged, but they're not firing yet.",
+    body: "Rebel ship attacking a refueling outpost.",
     choices: [
       {
         id: "c:rebel-ship-attacking-refueling-outpost:0",
-        label: "Intervene to defend the outpost",
+        label: "Fight the Rebel ship.",
         fx: [
           {
             k: "fight",
@@ -2125,7 +2124,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:rebel-ship-attacking-refueling-outpost:1",
-        label: "Avoid the conflict",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -2144,7 +2143,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:rebel-ship-supplying-civilians:0",
-        label: "Attack the Rebels",
+        label: "Fight the Rebel ship.",
         fx: [
           {
             k: "fight",
@@ -2154,7 +2153,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:rebel-ship-supplying-civilians:1",
-        label: "Leave them be",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -2163,7 +2162,8 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:rebel-ship-supplying-civilians:2",
-        label: "Wait and steal the supplies from the civilians",
+        label:
+          "1 in 4: gain drone parts. 1 in 4: nothing happens. 1 in 4: gain scrap. 1 in 4: take 2 system damage.",
         fx: [
           {
             k: "nothing",
@@ -2178,11 +2178,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:rebel-shipyard",
     aliases: ["Rebel Flagship Construction", "Rebel shipyard"],
     sectors: ["Rebel Stronghold"],
-    body: "You arrive at the beacon to find yourself in a huge Rebel shipyard, scaffolding and construction drones filling the sector! The entire system looks devoted to ship construction, the nearby planets and moons ruthlessly mined to harvest resources for a ship of immense size...",
+    body: "Shipyard. A second flagship is docked.",
     choices: [
       {
         id: "c:rebel-shipyard:0",
-        label: "Look around",
+        label: "Fight the second flagship.",
         fx: [
           {
             k: "fight",
@@ -2192,7 +2192,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:rebel-shipyard:1",
-        label: "Leave immediately",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -2215,11 +2215,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula",
     ],
-    body: "You spot a small rebel ship nearby. It seems to have been re-fitted for transport rather than combat. It does not seem to want to engage you and your ship.",
+    body: "Unarmed Rebel transport.",
     choices: [
       {
         id: "c:rebel-transport-ship:0",
-        label: "Demand the surrender of their goods",
+        label: "Fight the Rebel ship.",
         fx: [
           {
             k: "fight",
@@ -2229,7 +2229,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:rebel-transport-ship:1",
-        label: "Avoid the ship",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -2250,11 +2250,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Slug Controlled Nebula",
       "Slug Home Nebula",
     ],
-    body: "A small platform orbits near this beacon - it looks like a fueling station of some sort, and it is cheerily broadcasting reasonable prices in a spectrum of frequencies and languages.",
+    body: "Fuel platform.",
     choices: [
       {
         id: "c:refueling-platform:0",
-        label: "Dock with the refueling platform.",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -2263,7 +2263,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:refueling-platform:1",
-        label: "Ignore the refueling platform.",
+        label: "Fight the pirate ship.",
         fx: [
           {
             k: "fight",
@@ -2296,11 +2296,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "A ship re-fueling station is stationed at this beacon. We can purchase fuel here.",
+    body: "Fuel seller.",
     choices: [
       {
         id: "c:refueling-station:0",
-        label: "Buy 6 Fuel for 12 Scrap",
+        label: "Lose 12 scrap. Gain 6 fuel.",
         fx: [
           {
             k: "res",
@@ -2320,7 +2320,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:refueling-station:1",
-        label: "Buy 3 Fuel for 6 Scrap",
+        label: "Lose 6 scrap. Gain 3 fuel.",
         fx: [
           {
             k: "res",
@@ -2340,7 +2340,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:refueling-station:2",
-        label: "Buy 1 Fuel for 2 Scrap",
+        label: "Lose 2 scrap. Gain 1 fuel.",
         fx: [
           {
             k: "res",
@@ -2360,7 +2360,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:refueling-station:3",
-        label: "Ignore the station",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -2379,7 +2379,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:rock-atheists:0",
-        label: "Tell them their god sent them here to join your crew",
+        label: "Fight the Rock ship.",
         fx: [
           {
             k: "fight",
@@ -2395,11 +2395,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:rock-ship-in-plasma-storm",
     aliases: ["Rock Armoured Transport", "Rock ship in plasma storm"],
     sectors: ["Uncharted Nebula"],
-    body: 'A rock armoured transport nearby looks to have lost its bearings, but when you hail they grow suspicious: "Whatever life-form you are, we find you repugnant. We seek no aid. Leave. Now."',
+    body: "Rock ship. Plasma storm.",
     choices: [
       {
         id: "c:rock-ship-in-plasma-storm:0",
-        label: "Repugnant? Arm the weapons!",
+        label: "Fight the Rock ship.",
         fx: [
           {
             k: "fight",
@@ -2409,7 +2409,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:rock-ship-in-plasma-storm:1",
-        label: "Leave",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -2438,11 +2438,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Slug Home Nebula",
       "Uncharted Nebula",
     ],
-    body: "You see a civilian space station with heavy damage. You receive a message, \"We've been hit hard by the war. We need more drone parts to speed up our repairs. We'll buy some from you if you have extra.\"",
+    body: "Station buying drone parts.",
     choices: [
       {
         id: "c:sell-drone-parts-for-scrap:0",
-        label: "Sell 3 drone parts for 12 scrap",
+        label: "Lose 3 drone parts. Gain 12 scrap.",
         fx: [
           {
             k: "res",
@@ -2462,7 +2462,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:sell-drone-parts-for-scrap:1",
-        label: "Sell 6 drone parts for 24 scrap",
+        label: "Lose 6 drone parts. Gain 24 scrap.",
         fx: [
           {
             k: "res",
@@ -2482,7 +2482,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:sell-drone-parts-for-scrap:2",
-        label: "Sell 12 drone parts for 48 scrap",
+        label: "Lose 12 drone parts. Gain 48 scrap.",
         fx: [
           {
             k: "res",
@@ -2502,7 +2502,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:sell-drone-parts-for-scrap:3",
-        label: "Ignore the station",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -2531,11 +2531,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Slug Home Nebula",
       "Uncharted Nebula",
     ],
-    body: 'There is a black market hub here. You receive a message, "These are dangerous times. If you have extra military-grade explosives, we\'ll gladly pay you for them."',
+    body: "Station buying missiles.",
     choices: [
       {
         id: "c:sell-missiles-for-scrap:0",
-        label: "Sell 5 missiles for 15 scrap",
+        label: "Lose 5 missiles. Gain 15 scrap.",
         fx: [
           {
             k: "res",
@@ -2555,7 +2555,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:sell-missiles-for-scrap:1",
-        label: "Sell 10 missiles for 30 scrap",
+        label: "Lose 10 missiles. Gain 30 scrap.",
         fx: [
           {
             k: "res",
@@ -2575,7 +2575,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:sell-missiles-for-scrap:2",
-        label: "Sell 15 missiles for 45 scrap",
+        label: "Lose 15 missiles. Gain 45 scrap.",
         fx: [
           {
             k: "res",
@@ -2595,7 +2595,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:sell-missiles-for-scrap:3",
-        label: "Ignore the station",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -2620,11 +2620,11 @@ export const CORE_EVENTS: CoreEvent[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: 'You recognize the ship as a well known slave trader. He hails you and offers you "laborers" for cheap.',
+    body: "Crew seller.",
     choices: [
       {
         id: "c:slaver-friendly:0",
-        label: "Attack the slaver scum",
+        label: "Fight the pirate ship.",
         fx: [
           {
             k: "fight",
@@ -2634,7 +2634,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:slaver-friendly:1",
-        label: "Ignore the slaver and continue on your way",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -2649,11 +2649,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:slaver-hostile",
     aliases: ["Pirate Slaver", "Slaver (hostile)"],
     sectors: ["Civilian Sector", "Pirate Controlled Sector"],
-    body: 'An especially well-armed pirate ship approaches you. "Hand over one of your crew and the rest can go unharmed."',
+    body: "Pirate ship. Demand: 1 crew.",
     choices: [
       {
         id: "c:slaver-hostile:2",
-        label: "Draw straws and send a crew-member over to the slavers.",
+        label: "Lose 1 crew.",
         fx: [
           {
             k: "nothing",
@@ -2662,7 +2662,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:slaver-hostile:0",
-        label: "We will never surrender one of our crew to slavers!",
+        label: "Fight the pirate ship.",
         fx: [
           {
             k: "fight",
@@ -2672,7 +2672,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:slaver-hostile:1",
-        label: "Attempt to out-run the slaver ship.",
+        label: "1 in 3: fight the pirate ship. 2 in 3: nothing happens.",
         fx: [
           {
             k: "fight",
@@ -2689,11 +2689,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     aliases: ["Slug drink"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
     // Slug drink. The printed hail.
-    body: 'A Slug captain hails and invites himself aboard your ship to present a flask of something slimy. "Now, most gracioussss captain, you must join me please in a drink to our alliance!"',
+    body: "Slug ship. Offer: a drink.",
     choices: [
       {
         id: "c:slug-drink:0",
-        label: "Refuse",
+        label: "Fight the Slug ship.",
         fx: [
           {
             k: "fight",
@@ -2709,11 +2709,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:slug-hacker-choice",
     aliases: ["Dangerous Looking Ship", "Dangerous looking slug ship", "Slug hacker (choice)"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: 'You are immediately hailed by a dangerous looking ship. "I\'m feeling generouss today. I shall allow you to choose your own death. Which do you like leasst: shields, oxygen, or weaponsss?"',
+    body: "Hostile Slug ship. Choose which system it hacks.",
     choices: [
       {
         id: "c:slug-hacker-choice:0",
-        label: "Shields",
+        label: "Fight. Shields at half power.",
         fx: [
           {
             k: "fight",
@@ -2723,7 +2723,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:slug-hacker-choice:1",
-        label: "Oxygen",
+        label: "Fight. Oxygen at half power.",
         fx: [
           {
             k: "fight",
@@ -2733,7 +2733,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:slug-hacker-choice:2",
-        label: "Weapons",
+        label: "Fight. Weapons at half power.",
         fx: [
           {
             k: "fight",
@@ -2743,7 +2743,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:slug-hacker-choice:3",
-        label: "Offer 35 scrap to leave you alone",
+        label: "Lose 35 scrap.",
         fx: [
           {
             k: "res",
@@ -2756,7 +2756,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:slug-hacker-choice:4",
-        label: "Counter any hack attempt.",
+        label: "Fight. Hacking offline; no system is hacked.",
         fx: [
           {
             k: "fight",
@@ -2772,11 +2772,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:slug-hacker-doors",
     aliases: ["Slug doors hacker", "Slug hacker (doors)"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "There are few more vicious beasts in the galaxy than a Slug with his back to the wall. The faltering ship armed with fire-weapons uses a remote hacking tool to try and disable your door system - they're going to burn you out!",
+    body: "Hostile Slug ship. Doors hacked.",
     choices: [
       {
         id: "c:slug-hacker-doors:0",
-        label: "Continue",
+        label: "Fight. Doors offline.",
         fx: [
           {
             k: "fight",
@@ -2786,7 +2786,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:slug-hacker-doors:1",
-        label: "Counter the remote hacking.",
+        label: "Fight. Hacking offline; doors keep power.",
         fx: [
           {
             k: "fight",
@@ -2802,11 +2802,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:slug-hacker-medical",
     aliases: ["Slug hacker (medical)"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "A Slug ship hails you: \"We've detected some worrying radiation coming from your medical unit, perhaps you should take a look?\" As he signs off, your medical bay shuts off and their crew teleports aboard from a nearby station. They don't look like engineers.",
+    body: "Hostile Slug ship. Medbay hacked. 2 Slug boarders.",
     choices: [
       {
         id: "c:slug-hacker-medical:0",
-        label: "Continue",
+        label: "Medbay and clone bay offline.",
         fx: [
           {
             k: "fight",
@@ -2816,7 +2816,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:slug-hacker-medical:1",
-        label: "Counter the remote hacking.",
+        label: "Fight. Hacking offline; medbay keeps power.",
         fx: [
           {
             k: "fight",
@@ -2826,7 +2826,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:slug-hacker-medical:2",
-        label: "Try to squeeze some extra power to the system.",
+        label: "Medbay at half power.",
         fx: [
           {
             k: "fight",
@@ -2842,11 +2842,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:slug-hacker-oxygen",
     aliases: ["Slug Sabotage Oxygen System", "Slug hacker (oxygen)", "Slug oxygen hacker"],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula"],
-    body: "The slugs here use a tactic you hoped you'd never see: They sabotage your oxygen production system and then charge fire-weapons - you're going to suffocate!",
+    body: "Hostile Slug ship. Oxygen hacked.",
     choices: [
       {
         id: "c:slug-hacker-oxygen:0",
-        label: "Continue",
+        label: "Oxygen offline.",
         fx: [
           {
             k: "fight",
@@ -2856,7 +2856,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:slug-hacker-oxygen:1",
-        label: "Try to squeeze some extra power to the system.",
+        label: "Oxygen at half power.",
         fx: [
           {
             k: "fight",
@@ -2866,7 +2866,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:slug-hacker-oxygen:2",
-        label: "Counter the remote hacking.",
+        label: "Hacking offline. Oxygen restored.",
         fx: [
           {
             k: "fight",
@@ -2882,11 +2882,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:space-station-under-construction",
     aliases: ["Space Station Under Construction", "Space station under construction"],
     sectors: ["Civilian Sector"],
-    body: 'You come across a space station under construction. You receive a message from their command tower, "Greetings. We recently lost contact with a cargo ship that was set to deliver more construction materials. Could you help us figure out what happened to them?"',
+    body: "Quest offer.",
     choices: [
       {
         id: "c:space-station-under-construction:0",
-        label: "Offer your help",
+        label: "Gain 2-4 fuel, 0-4 missiles, 0-2 drone parts. Quest beacon added.",
         fx: [
           {
             k: "res",
@@ -2917,7 +2917,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:space-station-under-construction:1",
-        label: "Decline",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -2932,11 +2932,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:the-engi-virus",
     aliases: ["Engi virus", "The Engi Virus", "The Engi virus"],
     sectors: ["Engi Controlled Sector", "Engi Homeworlds"],
-    body: "The Engi are awaiting you at the beacon, with their weapons on-line! They explain a computer virus that is wanted for hostile acts against the Engi (multiple counts of binary scrambling, nano-dissolution, and variable interference) is aboard your vessel. They insist they must destroy your ship to prevent the virus from escaping!",
+    body: "Hostile Engi ship.",
     choices: [
       {
         id: "c:the-engi-virus:0",
-        label: "Hold on! Let us try to purge the system code!",
+        label: "More options.",
         fx: [
           {
             k: "fight",
@@ -2946,7 +2946,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:the-engi-virus:1",
-        label: "Attack the Engi vessel!",
+        label: "Fight the Engi ship.",
         fx: [
           {
             k: "fight",
@@ -2973,7 +2973,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     choices: [
       {
         id: "c:the-mercenary:0",
-        label: "Hire the mercenary to delay the Rebels",
+        label: "Lose 10-25 scrap. Fleet delayed 2.",
         fx: [
           {
             k: "res",
@@ -2991,7 +2991,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:the-mercenary:1",
-        label: "Fight the ship",
+        label: "Fight the pirate ship.",
         fx: [
           {
             k: "fight",
@@ -3001,7 +3001,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:the-mercenary:2",
-        label: "You have no need of his services",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -3016,11 +3016,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:zoltan-retake-the-ship",
     aliases: ["Zoltan Life Raft", "Zoltan retake the ship"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: 'You pick up a Zoltan life raft floating in space. Its inhabitant asks you to retake his ship from the pirates who recently commandeered it. "I\'m certain it is clear," he concludes, "that you must not destroy my vessel in the process."',
+    body: "Pirate-held Zoltan ship. Kill the crew to win.",
     choices: [
       {
         id: "c:zoltan-retake-the-ship:0",
-        label: "Engage the pirates",
+        label: "Fight the Zoltan ship.",
         fx: [
           {
             k: "fight",
@@ -3030,7 +3030,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:zoltan-retake-the-ship:1",
-        label: "Leave",
+        label: "Nothing happens.",
         fx: [
           {
             k: "nothing",
@@ -3045,11 +3045,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:zoltan-wise-man",
     aliases: ["Zoltan wise man"],
     sectors: ["Zoltan Controlled Sector", "Zoltan Homeworlds"],
-    body: 'You come to a quiet part of Zoltan space and encounter an ancient Zoltan wise man who has managed to harness the power of a spatial rift, but seems to have been driven completely mad by the power. "Choose your doom," he demands. This is all part of a day\'s work.',
+    body: "Choose which ship to fight.",
     choices: [
       {
         id: "c:zoltan-wise-man:0",
-        label: "Mantis",
+        label: "Fight a Mantis ship.",
         fx: [
           {
             k: "fight",
@@ -3059,7 +3059,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:zoltan-wise-man:1",
-        label: "Slug",
+        label: "Fight a Slug ship.",
         fx: [
           {
             k: "fight",
@@ -3069,7 +3069,7 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:zoltan-wise-man:2",
-        label: "Rockmen",
+        label: "Fight a Rock ship.",
         fx: [
           {
             k: "fight",
@@ -3088,11 +3088,11 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:boarders-humans-abandoned",
     aliases: ["Weak and hungry human boarders", "Weak and hungry Human intruders"],
     sectors: ["Abandoned Sector"],
-    body: 'An image of some weak and hungry humans comes onto your screen. "Those metal bastards think they can just absorb half of our engines and leave us here to die? I hope you understand the need to take your ship by force."',
+    body: "3-4 Human boarders.",
     choices: [
       {
         id: "c:boarders-humans-abandoned:0",
-        label: "3-4 human boarders beam aboard your ship",
+        label: "3-4 Human boarders.",
         fx: [
           {
             k: "nothing",

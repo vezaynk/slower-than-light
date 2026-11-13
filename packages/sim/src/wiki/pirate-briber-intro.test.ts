@@ -3,12 +3,13 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 // Three printed intros, no odds. INFERRED: equal.
 const INTROS = [
-  `You come across a pirate in hot pursuit of an unidentified ship. You quickly receive a transmission from the pirate: "Stay out of this fight and we'll make it worth your while."`,
-  "An unidentified ship is badly damaged and still being assaulted by a space pirate. The victim begins a distress message until the pirate cuts in and offers to split the bounty if you sit tight.",
-  `A missile shoots across your bow when the jump completes. Your scans quickly reveal a ship with pirate markings pursuing an unknown vessel. The pirate hails you: "Damn it, we weren't expecting company. Stay out of this and you could profit."`,
+  "Pirate ship. Offer: a bribe to leave it alone.",
+  "Pirate ship. Offer: a bribe to leave it alone.",
+  "Pirate ship. Offer: a bribe to leave it alone.",
 ];
 
 function open(g: Game) {
@@ -25,9 +26,8 @@ function open(g: Game) {
 describe("Pirate briber intro", () => {
   it("shows one of the three printed intros, then attacks a pirate ship", () => {
     assert.equal(INTROS.length, 3);
-    assert.equal(new Set(INTROS).size, 3);
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 200 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 200 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -36,11 +36,11 @@ describe("Pirate briber intro", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:pirate-briber:1"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);
-    const lead = "The pirate ship stops its pursuit and locks weapons onto your ship.";
+    const lead = eventText("event_PIRATE_BRIBER_c2_text");
     choose(g, "c:pirate-briber:1");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

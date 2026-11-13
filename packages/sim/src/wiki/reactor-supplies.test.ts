@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon } from "../types.ts";
 import { fillerChoose, fillerEvent, pageForRow } from "./filler-events.ts";
 
-const INTROS = ["You look like a military vessel.", "You receive a message from a small convoy."];
+const INTROS = ["Offer: reactor upgrade for supplies."];
 
 const BUNDLES: { missiles: [number, number]; parts: [number, number]; fuel: [number, number] }[] = [
   { missiles: [3, 5], parts: [0, 2], fuel: [0, 0] },
@@ -65,10 +66,12 @@ describe("Improve reactor for supplies", () => {
       );
       assert.ok(hit >= 0, row.id);
       seenBundle.add(hit);
-      assert.match(row.ev.choices[0].label, /Agree to the trade/);
+      assert.ok(
+        row.ev.choices[0].label.startsWith(eventText("event_TRADER_UPGRADES_EXCHANGE_c1_choice")),
+      );
       assert.equal(row.ev.choices[1].id, "c:improve-reactor-for-supplies:1");
     }
-    assert.equal(seenIntro.size, 2);
+    assert.equal(seenIntro.size, 1);
     assert.equal(seenBundle.size, 3);
   });
 
@@ -87,8 +90,10 @@ describe("Improve reactor for supplies", () => {
     assert.equal(g.player.parts, 0);
     assert.equal(g.fuel, 0);
     assert.equal(g.player.reactor, reactor + 1);
-    assert.match(g.event?.body ?? "", /try to improve your reactor/);
-    assert.match(g.event?.body ?? "", /reactor is upgraded/);
+    assert.ok(
+      (g.event?.body ?? "").includes(eventText("event_TRADER_UPGRADES_EXCHANGE_LIST_1_text")),
+    );
+    assert.match(g.event?.body ?? "", /\n\n.*Reactor \+1\./);
   });
 
   it("leaves the card up when a supply is short", () => {
@@ -137,7 +142,7 @@ describe("Improve reactor for supplies", () => {
     assert.equal(g.player.parts, 4);
     assert.equal(g.fuel, 6);
     assert.equal(g.player.reactor, reactor);
-    assert.match(g.event?.body ?? "", /need what supplies you have/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_TRADER_UPGRADES_EXCHANGE_c2_text")));
     choose(g, "ack");
     assert.equal(g.phase, "map");
   });

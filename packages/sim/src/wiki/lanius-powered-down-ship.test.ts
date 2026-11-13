@@ -5,6 +5,8 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { joinCrew } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -52,12 +54,8 @@ describe("Lanius powered-down ship", () => {
     // > "Fight a Lanius ship (default Lanius rewards)." — [[Lanius powered-down ship]]
     const g = createGame(1);
     open(g);
-    assert.equal(
-      g.event?.body,
-      "You have picked up a Lanius vessel drifting in this sector. There is no damage to the hull, and it appears to be powered down.",
-    );
-    const lead =
-      "As you scan the vessel, the scan frequencies awaken the Lanius from hibernation - and they're hungry for raw materials!";
+    assert.equal(g.event?.body, "Powered-down Lanius ship.");
+    const lead = eventText("event_LANIUS_DORMANT_EVENT_c1_text");
     choose(g, "c:lanius-powered-down-ship:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
@@ -74,13 +72,21 @@ describe("Lanius powered-down ship", () => {
       open(g);
       choose(g, "c:lanius-powered-down-ship:1");
       if (fightCard(g)) {
-        assert.match(g.event?.body ?? "", /does the same/);
-        assert.equal(/does the same/.test(g.log.join("\n")), false);
+        assert.match(
+          g.event?.body ?? "",
+          textRe("event_LANIUS_DORMANT_WEAPONS_1_text", "ship_JELLY_UNLOCK3_escape_text"),
+        );
+        assert.equal(
+          textRe("event_LANIUS_DORMANT_WEAPONS_1_text", "ship_JELLY_UNLOCK3_escape_text").test(
+            g.log.join("\n"),
+          ),
+          false,
+        );
         choose(g, "ship-resume");
         assertDefaultFight(g);
         seen.add("fight");
       } else {
-        assert.match(g.event?.body ?? "", /don't get a response/);
+        assert.match(g.event?.body ?? "", textRe("event_LANIUS_DORMANT_WEAPONS_2_text"));
         assert.deepEqual(
           g.event?.choices.map((c) => c.id),
           ["q:lanius-dormant:investigate", "q:lanius-dormant:destroy"],
@@ -102,8 +108,8 @@ describe("Lanius powered-down ship", () => {
     }
     assert.ok(g);
     choose(g, "q:lanius-dormant:destroy");
-    assert.match(g.event?.body ?? "", /hibernation/);
-    assert.equal(/hibernation/.test(g.log.join("\n")), false);
+    assert.match(g.event?.body ?? "", textRe("event_LANIUS_DORMANT_WEAPONS_2_c2_text"));
+    assert.equal(textRe("event_LANIUS_DORMANT_WEAPONS_2_c2_text").test(g.log.join("\n")), false);
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
     choose(g, "ship-resume");
     assertDefaultFight(g);
@@ -116,17 +122,17 @@ describe("Lanius powered-down ship", () => {
       open(g);
       const guns = g.player.weapons.length;
       choose(g, "c:lanius-powered-down-ship:2");
-      assert.match(g.event?.body ?? "", /dormant/);
+      assert.match(g.event?.body ?? "", textRe("event_LANIUS_DORMANT_INVESTIGATE_text"));
       choose(g, "q:lanius-dormant:navigate");
       if (fightCard(g)) {
-        assert.match(g.event?.body ?? "", /hungry for raw materials/);
-        assert.equal(/hungry for raw materials/.test(g.log.join("\n")), false);
+        assert.match(g.event?.body ?? "", textRe("event_LANIUS_DORMANT_PILOT_1_text"));
+        assert.equal(textRe("event_LANIUS_DORMANT_PILOT_1_text").test(g.log.join("\n")), false);
         choose(g, "ship-resume");
         assertDefaultFight(g);
         seen.add("fight");
       } else {
         const body = g.event?.body ?? "";
-        assert.match(body, /hull plating/);
+        assert.match(body, textRe("event_LANIUS_DORMANT_PILOT_2_text"));
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
         inBand(paid[0]!, 7, 10);
@@ -157,7 +163,7 @@ describe("Lanius powered-down ship", () => {
     assert.equal(choiceDisabled(low, "q:lanius-dormant:autopilot"), "Needs level 2 Piloting");
     choose(low, "q:lanius-dormant:plunder");
     assert.equal(low.scrap, 10);
-    assert.match(low.event?.body ?? "", /dormant/);
+    assert.match(low.event?.body ?? "", textRe("event_LANIUS_DORMANT_INVESTIGATE_text"));
 
     const dead = createGame(2);
     open(dead);
@@ -176,7 +182,7 @@ describe("Lanius powered-down ship", () => {
     assert.equal(choiceDisabled(plunder, "q:lanius-dormant:plunder"), null);
     choose(plunder, "q:lanius-dormant:plunder");
     const body = plunder.event?.body ?? "";
-    assert.match(body, /without waking/);
+    assert.match(body, textRe("event_LANIUS_DORMANT_INVESTIGATE_c2_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     inBand(paid[0]!, 7, 10);
@@ -191,7 +197,7 @@ describe("Lanius powered-down ship", () => {
     assert.equal(choiceDisabled(pilot, "q:lanius-dormant:autopilot"), null);
     choose(pilot, "q:lanius-dormant:autopilot");
     const haul = pilot.event?.body ?? "";
-    assert.match(haul, /excellent haul/);
+    assert.match(haul, textRe("event_LANIUS_DORMANT_INVESTIGATE_c4_text"));
     const high = scraps(haul);
     assert.equal(high.length, 1, haul);
     inBand(high[0]!, 12, 19);

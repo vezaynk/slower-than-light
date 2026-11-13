@@ -58,7 +58,7 @@ export const FLAK_ARTILLERY: WeaponDef = {
   radius: 35,
   spin: 720,
   droneTargetable: 1,
-  blurb: "Seven pellets from the artillery mount. Not sold.",
+  blurb: "Flak. Artillery system weapon. Not sold.",
 };
 
 export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
@@ -85,7 +85,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     spin: 720,
     droneTargetable: 1,
     blurb:
-      "Fires a blast of debris across a random area doing up to 3 damage. Good at taking down shields but hard to aim.",
+      "Flak. Projectiles land at random in the target room's area. Each shield layer stops one.",
   },
   {
     id: "SHOTGUN_2",
@@ -109,7 +109,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     spin: 720,
     droneTargetable: 1,
     blurb:
-      "Fires a blast of debris across a random area doing up to 7 damage. Good at taking down shields but hard to aim.",
+      "Flak. Projectiles land at random in the target room's area. Each shield layer stops one.",
   },
   {
     id: "CRYSTAL_BURST_1",
@@ -133,7 +133,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     // INFERRED: ammo false. The section lists no missile cost.
     ammo: false,
     price: 20,
-    blurb: "Modified projectile weapon that fires shield piercing crystals.",
+    blurb: "Crystal. Pierces 1 shield layer.",
   },
   {
     id: "CRYSTAL_BURST_2",
@@ -153,7 +153,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 20,
-    blurb: "Modified projectile weapon that fires shield piercing crystals.",
+    blurb: "Crystal. Pierces 1 shield layer.",
   },
   {
     id: "CRYSTAL_HEAVY_1",
@@ -174,7 +174,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     ammo: false,
     price: 20,
     stunChance: 0.2,
-    blurb: "Modified projectile weapon that fires shield piercing crystals.",
+    blurb: "Crystal. Pierces 1 shield layer.",
   },
   {
     id: "CRYSTAL_HEAVY_2",
@@ -194,7 +194,7 @@ export const FLAK_CRYSTAL_WEAPONS: WeaponDef[] = [
     breach: 1,
     ammo: false,
     price: 20,
-    blurb: "Modified projectile weapon that fires shield piercing crystals.",
+    blurb: "Crystal. Pierces 1 shield layer.",
   },
 ];
 

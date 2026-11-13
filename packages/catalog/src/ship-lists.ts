@@ -113,10 +113,8 @@ const FIGHTS: [string[], string, string][] = [
   [["Mantis Fighter"], "MANTIS_FIGHTER_SHIP", "MANTIS_FIGHTER"],
 ];
 
-const AUTO_GOTAWAY =
-  "The scout jumps away. It will certainly have informed the fleet of your position. You must get to the next sector as soon as possible!";
-const REBEL_GOTAWAY =
-  "The scout jumps away. They are sure to have informed the fleet of your position. You must get to the next Sector as soon as possible!";
+const AUTO_GOTAWAY = "The scout escapes.";
+const REBEL_GOTAWAY = "The scout escapes.";
 
 function gotawayPage(id: string, body: string): EventDef {
   return { id: `${id}:gotaway`, dest: id, flag: id, aliases: [], sectors: [], body, choices: [] };

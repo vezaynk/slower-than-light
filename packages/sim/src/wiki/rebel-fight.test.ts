@@ -5,16 +5,16 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  `Your ship is hailed. "We've found you at last. Prepare to die!"`,
-  "A small Rebel ship is docked at a small station. You try to lay low but it spots you. Power up the weapons!",
-  "A Rebel ship has been patrolling this region. As soon as you arrive it begins its assault.",
-  `A Rebel ship hails you: "Federation scum! We've waited a long time for this!"`,
-  `You receive a transmission: "Sorry sir, this is nothing personal but we're under orders." The Rebel ship's weapons go hot.`,
-  "By the time you notice the Rebel ship behind the beacon, it's too late to avoid a fight.",
-  `A Rebel ship hails. "We did not fight a war to let a single Federation ship shatter our dreams of a better galaxy!" He locks weapons.`,
-  `A Rebel ship approaches cautiously. "Personally," says the captain, "I'd have stuck with the Federation. But I'm a soldier, sir, and I'm no use without a war to fight. Raise your shields!"`,
-  `You're hailed by a Rebel ship: "When the rebellion is complete you'll see the safer world we provide. Well, you won't, but you get the point." They arm weapons.`,
-  "A Rebel ship is guarding this beacon. You order a pursuit course and prepare to scratch up one more.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
+  "Hostile Rebel ship.",
 ];
 
 function open(g: Game) {
@@ -44,7 +44,7 @@ describe("Rebel fight", () => {
     // > "A Rebel ship is guarding this beacon. You order a pursuit course and prepare to scratch up one more." — [[Rebel fight]]
     // > "Fight a Rebel ship (default rewards)." — [[Rebel fight]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 80 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -52,7 +52,7 @@ describe("Rebel fight", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-fight:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);

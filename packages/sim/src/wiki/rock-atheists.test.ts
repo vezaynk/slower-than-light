@@ -4,6 +4,7 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -63,11 +64,11 @@ describe("Rock atheists", () => {
       assert.equal(g.scrap, 10);
       if (rocks(g) === before + 1) {
         joined += 1;
-        assert.match(g.event?.body ?? "", /take a bunk/);
+        assert.match(g.event?.body ?? "", /Gain 1 Rock crew/);
         assert.match(g.event?.body ?? "", /crewmember joins you/);
       } else {
         refused += 1;
-        assert.match(g.event?.body ?? "", /shut the channel/);
+        assert.match(g.event?.body ?? "", /jumps away/);
         assert.equal(rocks(g), before);
       }
     }
@@ -89,7 +90,7 @@ describe("Rock atheists", () => {
     const before = rocks(g);
     choose(g, "c:rock-atheists:2");
     assert.equal(rocks(g), before + 1);
-    assert.match(g.event?.body ?? "", /logs convince them/);
+    assert.match(g.event?.body ?? "", /Gain 1 Rock crew/);
     assert.match(g.event?.body ?? "", /crewmember joins you/);
     assert.equal(g.phase, "event");
   });

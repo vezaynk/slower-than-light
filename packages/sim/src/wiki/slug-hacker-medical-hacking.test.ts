@@ -12,9 +12,9 @@ import {
 } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const LEAD =
-  "You are able to undo the damage of their remote hacking satellite but it's taking everything your hacking system has. Time to take out the enemy the old fashioned way.";
+const LEAD = eventText("event_NEBULA_SLUG_MEDBAY_c3_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -47,7 +47,9 @@ describe("Slug hacker (medical) hacking", () => {
     open(g);
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === "c:slug-hacker-medical:1" && c.label === "Counter the remote hacking.",
+        (c) =>
+          c.id === "c:slug-hacker-medical:1" &&
+          c.label === "Fight. Hacking offline; medbay keeps power.",
       ),
     );
     assert.equal(choiceDisabled(g, "c:slug-hacker-medical:1"), "Needs a Hacking system");

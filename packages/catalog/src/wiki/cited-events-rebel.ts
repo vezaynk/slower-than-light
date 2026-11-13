@@ -40,7 +40,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Fight a Rebel ship." — [[Rebel fight among Rebel fleet]]
         // > "no surrender offers, no escape attempts" — [[Rebel fight among Rebel fleet]]
-        label: "Fight a Rebel ship",
+        label: "Fight the Rebel ship.",
         // Destroyed: low scrap. Crew killed: medium scrap with resources. Those results run in quests.ts.
         fx: [
           {
@@ -65,7 +65,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         id: "c:rebel-fight-with-boarders:0",
         // Wiki citations:
         // > "2-3 human boarders beam aboard your ship, and you fight a Rebel ship (default rewards)." — [[Rebel fight with boarders]]
-        label: "Fight a Rebel ship",
+        label: "Fight the Rebel ship. 2-3 Human boarders.",
         fx: [
           {
             k: "fight",

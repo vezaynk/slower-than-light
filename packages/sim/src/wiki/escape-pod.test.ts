@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -31,7 +32,7 @@ describe("Escape pod", () => {
     const crew = g.crew.map((c) => c.name);
     open(g);
     fillerChoose(g, "c:escape-pod:0");
-    assert.match(g.event?.body ?? "", /airlock/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_MANTIS_CREW_c1_text")));
     assert.equal(g.scrap, 10);
     assert.deepEqual(
       g.crew.map((c) => c.name),
@@ -49,16 +50,15 @@ describe("Escape pod", () => {
     // > "The Mantis inside considers you a messenger from the god of mercy and demands to join your crew." — [[Escape pod]]
     // > "A man bursts out of the life-pod screaming and claws his way into a corner. A rare survivor of Mantis captivity. Once calm, the survivor offers to join your crew for a time." — [[Escape pod]]
     let boarded = false;
-    let mantis = false;
-    let human = false;
-    for (let seed = 1; seed <= 80 && (!boarded || !mantis || !human); seed++) {
+    // The Mantis and the human results print the same functional line and change nothing: one quiet branch.
+    let quiet = false;
+    for (let seed = 1; seed <= 80 && (!boarded || !quiet); seed++) {
       const g = createGame(seed);
       const crew = players(g);
       const names = g.crew.map((c) => c.name);
       open(g);
       fillerChoose(g, "c:escape-pod:1");
-      const furious =
-        "The Mantis inside is FURIOUS. He cuts the closest person in half with a single swipe. Kill it before anyone else is hurt.";
+      const furious = eventText("event_MANTIS_CREW_LIST_1_text");
       const mantisAboard = g.crew.some((c) => c.side === "enemy" && c.kin === "mantis");
       const boardedCard =
         mantisAboard &&
@@ -68,22 +68,19 @@ describe("Escape pod", () => {
         boarded = true;
         assert.ok(g.event?.body.includes(furious));
         assert.equal(g.log.includes(furious), false);
-        assert.match(g.event?.body ?? "", /is lost/);
+        assert.match(g.event?.body ?? "", /Crew lost: /);
         assert.equal(g.crew.filter((c) => c.side === "enemy" && c.kin === "mantis").length, 1);
         assert.equal(players(g), crew - 1);
         if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
         assert.equal(g.crew.filter((c) => c.side === "enemy" && c.kin === "mantis").length, 1);
-      } else if (/god of mercy/.test(g.event?.body ?? "")) {
-        mantis = true;
-        assert.equal(players(g), crew);
-        assert.deepEqual(
-          g.crew.map((c) => c.name),
-          names,
-        );
       } else {
-        human = true;
-        assert.match(g.event?.body ?? "", /Mantis captivity/);
+        quiet = true;
+        const body = g.event?.body ?? "";
+        assert.ok(
+          body.includes(eventText("event_MANTIS_CREW_LIST_2_text")) ||
+            body.includes(eventText("event_MANTIS_CREW_LIST_3_text")),
+        );
         assert.equal(players(g), crew);
         assert.deepEqual(
           g.crew.map((c) => c.name),
@@ -91,7 +88,7 @@ describe("Escape pod", () => {
         );
       }
     }
-    assert.equal(boarded && mantis && human, true);
+    assert.equal(boarded && quiet, true);
   });
 
   it("a clone bay revives the crewmember the Mantis kills", () => {

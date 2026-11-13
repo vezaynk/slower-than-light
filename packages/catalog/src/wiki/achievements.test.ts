@@ -22,7 +22,9 @@ describe("achievements", () => {
       assert.ok(SOURCES.has(row.source), row.id);
       // ftl.dat's ids; the slug is what earned achievements were saved under before.
       assert.match(row.id, /^ACH_[A-Z0-9_]+$/, row.id);
-      assert.equal(row.slug, kebab(row.name), row.name);
+      // The slug keeps the old save key in kebab form. The name is the stand-in's functional label.
+      assert.equal(row.slug, kebab(row.slug), row.slug);
+      assert.ok(row.name.trim().length > 0, row.id);
       if (row.source === "Achievements") assert.equal(row.ship, undefined, row.id);
       else assert.match(row.ship ?? "", /^PLAYER_SHIP_[A-Z]+$/, row.id);
     }

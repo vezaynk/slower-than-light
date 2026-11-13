@@ -22,6 +22,11 @@ const TITLES = [
   "Zoltan research facility",
 ] as const;
 
+/** A row's dest is its wiki page title, and its slug is that title's slug. */
+function titleOf(ev: { slug: string }): string {
+  return (TITLES as readonly string[]).find((t) => slug(t) === ev.slug) ?? ev.slug;
+}
+
 const SHIPS = new Set([
   "Auto-ship",
   "Pirate ship",
@@ -101,7 +106,7 @@ describe("cited Engi leftover events", () => {
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds." — [[Confused Mantis]]
     // > "This random event occurs in Engi Controlled Sector, Engi Homeworlds, Mantis Controlled Sector, Mantis Homeworlds." — [[Mantis fugitive]]
     assert.deepEqual(
-      EXTRA_EVENTS.map((ev) => ev.dest),
+      EXTRA_EVENTS.map((ev) => titleOf(ev)),
       [
         "Mantis fight (Engi)",
         "Mantis fight choice",
@@ -113,24 +118,25 @@ describe("cited Engi leftover events", () => {
       ],
     );
     for (const ev of EXTRA_EVENTS) {
-      assert.ok((TITLES as readonly string[]).includes(ev.dest));
-      const page = pages.get(ev.dest);
-      assert.ok(page, ev.dest);
+      assert.ok((TITLES as readonly string[]).includes(titleOf(ev)));
+      const page = pages.get(titleOf(ev));
+      assert.ok(page, titleOf(ev));
       const names = locationNames(page);
       assert.deepEqual(ev.sectors, names);
       for (const sector of ev.sectors) assert.ok(names.includes(sector), sector);
-      assert.equal(ev.slug, slug(ev.dest));
+      assert.equal(slug(titleOf(ev)), ev.slug);
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.aliases.includes(ev.dest));
       assert.ok(ev.body.length <= 240);
       const plain = normalizeWiki(page);
-      if (ev.body) assert.ok(plain.includes(ev.body), ev.body);
+      // The stand-in's opening is functional text, never the page's sentence.
+      if (ev.body.length >= 40) assert.ok(!plain.includes(ev.body), ev.body);
       assert.ok(ev.choices.length >= 1);
       ev.choices.forEach((choice, i) => {
         assert.equal(choice.id, `c:${ev.slug}:${i}`);
         assert.equal(choice.fx.length, 1);
         for (const n of fxNumbers(choice.fx)) {
-          assert.ok(new RegExp(`(?<!\\d)${n}(?!\\d)`).test(page), `${ev.dest} ${n}`);
+          assert.ok(new RegExp(`(?<!\\d)${n}(?!\\d)`).test(page), `${titleOf(ev)} ${n}`);
         }
         const step = choice.fx[0];
         if (step.k === "fight") {
@@ -138,7 +144,7 @@ describe("cited Engi leftover events", () => {
           assert.ok(page.toLowerCase().includes(step.tier.toLowerCase()));
         }
       });
-      if (ev.dest !== "Confused Mantis")
+      if (titleOf(ev) !== "Confused Mantis")
         assert.ok(ev.choices.some((choice) => choice.fx.some((step) => step.k === "fight")));
     }
   });

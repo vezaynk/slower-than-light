@@ -65,8 +65,7 @@ describe("Rebel fight in plasma storm", () => {
 
   it("starts the Rebel ship on arrival from the intro card", () => {
     // The page has no choice. The printed sentence, then "Fight a Rebel ship." plasmastorm=true. unique=true.
-    const BODY =
-      "You arrive in the middle of a plasma storm. Despite the harsh conditions, a Rebel scout seems to be waiting for you.";
+    const BODY = "Hostile Rebel ship. Plasma storm.";
     const g = createGame(1);
     const here = g.beacons.find((b) => b.id === g.here);
     assert.ok(here?.links[0]);

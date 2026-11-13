@@ -136,7 +136,7 @@ export const DRONE_GUNS: readonly {
     kind: "laser",
     damage: 1,
     fire: 0.1,
-    blurb: "A combat drone's bolt.",
+    blurb: "Laser fired by combat drones.",
   },
   {
     id: "DRONE_BEAM",
@@ -144,7 +144,7 @@ export const DRONE_GUNS: readonly {
     kind: "beam",
     damage: 1,
     fire: 0.1,
-    blurb: "A beam drone's swipe.",
+    blurb: "Beam fired by beam drones.",
   },
   {
     id: "DRONE_BEAM2",
@@ -152,7 +152,7 @@ export const DRONE_GUNS: readonly {
     kind: "beam",
     damage: 1,
     fire: 0.1,
-    blurb: "A longer beam drone swipe.",
+    blurb: "Beam fired by beam drones. Longer sweep.",
   },
 ];
 

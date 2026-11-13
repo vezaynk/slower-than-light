@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { fillerEvent } from "./filler-events.ts";
+import { eventText } from "../event-text.ts";
 
 function beacon(): Beacon {
   return {
@@ -41,10 +42,7 @@ describe("Intelligent ponies", () => {
     const fuel = g.fuel;
     const crew = g.crew.filter((c) => c.side === "player").length;
     choose(g, "c:intelligent-ponies:1");
-    assert.equal(
-      g.event?.body,
-      "You ignore the readings and prepare to move on.\n\nNothing happens.",
-    );
+    assert.equal(g.event?.body, eventText("event_DONOR_PONY_c2_text"));
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.fuel, fuel);

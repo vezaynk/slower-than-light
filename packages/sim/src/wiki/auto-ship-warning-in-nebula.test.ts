@@ -4,6 +4,7 @@ import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -34,10 +35,7 @@ describe("Auto-ship warning in nebula", () => {
     // > "Fight an Auto-ship that is running away." — [[Auto-ship warning in nebula]]
     const g = createGame(1);
     open(g);
-    assert.equal(
-      g.event?.body,
-      "It appears that an automated Rebel scout was positioned within the nebula to warn of your passing.",
-    );
+    assert.equal(g.event?.body, "Fleeing Auto-ship. Nebula.");
     assert.equal(
       g.event?.choices.some((c) => c.id === "c:auto-ship-warning-in-nebula:0"),
       true,
@@ -64,7 +62,14 @@ describe("Auto-ship warning in nebula", () => {
     const parts = destroyed.player.parts;
     assert.equal(pageWin(destroyed, "auto-ship-warning-in-nebula", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /one step ahead of the fleet/);
+    assert.match(
+      body,
+      textRe(
+        "ship_REBEL_AUTO_WARNING_destroyed_text",
+        "ship_SQUAT_WARNING_deadCrew_text",
+        "ship_SQUAT_WARNING_destroyed_text",
+      ),
+    );
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -104,8 +109,7 @@ describe("Auto-ship warning in nebula", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    const body =
-      "It appears that an automated Rebel scout was positioned within the nebula to warn of your passing.";
+    const body = "Fleeing Auto-ship. Nebula.";
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, body);
     assert.equal(g.log.includes(body), false);

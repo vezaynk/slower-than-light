@@ -4,6 +4,7 @@ import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -41,10 +42,7 @@ describe("Crystal fight with surrender offer (hull repairs) reward", () => {
       true,
     );
     const body = destroyed.event?.body ?? "";
-    assert.match(
-      body,
-      /The Crystalline ship shatters and you pick what you can from the debris\. The rest of the convoy used the time to put a significant amount of distance between you and them\. Nothing left to do but jump\./,
-    );
+    assert.match(body, textRe("ship_CRYSTAL_CONVOY_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -63,10 +61,7 @@ describe("Crystal fight with surrender offer (hull repairs) reward", () => {
     const killedHull = killed.player.hull;
     assert.equal(pageWin(killed, "crystal-fight-with-surrender-offer-hull-repairs", true), true);
     const killedBody = killed.event?.body ?? "";
-    assert.match(
-      killedBody,
-      /The crew of the enemy ship has been eliminated\. You scrap what you can\. The rest of the convoy used the time to put a significant amount of distance between you and them\. Nothing left to do but jump\./,
-    );
+    assert.match(killedBody, textRe("ship_CRYSTAL_CONVOY_deadCrew_text"));
     const medium = scraps(killedBody);
     assert.equal(medium.length, 1, killedBody);
     assert.ok(medium[0]! >= 12 && medium[0]! <= 19, killedBody);

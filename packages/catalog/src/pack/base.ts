@@ -10,7 +10,9 @@ import { STORE_RARITY } from "../wiki/store-rarity.ts";
 import {
   crewPowers,
   droneDetail,
+  hullDetail,
   shortLabel,
+  type HullNames,
   weaponDetail,
   weaponFlavor,
 } from "../extras/blueprint-copy.ts";
@@ -172,7 +174,7 @@ function droneRow(row: (typeof CITED_DRONES)[number] & { image?: string }): Dron
   const gun = DRONE_GUN_OF[row.ref];
   if (gun) drone.weapon = gun;
   drone.short = shortLabel(row.name);
-  const detail = droneDetail(row.type, row.power);
+  const detail = droneDetail(row.type, row.power, row.target);
   if (detail) drone.detail = detail;
   return drone;
 }
@@ -603,13 +605,30 @@ function copyOffer(row: OfferRow): OfferRow {
   };
 }
 
+/**
+ * Names the hull summary prints. A `_PLAYER` schematic reads its base row's name. An artillery gun with no
+ * weapon row prints "Artillery". Any other unknown id prints as itself.
+ */
+const HULL_NAMES: HullNames = {
+  weapon: (id) => WEAPONS[id]?.name ?? (id.startsWith("ARTILLERY") ? "Artillery" : id),
+  drone: (id) => {
+    const rows = [...CITED_DRONES, ...BOSS_DRONES];
+    const base = id.replace(/_PLAYER$/, "");
+    return (rows.find((row) => row.ref === id) ?? rows.find((row) => row.ref === base))?.name ?? id;
+  },
+  augment: (id) => CATALOG.find((row) => row.id === id)?.name ?? id,
+  kin: (id) => (KIN as Record<string, { name: string } | undefined>)[id]?.name ?? id,
+  kit: (id) =>
+    id === "drones" ? "Drone Control" : (CITED_SYSTEMS.find((row) => row.ref === id)?.name ?? id),
+};
+
 function hullRow(spec: HullSpec): HullDef {
   const row: HullDef = {
     id: spec.id,
     cruiser: spec.cruiser,
     layout: LAYOUT_FILE[spec.id] ?? spec.layout,
     name: spec.name,
-    quote: spec.quote,
+    quote: hullDetail(spec, HULL_NAMES),
     unlock: spec.unlock,
     weaponSlots: spec.weaponSlots,
     droneSlots: spec.droneSlots,
@@ -1216,7 +1235,7 @@ const STORE_PAGE: EventDef = {
   flag: "STORE",
   aliases: [],
   sectors: [],
-  body: "A trading post hangs at this beacon, open for business.",
+  body: "Store.",
   choices: [],
   store: true,
 };
@@ -1231,15 +1250,15 @@ const REBEL_TRADE: EventDef = {
   flag: "STORE_REBELSIDE",
   aliases: [],
   sectors: [],
-  body: 'You come across a large trade station. However, as soon as you approach a warning goes out to all ships in the region: "Do not associate with the Federation sympathizer. All who oppose the Rebels will be punished."',
+  body: "Store: closed.",
   choices: [
     {
       id: "c:large-trade-station:1",
-      label: "Leave.",
+      label: "Nothing happens.",
       fx: [
         {
           k: "note",
-          text: "You decide it's better not to push your luck and move on.",
+          text: "Nothing happens.",
         },
       ],
     },
@@ -1306,26 +1325,22 @@ function campaignEvents(): EventDef[] {
   return named;
 }
 
-const ROCK_LIES =
-  "They shout that this is the same tale they left behind, and the skiff's guns start to charge.";
-const ROCK_TRAITORS =
-  "They call you another keeper of the official story. The skiff turns hostile.";
-const ROCK_JOIN = "They take a bunk for the time being.";
-const ROCK_REFUSE =
-  "They nearly accept, then shut the channel and jump. They will not be talked into another creed.";
-const ROCK_SENSORS = "The logs convince them. They come aboard until they can stand on their own.";
+const ROCK_LIES = "The Rock ship turns hostile. Fight.";
+const ROCK_TRAITORS = "The Rock ship turns hostile. Fight.";
+const ROCK_JOIN = "Gain 1 Rock crew.";
+const ROCK_REFUSE = "The Rock ship jumps away. Nothing happens.";
+const ROCK_SENSORS = "Gain 1 Rock crew.";
 
 /** ftl.dat's ROCK_ATHIEST: a quiet Rock ship, three hidden choices, and the promise list. */
 function shapeRockAtheist(events: EventDef[]): void {
   const event = events.find((row) => row.id === "ROCK_ATHIEST");
   if (!event) return;
-  event.body =
-    "A Rock skiff with a weak drive hails you. Its pilot says the homeworld rules by stories that do not survive a second look, and they will not go back.";
+  event.body = "Neutral Rock ship. It may join your crew.";
   event.ship = { hostile: false, load: "ROCK_SHIP" };
   event.choices = [
     stampedChoice({
       id: "c:rock-atheists:0",
-      label: "Claim their god sent them to sign on.",
+      label: "Fight the Rock ship.",
       hidden: true,
       fx: [],
       textLoad: "ROCK_ATHIEST_BAD",
@@ -1333,13 +1348,13 @@ function shapeRockAtheist(events: EventDef[]): void {
     }),
     stampedChoice({
       id: "c:rock-atheists:1",
-      label: "Offer the account their teachers left out.",
+      label: "1 in 3: gain 1 Rock crew. 2 in 3: nothing happens.",
       hidden: true,
       fx: [{ k: "goto", id: "ROCK_ATHIEST_GOOD" }],
     }),
     stampedChoice({
       id: "c:rock-atheists:2",
-      label: "Let them read the sensor archive.",
+      label: "Gain 1 Rock crew.",
       hidden: true,
       fx: [{ k: "note", text: ROCK_SENSORS }],
       grants: [{ kind: "crew", id: "rock", amount: 1 }],
@@ -1457,7 +1472,7 @@ const START_PAGE: EventDef = {
   flag: "START_BEACON",
   aliases: [],
   sectors: [],
-  body: "The jump drive spins down. Fresh sensor returns trickle in from the beacons ahead.",
+  body: "Start beacon.",
   choices: [],
 };
 
@@ -1471,11 +1486,11 @@ const FINISH_PAGE: EventDef = {
   flag: "FINISH_BEACON",
   aliases: [],
   sectors: [],
-  body: "A long-range relay marks the way out of this sector. Charge the drive to jump onward.",
+  body: "Sector exit. Jump to the next sector.",
   choices: [
     {
       id: "continue",
-      label: "Continue...",
+      label: "Continue.",
       hidden: true,
       fx: [{ k: "goto", id: "EXIT_LIST" }],
     },
@@ -1489,7 +1504,7 @@ const FINISH_NEBULA_PAGE: EventDef = {
   flag: "FINISH_BEACON_NEBULA",
   aliases: [],
   sectors: [],
-  body: "The long-range relay is buried in nebula haze, but its signal holds. Charge the drive to jump onward.",
+  body: "Sector exit. Nebula. Jump to the next sector.",
   choices: [],
 };
 
@@ -1521,30 +1536,30 @@ function fuelNothing(id: string, dest: string, lines: readonly string[]): EventD
 }
 
 const FUEL_NOTHING = fuelNothing("FUEL_NOTHING", "No fuel: wait fail (distress off)", [
-  "No ship is in scanning range and no one arrives at the beacon.",
-  "Your waiting yields nothing while the fleet surely gets closer...",
-  "A freighter suddenly arrives nearby. They are so close you can almost wave at them, but your hails are ignored and the ship quickly jumps away.",
-  "Small traffic passes within a short distance of you, but no one responds to your hails.",
-  "The only ship within hailing range appears to be a civilian vessel. However, it quickly leaves once it picks up your signal.",
-  "As you wait, a small asteroid storm pelts softly against your shields and hull.",
-  "You begin to wonder if turning on the beacon would be worth the risk of detection. The fleet slowly approaches.",
-  "You contemplate the vastness of space.",
-  "The prolonged wait in empty space is causing tension among the crew. Still no contact.",
-  "Cabin fever begins to spread among your crew.",
-  "Long range scanners detect a small settlement, but they refuse all contact.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
+  "Nothing happens.",
 ]);
 
 const FUEL_NOTHING_DISTRESS = fuelNothing(
   "FUEL_NOTHING_DISTRESS",
   "No fuel: wait fail (distress on)",
   [
-    "You contemplate that it is fortunate the ship's life support system does not rely on FTL fuel cells.",
-    "Nothing happens. Your calls go unanswered.",
-    "The distress beacon's light is the only movement visible outside the ship.",
-    "No ships jump into the sector...",
-    "A few passing ships seem oblivious to your distress call and ignore all hails.",
-    "A few civilian ships are within scanning range, yet none respond to your calls.",
-    "No ships pass through the area.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
+    "Nothing happens.",
   ],
 );
 

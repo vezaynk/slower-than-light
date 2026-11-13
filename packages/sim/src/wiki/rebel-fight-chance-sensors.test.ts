@@ -1,11 +1,12 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerEvent } from "./filler-events.ts";
 
-const LEAD = "You quickly find the rebel ship's location and move to intercept.";
+const LEAD = eventText("event_ROGUE_REBEL_c3_text");
 const SCAN = "c:rebel-fight-chance:2";
 
 function open(g: Game) {
@@ -29,9 +30,7 @@ describe("Rebel fight chance Improved Sensors", () => {
     const g = createGame(1);
     g.player.systems.sensors.level = 1;
     open(g);
-    assert.ok(
-      g.event?.choices.some((c) => c.id === SCAN && c.label === "Perform a scan of the area."),
-    );
+    assert.ok(g.event?.choices.some((c) => c.id === SCAN && c.label === "Fight the Rebel ship."));
     assert.equal(choiceDisabled(g, SCAN), "Needs Sensors level 2");
     choose(g, SCAN);
     assert.equal(g.phase, "event");

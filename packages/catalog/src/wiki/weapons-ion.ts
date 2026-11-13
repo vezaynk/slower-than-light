@@ -30,7 +30,7 @@ export const ION_WEAPONS: WeaponDef[] = [
     ammo: false,
     price: 50,
     chargeLevels: 3,
-    blurb: "This ion weapon can charge multiple times, giving it additional projectiles.",
+    blurb: "Ion. Stores charges, then fires them all in one volley.",
   },
   {
     id: "ION_CHAINGUN",
@@ -53,7 +53,7 @@ export const ION_WEAPONS: WeaponDef[] = [
     ammo: false,
     price: 55,
     boost: { type: "damage", amount: 1, count: 3 },
-    blurb: "This weapon's Ion damage increases each time it fires to a max of 4.",
+    blurb: "Ion. Ion damage rises by 1 after each volley, up to 4.",
   },
   {
     id: "ARTILLERY_BOSS_4",
@@ -76,7 +76,7 @@ export const ION_WEAPONS: WeaponDef[] = [
     breach: 0,
     ammo: false,
     price: 0,
-    blurb: "Flagship artillery. Three shots of one ion. Not sold.",
+    blurb: "Ion. Boss weapon. Not sold.",
   },
 ];
 

@@ -4,6 +4,8 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -97,7 +99,7 @@ describe("Auto-ship near storage station in nebula", () => {
         g.enemy != null && (g.phase === "combat" || g.event?.choices[0]?.id === "ship-resume");
       if (attack) {
         fight = true;
-        const lead = "You try to sneak past the automated ship but it quickly turns and attacks!";
+        const lead = eventText("event_NEBULA_AUTO_DEFENSE_ITEM_CLOAK_2_text");
         assert.ok(g.event?.body.includes(lead) || g.phase === "combat");
         if (g.phase === "event") {
           assert.equal(g.event?.body, lead);
@@ -188,8 +190,7 @@ describe("Auto-ship near storage station in nebula", () => {
         g.enemy != null && (g.phase === "combat" || g.event?.choices[0]?.id === "ship-resume");
       if (attack) {
         fight = true;
-        const lead =
-          "You send a drone to hack the station but the automated ship notices and turns to attack!";
+        const lead = eventText("event_NEBULA_AUTO_DEFENSE_ITEM_HACK_2_text");
         assert.ok((g.event?.body ?? "").includes(lead));
         assert.ok((g.event?.body ?? "").includes("Drone parts: -1."));
         assert.equal(g.log.includes(lead), false);
@@ -197,7 +198,13 @@ describe("Auto-ship near storage station in nebula", () => {
         assert.equal(g.fightEvent, "auto-ship-near-storage-station-in-nebula");
       } else {
         station = true;
-        assert.match(g.event?.body ?? "", /sever the connection/);
+        assert.match(
+          g.event?.body ?? "",
+          textRe(
+            "event_NEBULA_AUTO_DEFENSE_ITEM_HACK_1_text",
+            "event_NEBULA_AUTO_DEFENSE_ITEM_c6_text",
+          ),
+        );
       }
     }
     assert.equal(fight && station, true);
@@ -219,7 +226,7 @@ describe("Auto-ship near storage station in nebula", () => {
     choose(improved, "c:auto-ship-near-storage-station-in-nebula:5");
     assert.equal(improved.player.parts, 2);
     assert.equal(improved.phase, "event");
-    assert.match(improved.event?.body ?? "", /completely undetected/);
+    assert.match(improved.event?.body ?? "", textRe("event_NEBULA_AUTO_DEFENSE_ITEM_c6_text"));
     assert.equal(improved.scrap, 10);
     assert.equal(improved.player.weapons.length, guns);
   });

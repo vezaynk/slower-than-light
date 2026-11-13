@@ -40,7 +40,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         id: "c:crystal-fight:0",
         // Wiki citations:
         // > "Fight a Crystal ship (default rewards)." — [[Crystal fight]]
-        label: "Fight a Crystal ship (default rewards)",
+        label: "Fight the Crystal ship.",
         fx: [
           // Fight a [[Crystal Ships|Crystal ship]]
           { k: "fight", tier: "Crystal ship" },
@@ -58,14 +58,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:crystal-fight-choice",
     aliases: ["Crystal fight choice"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "You're greeted by an unwelcome sight - a Rebel advance ship is laying down fire on a Crystalline vessel in the distance.",
+    body: "Rebel ship attacking a Crystal ship.",
     choices: [
       {
         id: "c:crystal-fight-choice:0",
         // Wiki citations:
         // > "Engage the Rebel ship." — [[Crystal fight choice]]
         // > "Fight a Crystal ship (default rewards)." — [[Crystal fight choice]]
-        label: "Engage the Rebel ship",
+        label: "Fight the Rebel ship.",
         fx: [
           // Fight a [[Crystal Ships|Crystal ship]]
           { k: "fight", tier: "Crystal ship" },
@@ -76,7 +76,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Leave them alone." — [[Crystal fight choice]]
         // > "Nothing happens." — [[Crystal fight choice]]
-        label: "Leave them alone",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -90,14 +90,14 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:pirate-ship-attacking-crystal",
     aliases: ["Pirate ship attacking Crystal"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "A pirate ship jumps in right after you arrive at the beacon. It must have followed once the Long-Range Beacon was reactivated. It almost charges a small Crystalline transport ship, weapons armed.",
+    body: "Pirate ship attacking a Crystal ship.",
     choices: [
       {
         id: "c:pirate-ship-attacking-crystal:0",
         // Wiki citations:
         // > "Attack the pirate." — [[Pirate ship attacking Crystal]]
         // > "Fight a Pirate ship." — [[Pirate ship attacking Crystal]]
-        label: "Attack the pirate",
+        label: "Fight the pirate ship.",
         fx: [
           // Fight a [[Enemy Ships|Pirate ship]]
           { k: "fight", tier: "Pirate ship" },
@@ -108,7 +108,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         // Wiki citations:
         // > "Ignore them." — [[Pirate ship attacking Crystal]]
         // > "Nothing happens." — [[Pirate ship attacking Crystal]]
-        label: "Ignore them",
+        label: "Nothing happens.",
         fx: [{ k: "nothing" }],
       },
     ],
@@ -122,13 +122,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:rebel-fight-crystal",
     aliases: ["Rebel fight (Crystal)"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "As soon as you arrive, a Rebel ship jumps in after you; they must be really hot on your tail.",
+    body: "Hostile Rebel ship.",
     choices: [
       {
         id: "c:rebel-fight-crystal:0",
         // Wiki citations:
         // > "Fight a Rebel ship (default rewards)." — [[Rebel fight (Crystal)]]
-        label: "Fight a Rebel ship (default rewards)",
+        label: "Fight the Rebel ship.",
         fx: [
           // Fight a [[Rebel Ships|Rebel ship]] ([[Rewards#Default_rewards|default rewards]]).
           { k: "fight", tier: "Rebel ship" },
@@ -144,13 +144,13 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:boarders-crystal",
     aliases: ["Boarders: Crystal"],
     sectors: ["Hidden Crystal Worlds"],
-    body: "You arrive near a small settlement and a lone guard ship moves to intercept you. You try to contact them but they are refusing all hails. Suddenly you hear lasers ricocheting from within the ship. You've been boarded!",
+    body: "2-3 Crystal boarders.",
     choices: [
       {
         id: "c:boarders-crystal:0",
         // Wiki citations:
         // > "2-3 crystal boarders beam aboard your ship." — [[Boarders: Crystal]]
-        label: "2-3 crystal boarders beam aboard your ship.",
+        label: "2-3 Crystal boarders.",
         fx: [{ k: "nothing" }],
       },
     ],

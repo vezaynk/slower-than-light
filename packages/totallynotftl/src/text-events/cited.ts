@@ -43,9 +43,11 @@ export const TEXT: Record<string, string> = {
   event_ZOLTAN_ODD_MOON_EXPLOSION_3_text: "Gain a weapon and random scrap.",
 
   // Lanius trader (LANIUS_TRADER) and Lanius trader with translator. The body states the offer.
-  event_LANIUS_TRADER_c1_choice: "Make the trade shown.",
+  event_LANIUS_TRADER_c1_choice:
+    "1 in 3 each: lose 3-7 fuel, gain 15-30 scrap; lose 3-7 missiles, gain 20-40 scrap; lose 3-7 drone parts, gain 20-40 scrap.",
   event_LANIUS_TRADER_c2_choice: "Nothing happens.",
-  event_LANIUS_TRADER_c3_choice: "Get a second offer: 3-7 fuel, missiles, or drone parts for 20-50 scrap.",
+  event_LANIUS_TRADER_c3_choice:
+    "Get a second offer: 3-7 fuel, missiles, or drone parts for 20-50 scrap.",
   event_LANIUS_TRADER_TRANSLATOR_text: "Trade offer: one resource for scrap.",
   event_LANIUS_TRADER_TRANSLATOR_c1_choice: "Make the trade shown.",
   event_LANIUS_TRADER_TRANSLATOR_c2_choice: "Nothing happens.",
@@ -76,7 +78,8 @@ export const TEXT: Record<string, string> = {
   event_ESCORT_BEACON_c3_choice: "Gain a high reward.",
   event_SLUG_DRINK_c1_choice: "1 in 2: repair 10 hull and open a store. 1 in 2: lose 25-35 scrap.",
   event_SLUG_DRINK_c2_text: "Fight the Slug ship.",
-  event_SLUG_DRINK_c3_choice: "1 in 2: repair 10 hull and open a store. 1 in 2: fight the Slug ship.",
+  event_SLUG_DRINK_c3_choice:
+    "1 in 2: repair 10 hull and open a store. 1 in 2: fight the Slug ship.",
   event_NEBULA_ROCK_RACIST_c3_choice: "Gain a high reward.",
   event_BROKEN_REBEL_DRONE_c1_choice:
     "1 in 2: gain a low reward and the sector map. 1 in 2: fight the automated ship.",
@@ -89,7 +92,8 @@ export const TEXT: Record<string, string> = {
   // Pirate smuggler (NEBULA_PIRATE_SMUGGLE).
   event_NEBULA_PIRATE_SMUGGLE_text: "Pirate ship. It is not hostile.",
   event_NEBULA_PIRATE_SMUGGLE_c1_text: "Fight the pirate ship.",
-  event_NEBULA_PIRATE_SMUGGLE_c3_choice: "Choose: take a medium reward with fuel, or fight the pirate ship.",
+  event_NEBULA_PIRATE_SMUGGLE_c3_choice:
+    "Choose: take a medium reward with fuel, or fight the pirate ship.",
 
   // Rock atheists (ROCK_ATHIEST).
   event_ROCK_ATHIEST_text: "Rock ship. Its crew can join you.",
@@ -118,7 +122,8 @@ export const TEXT: Record<string, string> = {
   // Crystalline ship messaging about Rebels (CRYSTAL_REQUEST).
   event_CRYSTAL_REQUEST_c1_c1_text: "Gain high scrap. Rebel pursuit speeds up.",
   event_CRYSTAL_REQUEST_LIST_1_text: "The false plans work. Gain high scrap. Rebel pursuit slows.",
-  event_CRYSTAL_REQUEST_LIST_2_text: "The false plans fail. Fight the Crystal ship, with 1-2 Crystal boarders.",
+  event_CRYSTAL_REQUEST_LIST_2_text:
+    "The false plans fail. Fight the Crystal ship, with 1-2 Crystal boarders.",
   event_CRYSTAL_REQUEST_c1_c3_text: "Gain high scrap. Rebel pursuit slows.",
   event_CRYSTAL_REQUEST_c1_c4_text: "You refuse. Nothing happens.",
 
@@ -137,7 +142,6 @@ export const TEXT: Record<string, string> = {
   event_ZOLTAN_QUEST_PRIMITIVES_c1_c2_text: "Fight the Rebel ship.",
   event_CRYSTAL_REBEL_CRYSTAL_c1_text: "Fight the Rebel ship.",
   event_CRYSTAL_REBEL_CRYSTAL_c2_text: "Fight the Crystal ship.",
-  event_AUTO_HACKER_c2_text: "Hacking blocks the shield virus. Fight the automated ship.",
   event_FLAGSHIP_CONSTRUCTION_c1_text: "Fight the second Rebel flagship.",
 
   // One-line results.
@@ -159,7 +163,8 @@ export const TEXT: Record<string, string> = {
 
   // Rock war vessel encounter (ROCK_UNLOCK).
   event_ROCK_UNLOCK1_c3_text: "Nothing happens.",
-  ship_ROCK_UNLOCK2_escape_text: "The Rock ship jumps away when its timer ends. Stay in the fight until then.",
+  ship_ROCK_UNLOCK2_escape_text:
+    "The Rock ship jumps away when its timer ends. Stay in the fight until then.",
   ship_ROCK_UNLOCK2_destroyed_text: "Ship destroyed.",
   ship_ROCK_UNLOCK2_deadCrew_text: "Crew killed.",
   ship_ROCK_UNLOCK2_gotaway_text: "The Rock ship escaped. A quest marker is added to the map.",
@@ -191,9 +196,11 @@ export const TEXT: Record<string, string> = {
   event_ZOLTAN_PEACE_QUEST2_c2_c1_c1_text: "Fight the Rebel ship.",
   event_ZOLTAN_PEACE_QUEST2_c2_c2_text: "Fight the Rebel ship.",
   event_ZOLTAN_PEACE_QUEST2_c2_c3_text: "Fight the Rebel ship.",
-  event_ZOLTAN_PEACE_QUEST2_c2_c1_c2_text: "The Rebel ship was a Zoltan test. Zoltan Cruiser unlocked.",
+  event_ZOLTAN_PEACE_QUEST2_c2_c1_c2_text:
+    "The Rebel ship was a Zoltan test. Zoltan Cruiser unlocked.",
   event_ZOLTAN_PEACE_QUEST_REWARD_1_text: "Gain Zoltan Shield and low scrap.",
-  event_ZOLTAN_PEACE_QUEST_REWARD_2_text: "Gain a Zoltan crew with every skill maxed, and high scrap with resources.",
+  event_ZOLTAN_PEACE_QUEST_REWARD_2_text:
+    "Gain a Zoltan crew with every skill maxed, and high scrap with resources.",
 
   // Zoltan research facility (ZOLTAN_CREW_STUDY).
   event_ZOLTAN_CREW_STUDY_LIST_1_text: "Gain low scrap.",
@@ -202,7 +209,8 @@ export const TEXT: Record<string, string> = {
   event_ZOLTAN_CREW_STUDY_c3_text: "Gain a drone, and low scrap with resources.",
   event_ZOLTAN_CREW_STUDY_c4_text: "The stasis pod is used.",
   event_ZOLTAN_CREW_STUDY_c4_c1_text: "Gain 1 Crystal crew.",
-  event_ZOLTAN_CREW_STUDY_c4_c1_c1_text: "A quest marker appears in the Rock sector while this crew lives.",
+  event_ZOLTAN_CREW_STUDY_c4_c1_c1_text:
+    "A quest marker appears in the Rock sector while this crew lives.",
   ship_PIRATE_ZOLTAN_CREW_STUDY_destroyed_text: "Ship destroyed.",
   ship_PIRATE_ZOLTAN_CREW_STUDY_deadCrew_text: "Crew killed.",
   ship_PIRATE_ZOLTAN_CREW_STUDY_destroyed_c1_text: "Gain a drone, and low scrap with resources.",
@@ -216,8 +224,6 @@ export const TEXT: Record<string, string> = {
   event_ZOLTAN_TRADE_HUB_SUCCESS_1_text: "Store.",
   event_ZOLTAN_TRADE_HUB_SUCCESS_2_text: "No store.",
   event_ZOLTAN_TRADE_HUB_SUCCESS_2_c1_text: "A quest marker is added to the map.",
-  event_ZOLTAN_QUEST_PRIMITIVES_c1_c1_text: "Fight the Zoltan ship.",
-  event_ZOLTAN_QUEST_PRIMITIVES_c1_c2_text: "Fight the Rebel ship.",
   ship_ZOLTAN_PRIMITIVES_ZOLTAN_destroyed_text: "Zoltan ship defeated. The Rebel ship leaves.",
   ship_ZOLTAN_PRIMITIVES_REBEL_destroyed_text: "Rebel ship defeated. Gain a weapon.",
 
@@ -227,7 +233,8 @@ export const TEXT: Record<string, string> = {
   event_ROCK_QUEST_MARRIAGE_c1_c2_text: "Gain 1 Rock crew. Fight the Rock ship.",
   ship_ROCK_QUEST_MARRIAGE_destroyed_text: "Ship defeated.",
   // Asteroid belt distress (CIVILIAN_ASTEROIDS_BEACON).
-  event_CIVILIAN_ASTEROIDS_BEACON_2_text: "Civilian ship in an asteroid field. Its shields are down.",
+  event_CIVILIAN_ASTEROIDS_BEACON_2_text:
+    "Civilian ship in an asteroid field. Its shields are down.",
   event_CIVILIAN_ASTEROIDS_BEACON_2_c1_choice:
     "1 in 3: take 1 hull damage and a fire, gain high fuel and scrap. 1 in 3: take 4 hull damage, gain low scrap. 1 in 3: gain low scrap.",
   event_CIVILIAN_ASTEROIDS_BEACON_2_c2_choice: "1 in 2: Rebel pursuit speeds up. 1 in 2: nothing.",
@@ -235,19 +242,24 @@ export const TEXT: Record<string, string> = {
     "Lose drone parts. 1 in 2: take 4 hull damage and system damage, gain a weapon and medium scrap. 1 in 2: a quest marker is added to the map.",
   event_CIVILIAN_ASTEROIDS_BEACON_2_c4_choice:
     "Lose drone parts. 1 in 2: take 4 hull damage and system damage, gain a weapon and medium scrap. 1 in 2: a quest marker is added to the map.",
-  event_CIVILIAN_ASTEROIDS_BEACON_2_c5_choice: "1 in 2: gain 1 crew. 1 in 2: choose to take them home for a reward.",
+  event_CIVILIAN_ASTEROIDS_BEACON_2_c5_choice:
+    "1 in 2: gain 1 crew. 1 in 2: choose to take them home for a reward.",
   event_CIVILIAN_ASTEROIDS_BEACON_2_c6_choice: "Gain medium fuel and scrap.",
   event_CIVILIAN_ASTEROIDS_BEACON_2_c6_text: "Gain medium fuel and scrap.",
-  event_CIVILIAN_ASTEROIDS_BEACON_LIST1_1_text: "Take 1 hull damage and a fire. Gain high fuel and scrap.",
+  event_CIVILIAN_ASTEROIDS_BEACON_LIST1_1_text:
+    "Take 1 hull damage and a fire. Gain high fuel and scrap.",
   event_CIVILIAN_ASTEROIDS_BEACON_LIST1_2_text: "The civilian ship is lost. Gain low scrap.",
-  event_CIVILIAN_ASTEROIDS_BEACON_LIST1_3_text: "The civilian ship is lost. Take 4 hull damage. Gain low scrap.",
-  event_CIVILIAN_ASTEROIDS_BEACON_LIST2_1_text: "Take 4 hull damage and system damage. Gain a weapon and medium scrap.",
+  event_CIVILIAN_ASTEROIDS_BEACON_LIST1_3_text:
+    "The civilian ship is lost. Take 4 hull damage. Gain low scrap.",
+  event_CIVILIAN_ASTEROIDS_BEACON_LIST2_1_text:
+    "Take 4 hull damage and system damage. Gain a weapon and medium scrap.",
   event_CIVILIAN_ASTEROIDS_BEACON_LIST2_2_text: "A quest marker is added to the map.",
   event_CIVILIAN_ASTEROIDS_BEACON_LIST3_1_text: "Gain 1 crew.",
   event_CIVILIAN_ASTEROIDS_BEACON_LIST3_2_text: "The crew are aboard and ask to go home.",
   event_CIVILIAN_ASTEROIDS_BEACON_LIST3_2_c1_choice:
     "1 in 3: gain high scrap. 1 in 3: gain medium scrap. 1 in 3: repair 10 hull.",
-  event_CIVILIAN_ASTEROIDS_BEACON_LIST4_1_text: "The civilian ship survives. Rebel pursuit speeds up.",
+  event_CIVILIAN_ASTEROIDS_BEACON_LIST4_1_text:
+    "The civilian ship survives. Rebel pursuit speeds up.",
   event_CIVILIAN_ASTEROIDS_BEACON_LIST4_2_text: "The civilian ship is lost. Nothing happens.",
   event_FAMILY_RETURN_1_text: "Gain high scrap.",
   event_FAMILY_RETURN_2_text: "Gain medium scrap.",
@@ -267,7 +279,8 @@ export const TEXT: Record<string, string> = {
 
   // Encrypted federation signal (FEDERATION_PLANET_SIGNAL).
   event_FEDERATION_PLANET_SIGNAL_LIST_1_text: "A quest marker is added to the map.",
-  event_FEDERATION_PLANET_SIGNAL_LIST_2_text: "Gain medium resources. A quest marker is added to the map.",
+  event_FEDERATION_PLANET_SIGNAL_LIST_2_text:
+    "Gain medium resources. A quest marker is added to the map.",
   event_FEDERATION_PLANET_SIGNAL_LIST_3_text: "Nothing happens.",
   event_FEDERATION_PLANET_SIGNAL_LIST_4_text: "Gain high scrap with resources.",
   event_FEDERATION_PLANET_SIGNAL_LIST_5_text: "2-3 boarders. Fight the Rebel ship.",
@@ -425,7 +438,8 @@ export const TEXT: Record<string, string> = {
   event_MERCENARY_WORK_LIST_1_c1_text: "Quest accepted.",
   event_MERCENARY_WORK_LIST_1_c2_choice: "Nothing happens.",
   event_MERCENARY_WORK_LIST_1_c2_text: "Nothing happens.",
-  event_MERCENARY_WORK_LIST_2_text: "Job offer: fight a pirate ship. Paid only if its crew survives.",
+  event_MERCENARY_WORK_LIST_2_text:
+    "Job offer: fight a pirate ship. Paid only if its crew survives.",
   event_MERCENARY_WORK_LIST_2_c1_choice: "Fight the pirate ship.",
   event_MERCENARY_WORK_LIST_2_c1_text: "Fight the pirate ship.",
   event_MERCENARY_WORK_LIST_2_c2_text: "Nothing happens.",

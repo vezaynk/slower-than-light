@@ -1325,26 +1325,22 @@ function campaignEvents(): EventDef[] {
   return named;
 }
 
-const ROCK_LIES =
-  "They shout that this is the same tale they left behind, and the skiff's guns start to charge.";
-const ROCK_TRAITORS =
-  "They call you another keeper of the official story. The skiff turns hostile.";
-const ROCK_JOIN = "They take a bunk for the time being.";
-const ROCK_REFUSE =
-  "They nearly accept, then shut the channel and jump. They will not be talked into another creed.";
-const ROCK_SENSORS = "The logs convince them. They come aboard until they can stand on their own.";
+const ROCK_LIES = "The Rock ship turns hostile. Fight.";
+const ROCK_TRAITORS = "The Rock ship turns hostile. Fight.";
+const ROCK_JOIN = "Gain 1 Rock crew.";
+const ROCK_REFUSE = "The Rock ship jumps away. Nothing happens.";
+const ROCK_SENSORS = "Gain 1 Rock crew.";
 
 /** ftl.dat's ROCK_ATHIEST: a quiet Rock ship, three hidden choices, and the promise list. */
 function shapeRockAtheist(events: EventDef[]): void {
   const event = events.find((row) => row.id === "ROCK_ATHIEST");
   if (!event) return;
-  event.body =
-    "A Rock skiff with a weak drive hails you. Its pilot says the homeworld rules by stories that do not survive a second look, and they will not go back.";
+  event.body = "Neutral Rock ship. It may join your crew.";
   event.ship = { hostile: false, load: "ROCK_SHIP" };
   event.choices = [
     stampedChoice({
       id: "c:rock-atheists:0",
-      label: "Claim their god sent them to sign on.",
+      label: "Fight the Rock ship.",
       hidden: true,
       fx: [],
       textLoad: "ROCK_ATHIEST_BAD",
@@ -1352,13 +1348,13 @@ function shapeRockAtheist(events: EventDef[]): void {
     }),
     stampedChoice({
       id: "c:rock-atheists:1",
-      label: "Offer the account their teachers left out.",
+      label: "1 in 3: gain 1 Rock crew. 2 in 3: nothing happens.",
       hidden: true,
       fx: [{ k: "goto", id: "ROCK_ATHIEST_GOOD" }],
     }),
     stampedChoice({
       id: "c:rock-atheists:2",
-      label: "Let them read the sensor archive.",
+      label: "Gain 1 Rock crew.",
       hidden: true,
       fx: [{ k: "note", text: ROCK_SENSORS }],
       grants: [{ kind: "crew", id: "rock", amount: 1 }],

@@ -64,11 +64,11 @@ describe("Rock crew offer", () => {
       assert.equal(g.scrap, 10);
       if (rocks(g) === before + 1) {
         joined += 1;
-        assert.match(g.event?.body ?? "", /take a bunk/);
+        assert.match(g.event?.body ?? "", /Gain 1 Rock crew/);
         assert.match(g.event?.body ?? "", /crewmember joins you/);
       } else {
         refused += 1;
-        assert.match(g.event?.body ?? "", /shut the channel/);
+        assert.match(g.event?.body ?? "", /jumps away/);
         assert.equal(rocks(g), before);
       }
     }
@@ -90,7 +90,7 @@ describe("Rock crew offer", () => {
     const before = rocks(g);
     choose(g, "c:rock-atheists:2");
     assert.equal(rocks(g), before + 1);
-    assert.match(g.event?.body ?? "", /logs convince them/);
+    assert.match(g.event?.body ?? "", /Gain 1 Rock crew/);
     assert.match(g.event?.body ?? "", /crewmember joins you/);
     assert.equal(g.phase, "event");
   });

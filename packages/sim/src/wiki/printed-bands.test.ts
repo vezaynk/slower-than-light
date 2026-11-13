@@ -287,7 +287,9 @@ describe("printed bands", () => {
     assert.equal(gone.scrap, 10);
     assert.equal(gone.player.parts, 0);
     assert.equal(gone.seed, goneSeed);
-    assert.ok((gone.event?.body ?? "").includes(eventText("event_MERCHANT_DELIVER_LIST_2_c1_text")));
+    assert.ok(
+      (gone.event?.body ?? "").includes(eventText("event_MERCHANT_DELIVER_LIST_2_c1_text")),
+    );
     assert.match(gone.event?.body ?? "", /Drone parts: -5\./);
     assert.equal((gone.event?.body ?? "").includes("Scrap:"), false);
 
@@ -532,15 +534,30 @@ describe("printed bands", () => {
       assert.equal(fuelMarks(campaign.event?.body ?? ""), fuelMarks(gone.event?.body ?? "") + 1);
       assert.ok((campaign.event?.body ?? "").includes(`Fuel: ${extra}.`));
       assert.equal(campaign.log.includes(`Fuel: ${extra}.`), false);
-      assert.match(campaign.event?.body ?? "", textRe("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"));
+      assert.match(
+        campaign.event?.body ?? "",
+        textRe("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"),
+      );
       assert.match(gone.event?.body ?? "", textRe("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"));
       assert.match(
         campaign.event?.body ?? "",
-        dead ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text") : textRe("event_DESTROYED_DEFAULT_1_text", "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text", "ship_PIRATE_BRIBER_destroyed_text"),
+        dead
+          ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text")
+          : textRe(
+              "event_DESTROYED_DEFAULT_1_text",
+              "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text",
+              "ship_PIRATE_BRIBER_destroyed_text",
+            ),
       );
       assert.match(
         gone.event?.body ?? "",
-        dead ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text") : textRe("event_DESTROYED_DEFAULT_1_text", "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text", "ship_PIRATE_BRIBER_destroyed_text"),
+        dead
+          ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text")
+          : textRe(
+              "event_DESTROYED_DEFAULT_1_text",
+              "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text",
+              "ship_PIRATE_BRIBER_destroyed_text",
+            ),
       );
 
       rewrite(eventId, [
@@ -628,7 +645,9 @@ describe("printed bands", () => {
       opened = g.event?.choices.some((choice) => choice.id === theft) ?? false;
       if (!opened) continue;
       assert.equal(g.event?.choices[0]?.label, "Continue");
-      assert.ok((g.event?.body ?? "").includes(eventText("event_FUEL_ON_SLUG_CHUCKLE_LIST_1_text")));
+      assert.ok(
+        (g.event?.body ?? "").includes(eventText("event_FUEL_ON_SLUG_CHUCKLE_LIST_1_text")),
+      );
     }
     assert.equal(opened, true);
   });

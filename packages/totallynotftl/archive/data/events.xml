@@ -382,30 +382,28 @@
     </choice>
   </event>
   <event name="ROCK_ATHIEST">
-    <title>Rock atheists</title>
+    <title>Rock crew offer</title>
     <alias>rock-atheists</alias>
-    <alias>Rock Deserters</alias>
-    <alias>Rock atheists</alias>
     <sector>ROCK_SECTOR</sector>
     <sector>ROCK_HOME</sector>
-    <text>A Rock skiff with a weak drive hails you. Its pilot says the homeworld rules by stories that do not survive a second look, and they will not go back.</text>
+    <text>Neutral Rock ship. It may join your crew.</text>
     <ship hostile="false" load="ROCK_SHIP"/>
     <choice name="c:rock-atheists:0" hidden="true">
-      <text>Claim their god sent them to sign on.</text>
+      <text>Fight the Rock ship.</text>
       <event>
         <text load="ROCK_ATHIEST_BAD"/>
         <ship hostile="true"/>
       </event>
     </choice>
     <choice name="c:rock-atheists:1" hidden="true">
-      <text>Offer the account their teachers left out.</text>
+      <text>1 in 3: gain 1 Rock crew. 2 in 3: nothing happens.</text>
       <event load="ROCK_ATHIEST_GOOD"/>
     </choice>
     <choice name="c:rock-atheists:2" owner="quest" hidden="true">
-      <text>Let them read the sensor archive.</text>
+      <text>Gain 1 Rock crew.</text>
       <req req="sensors" lvl="2">Needs level 2 Sensors</req>
       <event>
-        <text>The logs convince them. They come aboard until they can stand on their own.</text>
+        <text>Gain 1 Rock crew.</text>
         <crewMember amount="1" class="rock"/>
       </event>
     </choice>
@@ -5447,14 +5445,14 @@ The current sector map is revealed.</text>
   </eventList>
   <eventList name="ROCK_ATHIEST_GOOD">
     <event name="ROCK_ATHIEST_GOOD_JOIN" unique="false">
-      <text>They take a bunk for the time being.</text>
+      <text>Gain 1 Rock crew.</text>
       <crewMember amount="1" class="rock"/>
     </event>
     <event name="ROCK_ATHIEST_GOOD_AWAY" unique="false">
-      <text>They nearly accept, then shut the channel and jump. They will not be talked into another creed.</text>
+      <text>The Rock ship jumps away. Nothing happens.</text>
     </event>
     <event name="ROCK_ATHIEST_GOOD_AWAY" unique="false">
-      <text>They nearly accept, then shut the channel and jump. They will not be talked into another creed.</text>
+      <text>The Rock ship jumps away. Nothing happens.</text>
     </event>
   </eventList>
   <eventList name="STANDIN_EMPTY"/>

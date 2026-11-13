@@ -14,12 +14,14 @@ function escapeXml(text: string): string {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-/** Every area's lines, by id. An id in two areas is an authoring error. */
+/** Every area's lines, by id. Two areas may share an id with the same words; different words are an authoring error. */
 export function standInEventText(): Map<string, string> {
   const lines = new Map<string, string>();
   for (const [area, table] of Object.entries(AREAS)) {
     for (const [id, text] of Object.entries(table)) {
-      if (lines.has(id)) throw new Error(`text id ${id} is in two areas (${area})`);
+      const prev = lines.get(id);
+      if (prev !== undefined && prev !== text)
+        throw new Error(`text id ${id} has different words in two areas (${area})`);
       lines.set(id, text);
     }
   }

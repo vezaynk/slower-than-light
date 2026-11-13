@@ -108,7 +108,9 @@ describe("Lanius ship at jump beacon", () => {
       choose(g, "c:lanius-ship-absorbing-jump-beacon:0");
       if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight = true;
-        assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_ASK_2_text")));
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_ASK_2_text")),
+        );
         assert.equal(
           g.log.some((line) => line.includes(eventText("event_LANIUS_BEACON_EATER_ASK_2_text"))),
           false,
@@ -125,16 +127,18 @@ describe("Lanius ship at jump beacon", () => {
       }
       assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_ASK_1_text")));
       assert.deepEqual(
-        g.event?.choices.map((c) => c.label),
-        ["Leave."],
+        g.event?.choices.map((c) => c.id),
+        ["s:lanius-beacon-eater:leave"],
       );
       choose(g, "s:lanius-beacon-eater:leave");
       // Cast: TypeScript still holds the narrowing from above; choose changes the phase.
       if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         pulled = true;
-        assert.match(g.event?.body ?? "", /fully operational/);
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_LEAVE_4_text")),
+        );
         assert.equal(
-          g.log.some((line) => line.includes("fully operational")),
+          g.log.some((line) => line.includes(eventText("event_LANIUS_BEACON_EATER_LEAVE_4_text"))),
           false,
         );
         sameStock(g, before);
@@ -142,12 +146,14 @@ describe("Lanius ship at jump beacon", () => {
         assertLaniusFight(g);
         sameStock(g, before);
         assert.equal(
-          g.log.some((line) => line.includes("fully operational")),
+          g.log.some((line) => line.includes(eventText("event_LANIUS_BEACON_EATER_LEAVE_4_text"))),
           false,
         );
       } else {
         quiet = true;
-        assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_LEAVE_1_text")));
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_LEAVE_1_text")),
+        );
         assert.match(g.event?.body ?? "", /Nothing happens/);
         sameStock(g, before);
       }
@@ -169,15 +175,17 @@ describe("Lanius ship at jump beacon", () => {
       sameStock(g, before);
       if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight += 1;
-        assert.match(g.event?.body ?? "", /fully operational/);
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_LEAVE_4_text")),
+        );
         assert.equal(
-          g.log.some((line) => line.includes("fully operational")),
+          g.log.some((line) => line.includes(eventText("event_LANIUS_BEACON_EATER_LEAVE_4_text"))),
           false,
         );
         choose(g, "ship-resume");
         assertLaniusFight(g);
         assert.equal(
-          g.log.some((line) => line.includes("fully operational")),
+          g.log.some((line) => line.includes(eventText("event_LANIUS_BEACON_EATER_LEAVE_4_text"))),
           false,
         );
       } else {
@@ -217,8 +225,8 @@ describe("Lanius ship at jump beacon", () => {
     choose(g, "c:lanius-ship-absorbing-jump-beacon:2");
     assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_c4_text")));
     assert.deepEqual(
-      g.event?.choices.map((c) => c.label),
-      ["Decline."],
+      g.event?.choices.map((c) => c.id),
+      ["s:lanius-beacon-eater:decline"],
     );
     choose(g, "s:lanius-beacon-eater:decline");
     assert.equal(g.event?.body, "Nothing happens.");
@@ -251,7 +259,7 @@ describe("Lanius ship at jump beacon", () => {
     assert.equal(choiceDisabled(g, "c:lanius-ship-absorbing-jump-beacon:3"), null);
     choose(g, "c:lanius-ship-absorbing-jump-beacon:3");
     assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_c5_text")));
-    assert.match(g.event?.body ?? "", /You receive a Lanius crewmember/);
+    assert.match(g.event?.body ?? "", /Crew gained: Lanius\./);
     assert.equal(g.player.parts, parts);
     assert.equal(g.player.kits.drones?.target, "SHIP_REPAIR");
     assert.equal(g.crew.filter((c) => c.side === "player").length, crew + 1);

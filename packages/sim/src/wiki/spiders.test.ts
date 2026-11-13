@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon, Game, Kit } from "../types.ts";
 import { fillerChoose, fillerEvent, pageForRow } from "./filler-events.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function beacon(): Beacon {
   return {
@@ -109,14 +110,14 @@ describe("Distress: station infestation", () => {
       open(g);
       fillerChoose(g, "c:giant-alien-spiders:0");
       const body = g.event?.body ?? "";
-      if ((body).includes(eventText("event_DISTRESS_INFESTATION_LIST_1_text"))) {
+      if (body.includes(eventText("event_DISTRESS_INFESTATION_LIST_1_text"))) {
         lost = true;
         assert.equal(g.crew.length, crew - 1);
         assert.equal(g.scrap, 10);
         assert.match(body, /Crew lost: /);
       } else {
         paid = true;
-        assert.ok((body).includes(eventText("event_DISTRESS_INFESTATION_LIST_2_text")));
+        assert.ok(body.includes(eventText("event_DISTRESS_INFESTATION_LIST_2_text")));
         assert.equal(g.crew.length, crew);
         assert.equal(g.player.weapons.length, weapons);
         const got = reward(body);
@@ -148,7 +149,8 @@ describe("Distress: station infestation", () => {
       const crew = g.crew.length;
       open(g);
       fillerChoose(g, "c:giant-alien-spiders:0");
-      if (!(g.event?.body ?? "").includes(eventText("event_DISTRESS_INFESTATION_LIST_1_text"))) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_DISTRESS_INFESTATION_LIST_1_text")))
+        continue;
       seen = true;
       assert.match(g.event?.body ?? "", /revived/);
       assert.equal(g.crew.length, crew);
@@ -181,7 +183,7 @@ describe("Distress: station infestation", () => {
       } else {
         kept = true;
         assert.ok(dry.player.parts > 0);
-        assert.match(dry.event?.body ?? "", /sincere gratitude/);
+        assert.match(dry.event?.body ?? "", textRe("event_DISTRESS_INFESTATION_c3_text"));
       }
 
       const stocked = createGame(seed);
@@ -191,7 +193,7 @@ describe("Distress: station infestation", () => {
       fillerChoose(stocked, "c:giant-alien-spiders:2");
       const body = stocked.event?.body ?? "";
       const got = reward(body);
-      assert.match(body, /sincere gratitude/);
+      assert.match(body, textRe("event_DISTRESS_INFESTATION_c3_text"));
       assert.ok(got.scrap >= 7 && got.scrap <= 10);
       if (stocked.player.parts === 6) {
         kept = true;
@@ -223,7 +225,7 @@ describe("Distress: station infestation", () => {
       open(g);
       fillerChoose(g, "c:giant-alien-spiders:3");
       const body = g.event?.body ?? "";
-      assert.ok((body).includes(eventText("event_DISTRESS_INFESTATION_c4_text")));
+      assert.ok(body.includes(eventText("event_DISTRESS_INFESTATION_c4_text")));
       assert.equal(g.player.hull, hull);
       const got = reward(body);
       assert.ok(got.scrap >= 7 && got.scrap <= 10);
@@ -259,7 +261,7 @@ describe("Distress: station infestation", () => {
     open(g);
     fillerChoose(g, "c:giant-alien-spiders:4");
     const body = g.event?.body ?? "";
-    assert.ok((body).includes(eventText("event_DISTRESS_INFESTATION_c5_text")));
+    assert.ok(body.includes(eventText("event_DISTRESS_INFESTATION_c5_text")));
     assert.equal(g.player.weapons.length, weapons);
     const got = reward(body);
     assert.ok(got.scrap >= 7 && got.scrap <= 10);

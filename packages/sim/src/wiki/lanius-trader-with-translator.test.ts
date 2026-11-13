@@ -36,8 +36,7 @@ function inBand(n: number, lo: number, hi: number) {
   assert.ok(n >= lo && n <= hi, `${n} not in ${lo}-${hi}`);
 }
 
-const HAIL =
-  eventText("event_LANIUS_TRADER_TRANSLATOR_text");
+const HAIL = eventText("event_LANIUS_TRADER_TRANSLATOR_text");
 
 describe("Trade: supplies for scrap or crew (Lanius)", () => {
   it("shows the printed hail, then one base offer, and agreeing pays those amounts", () => {
@@ -63,7 +62,7 @@ describe("Trade: supplies for scrap or crew (Lanius)", () => {
       assert.equal(g.phase, "event");
       assert.equal(
         g.event?.body,
-        `After the exchange is complete they leave without a word.\n\nScrap: ${got.scrap}.`,
+        `${eventText("event_LANIUS_TRADER_LIST_1_text")}\n\nScrap: ${got.scrap}.`,
       );
       assert.equal(g.log.includes(`Scrap: ${got.scrap}.`), false);
       assert.equal(g.event?.choices[0]?.id, "ack");
@@ -89,7 +88,10 @@ describe("Trade: supplies for scrap or crew (Lanius)", () => {
     assert.equal(g.fuel, fuel);
     assert.equal(g.missiles, missiles);
     assert.equal(g.player.parts, parts);
-    assert.equal(g.event?.body, [eventText("event_LANIUS_TRADER_c2_text"), "Nothing happens."].join("\n\n"));
+    assert.equal(
+      g.event?.body,
+      [eventText("event_LANIUS_TRADER_c2_text"), "Nothing happens."].join("\n\n"),
+    );
   });
 
   it("40 scrap buys a Lanius named Translator with no skill", () => {

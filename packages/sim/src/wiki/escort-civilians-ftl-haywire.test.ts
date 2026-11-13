@@ -51,7 +51,7 @@ describe("Escort: low scrap and quest", () => {
     assert.equal(g.fuel, fuel);
     assert.equal(g.missiles, missiles);
     assert.equal(g.player.parts, parts);
-    assert.match(g.event?.body ?? "", /quest marker/);
+    assert.match(g.event?.body ?? "", /quest marker/i);
     assert.equal(
       g.beacons.some((b) => b.quest === "escort"),
       true,
@@ -101,7 +101,7 @@ describe("Escort: low scrap and quest", () => {
     assert.equal(choiceDisabled(g, "c:escort-civilians-ftl-haywire:2"), null);
     choose(g, "c:escort-civilians-ftl-haywire:2");
     const body = g.event?.body ?? "";
-    assert.match(body, /chain-jumping/);
+    assert.ok(body.startsWith(eventText("event_ESCORT_BEACON_c3_text")), body);
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 19 && paid[0]! <= 23, body);

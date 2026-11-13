@@ -65,7 +65,7 @@ describe("Pirate smuggler weapons", () => {
     g.player.systems.weapons.level = 6;
     choose(g, "c:pirate-smuggler:2");
     choose(g, "q:pirate-smuggler:attack");
-    const lead = "You power up your weapons and move in to engage.";
+    const lead = eventText("event_NEBULA_PIRATE_SMUGGLE_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);

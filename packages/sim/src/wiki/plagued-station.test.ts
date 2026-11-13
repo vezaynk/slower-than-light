@@ -7,11 +7,12 @@ import { citedEvent } from "./cited-events.ts";
 import { fillerChoiceDisabled, fillerChoose, fillerEvent } from "./filler-events.ts";
 import { joinCrew } from "./surrender.ts";
 
-const CURE =
-  eventText("event_DONOR_PLAGUE_LIST_3_c2_text");
-const CLONE =
-  eventText("event_DONOR_PLAGUE_LIST_3_c1_c0_clone");
-const SICK = /not going to make it/;
+const CURE = eventText("event_DONOR_PLAGUE_LIST_3_c2_text");
+const CLONE = eventText("event_DONOR_PLAGUE_LIST_3_c1_c0_clone");
+/** The disease card is the one that carries the cure button. */
+function isSick(g: Game): boolean {
+  return g.event?.choices.some((c) => c.id === "s:plagued-station:cure") === true;
+}
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -40,7 +41,7 @@ function sick(setup?: (g: Game) => void): Game {
     setup?.(g);
     open(g);
     fillerChoose(g, "c:plagued-station:0");
-    if (SICK.test(g.event?.body ?? "")) return g;
+    if (isSick(g)) return g;
   }
   assert.fail("no disease card");
 }
@@ -50,7 +51,9 @@ describe("Station with life signs", () => {
     const g = sick();
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === "s:plagued-station:cure" && c.label === "Try to cure the disease.",
+        (c) =>
+          c.id === "s:plagued-station:cure" &&
+          c.label === eventText("event_DONOR_PLAGUE_LIST_3_c2_choice"),
       ),
     );
     assert.ok(g.event?.choices.some((c) => c.id === "s:plagued-station:continue"));
@@ -62,7 +65,8 @@ describe("Station with life signs", () => {
     const weapons = g.player.weapons.length;
     const augments = g.augments.slice();
     fillerChoose(g, "s:plagued-station:cure");
-    assert.match(g.event?.body ?? "", SICK);
+    assert.ok(isSick(g));
+    assert.ok((g.event?.body ?? "").startsWith(eventText("event_DONOR_PLAGUE_LIST_3_text")));
     assert.equal(g.scrap, scrap);
     assert.equal(players(g).length, crew);
     assert.equal(g.player.weapons.length, weapons);
@@ -99,8 +103,8 @@ describe("Station with life signs", () => {
     const scrap = plain.scrap;
     fillerChoose(plain, "s:plagued-station:continue");
     const body = plain.event?.body ?? "";
-    assert.match(body, /leave them behind/);
-    assert.match(body, /is lost\./);
+    assert.ok(body.startsWith(eventText("event_DONOR_PLAGUE_LIST_3_c1_text")), body);
+    assert.match(body, /Crew lost: /);
     assert.equal(body.includes(CLONE), false);
     assert.equal(/revived/.test(body), false);
     assert.equal(players(plain).length, before - 1);
@@ -125,9 +129,9 @@ describe("Station with life signs", () => {
     const weapons = cloned.player.weapons.length;
     fillerChoose(cloned, "s:plagued-station:continue");
     const next = cloned.event?.body ?? "";
-    assert.match(next, /is lost\./);
+    assert.match(next, /Crew lost: /);
     assert.ok(next.includes(CLONE));
-    assert.ok(next.indexOf("is lost.") < next.indexOf(CLONE));
+    assert.ok(next.indexOf("Crew lost:") < next.indexOf(CLONE));
     assert.equal(/revived/.test(next), false);
     assert.equal(players(cloned).length, crew - 1);
     assert.equal(cloned.scrap, paid);

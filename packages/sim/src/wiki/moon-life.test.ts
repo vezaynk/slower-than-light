@@ -62,6 +62,11 @@ function ranks(g: Game, name: string): Record<SkillName, number> {
   return out;
 }
 
+/** The colony card offers invite and home; the cave card does not. */
+function atColony(g: Game): boolean {
+  return g.event?.choices.some((c) => c.id === "s:moon:invite") === true;
+}
+
 function scene(seed: number, setup?: (g: Game) => void): Game | null {
   const g = createGame(seed);
   setup?.(g);
@@ -101,7 +106,8 @@ describe("Distress: life form on moon", () => {
       const g = scene(seed);
       assert.ok(g);
       const body = g.event?.body ?? "";
-      if (/lone survivor/.test(body)) {
+      if (atColony(g)) {
+        assert.ok(body.includes(eventText("event_STRANDED_1_text")));
         colony = true;
         assert.deepEqual(
           g.event?.choices.map((c) => c.id),
@@ -109,7 +115,7 @@ describe("Distress: life form on moon", () => {
         );
       } else {
         cave = true;
-        assert.ok((body).includes(eventText("event_STRANDED_2_text")));
+        assert.ok(body.includes(eventText("event_STRANDED_2_text")));
         assert.deepEqual(
           g.event?.choices.map((c) => c.id),
           ["s:moon:bring", "s:moon:leave"],
@@ -124,7 +130,7 @@ describe("Distress: life form on moon", () => {
     for (let seed = 1; seed <= 160 && seen.size < SKILLS.length; seed++) {
       const g = scene(seed);
       assert.ok(g);
-      if (!/lone survivor/.test(g.event?.body ?? "")) continue;
+      if (!atColony(g)) continue;
       const crew = g.crew.length;
       fillerChoose(g, "s:moon:invite");
       assert.match(g.event?.body ?? "", /Crew gained: /);
@@ -152,7 +158,7 @@ describe("Distress: life form on moon", () => {
         }
       });
       assert.ok(g);
-      if (!/lone survivor/.test(g.event?.body ?? "")) continue;
+      if (!atColony(g)) continue;
       seen = true;
       const crew = g.crew.length;
       fillerChoose(g, "s:moon:invite");
@@ -172,23 +178,24 @@ describe("Distress: life form on moon", () => {
         game.player.hull = game.player.hullMax - 15;
       });
       assert.ok(g);
-      if (!/lone survivor/.test(g.event?.body ?? "")) continue;
+      if (!atColony(g)) continue;
       const before = g.player.hull;
       const crew = g.crew.length;
       fillerChoose(g, "s:moon:home");
       const body = g.event?.body ?? "";
       assert.equal(g.crew.length, crew);
-      if ((body).includes(eventText("event_FAMILY_RETURN_1_text"))) {
+      if (body.includes(eventText("event_FAMILY_RETURN_1_text"))) {
         high = true;
         scrapOnly(body, 19, 23);
         assert.equal(g.player.hull, before);
-      } else if ((body).includes(eventText("event_FAMILY_RETURN_2_text"))) {
+      } else if (body.includes(eventText("event_FAMILY_RETURN_2_text"))) {
         medium = true;
         scrapOnly(body, 12, 19);
         assert.equal(g.player.hull, before);
       } else {
         hull = true;
-        assert.match(body, /receives 10 repairs/);
+        assert.ok(body.includes(eventText("event_FAMILY_RETURN_3_text")));
+        assert.match(body, /Hull repairs: 10/);
         assert.equal(g.player.hull, before + 10);
         assert.equal(g.scrap, 10);
       }
@@ -210,13 +217,13 @@ describe("Distress: life form on moon", () => {
       const broken = systemDamage(g);
       fillerChoose(g, "s:moon:bring");
       const body = g.event?.body ?? "";
-      if ((body).includes(eventText("event_MADMAN_1_text"))) {
+      if (body.includes(eventText("event_MADMAN_1_text"))) {
         lost = true;
         assert.equal(g.crew.length, crew - 1);
         assert.match(body, /Crew lost: /);
         assert.equal(g.player.hull, hull);
         assert.equal(g.scrap, 10);
-      } else if ((body).includes(eventText("event_MADMAN_2_text"))) {
+      } else if (body.includes(eventText("event_MADMAN_2_text"))) {
         joined = true;
         assert.match(body, /Crew gained: /);
         assert.equal(g.crew.length, crew + 1);
@@ -229,7 +236,7 @@ describe("Distress: life form on moon", () => {
           combat: 0,
         });
         assert.equal(g.player.hull, hull);
-      } else if ((body).includes(eventText("event_MADMAN_3_text"))) {
+      } else if (body.includes(eventText("event_MADMAN_3_text"))) {
         blast = true;
         assert.equal(g.player.hull, hull - 5);
         assert.equal(systemDamage(g) - broken, 1);
@@ -238,7 +245,7 @@ describe("Distress: life form on moon", () => {
         assert.equal(g.scrap, 10);
       } else {
         collapsed = true;
-        assert.ok((body).includes(eventText("event_MADMAN_4_text")));
+        assert.ok(body.includes(eventText("event_MADMAN_4_text")));
         assert.deepEqual(
           g.event?.choices.map((c) => c.id),
           ["s:moon:collapse-continue"],
@@ -399,9 +406,9 @@ describe("Distress: life form on moon", () => {
   });
 
   it("a Slug assesses him and does not add an unnamed crewmember", () => {
-    let stay = false;
-    let leave = false;
-    for (let seed = 1; seed <= 40 && (!stay || !leave); seed++) {
+    // Both Slug results print the same functional line and change nothing: one branch.
+    let seen = false;
+    for (let seed = 1; seed <= 40 && !seen; seed++) {
       const g = scene(seed, (game) => {
         game.crew[0].kin = "slug";
       });
@@ -418,13 +425,13 @@ describe("Distress: life form on moon", () => {
         names,
       );
       assert.equal(g.scrap, 10);
-      if ((body).includes(eventText("event_MADMAN_SLUG_2_text"))) stay = true;
-      else {
-        leave = true;
-        assert.ok((body).includes(eventText("event_MADMAN_SLUG_1_text")));
-      }
+      assert.ok(
+        body.includes(eventText("event_MADMAN_SLUG_1_text")) ||
+          body.includes(eventText("event_MADMAN_SLUG_2_text")),
+      );
+      seen = true;
     }
-    assert.equal(stay && leave, true);
+    assert.equal(seen, true);
     assert.equal(choiceDisabled(createGame(1), "s:moon:slug"), "Needs a Slug crewmember");
   });
 });

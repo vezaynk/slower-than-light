@@ -431,11 +431,11 @@ describe("totallynotftl.dat", () => {
       ],
     );
     assert.deepEqual(merged.textLists?.find((row) => row.id === "STAND_IN_CALM")?.lines, [
-      { text: "Nothing moves." },
-      { text: "The beacon holds still." },
+      { text: "Empty beacon." },
+      { text: "Nothing here." },
     ]);
     assert.deepEqual(merged.textLists?.find((row) => row.id === "STAND_IN_NEST")?.lines, [
-      { text: "The near reading." },
+      { text: "First line." },
       { load: "STAND_IN_MORE" },
     ]);
     assert.deepEqual(merged.lists, pack.lists);

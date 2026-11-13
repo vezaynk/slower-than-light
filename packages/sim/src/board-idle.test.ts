@@ -7,7 +7,6 @@ import { fillerChoose } from "./wiki/filler-events.ts";
 import { questChoose } from "./wiki/quests.ts";
 import { PART_B } from "./wiki/quests-b.ts";
 import { startedGame } from "./test-start.ts";
-import { eventText } from "./event-text.ts";
 
 function plant(g: Game, room: string, hp = 100): Crew {
   g.uid = (g.uid + 1) >>> 0;
@@ -147,10 +146,7 @@ describe("Boarders with no enemy ship", () => {
   it("turns one crewmember and beams 3-4 more on the drag", () => {
     const g = startedGame(1);
     PART_B.choices["q:research:drag"](g);
-    resumeBoarding(
-      g,
-      eventText("event_STATION_SICK_LIST_3_c1_text"),
-    );
+    resumeBoarding(g, eventText("event_STATION_SICK_LIST_3_c1_text"));
     assert.match(g.log.join("\n"), /\d+ human boarders beam aboard\./);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
@@ -165,10 +161,7 @@ describe("Boarders with no enemy ship", () => {
   it("turns one crewmember and no extras on the teleporter retrieve", () => {
     const g = startedGame(1);
     PART_B.choices["q:research:beam"](g);
-    resumeBoarding(
-      g,
-      eventText("event_STATION_SICK_LIST_3_c2_text"),
-    );
+    resumeBoarding(g, eventText("event_STATION_SICK_LIST_3_c2_text"));
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
     assert.equal(humans(g).length, 0);
@@ -189,10 +182,7 @@ describe("Boarders with no enemy ship", () => {
   it("keeps the crew and beams 3-4 boarders from the medbay", () => {
     const g = startedGame(1);
     PART_B.choices["q:research:medbay"](g);
-    resumeBoarding(
-      g,
-      eventText("event_STATION_SICK_LIST_3_c3_text"),
-    );
+    resumeBoarding(g, eventText("event_STATION_SICK_LIST_3_c3_text"));
     assert.match(g.log.join("\n"), /\d+ human boarders beam aboard\./);
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
@@ -209,8 +199,9 @@ describe("Boarders with no enemy ship", () => {
       const dna = startedGame(seed);
       questChoose(dna, "q:station:dna");
       if (pausedBoarding(dna) && humans(dna).length === 1) {
-        assert.match(dna.event?.body ?? "", /crazed frenzy/);
-        assert.equal(dna.log.join("\n").includes("crazed frenzy"), false);
+        const frenzy = eventText("event_EMPTY_STATION2_CLONE_3_text");
+        assert.ok((dna.event?.body ?? "").includes(frenzy));
+        assert.equal(dna.log.join("\n").includes(frenzy), false);
         assert.match(dna.log.join("\n"), /boarder beams aboard/);
         crazed = true;
       }
@@ -219,7 +210,10 @@ describe("Boarders with no enemy ship", () => {
       const aboard = humans(ref);
       if (pausedBoarding(ref) && aboard.length >= 2 && aboard.length <= 4 && !ref.asb) {
         assert.ok((ref.event?.body ?? "").includes(eventText("event_REFUGEE_GHOST_LIST_5_text")));
-        assert.equal(ref.log.join("\n").includes(eventText("event_REFUGEE_GHOST_LIST_5_text")), false);
+        assert.equal(
+          ref.log.join("\n").includes(eventText("event_REFUGEE_GHOST_LIST_5_text")),
+          false,
+        );
         assert.match(ref.log.join("\n"), /human boarders beam aboard/);
         refugee = true;
       }
@@ -227,8 +221,13 @@ describe("Boarders with no enemy ship", () => {
       fillerChoose(station, "c:abandoned-station:0");
       const pirates = humans(station);
       if (pausedBoarding(station) && station.asb && pirates.length >= 2 && pirates.length <= 4) {
-        assert.ok((station.event?.body ?? "").includes(eventText("event_EMPTY_STATION2_LIST_6_text")));
-        assert.equal(station.log.join("\n").includes(eventText("event_EMPTY_STATION2_LIST_6_text")), false);
+        assert.ok(
+          (station.event?.body ?? "").includes(eventText("event_EMPTY_STATION2_LIST_6_text")),
+        );
+        assert.equal(
+          station.log.join("\n").includes(eventText("event_EMPTY_STATION2_LIST_6_text")),
+          false,
+        );
         assert.match(station.log.join("\n"), /boarders beam aboard/);
         battery = true;
       }

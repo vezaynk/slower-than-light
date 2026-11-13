@@ -96,9 +96,9 @@ export const TEXT: Record<string, string> = {
     "Choose: take a medium reward with fuel, or fight the pirate ship.",
 
   // Rock atheists (ROCK_ATHIEST).
-  event_ROCK_ATHIEST_text: "Rock ship. Its crew can join you.",
+  event_ROCK_ATHIEST_text: "Neutral Rock ship. It may join your crew.",
   event_ROCK_ATHIEST_c1_choice: "Fight the Rock ship.",
-  event_ROCK_ATHIEST_c2_choice: "1 in 3: gain 1 Rock crew. 2 in 3: nothing.",
+  event_ROCK_ATHIEST_c2_choice: "1 in 3: gain 1 Rock crew. 2 in 3: nothing happens.",
   event_ROCK_ATHIEST_c3_choice: "Gain 1 Rock crew.",
 
   // Pirate ship selling drones (PIRATE_SALESMAN).

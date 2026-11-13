@@ -51,7 +51,7 @@ describe("Optional fight: Auto-ship at sensor station", () => {
     open(destroyed);
     assert.equal(pageWin(destroyed, "auto-ship-near-sensor-station", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /map has been updated/);
+    assert.match(body, textRe("ship_REBEL_AUTO_MAP_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -88,12 +88,9 @@ describe("Optional fight: Auto-ship at sensor station", () => {
         g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume";
       if (charging) {
         fight = true;
+        assert.equal(g.event?.body, eventText("event_AUTO_DEFENSE_MAP_SENSORS_2_text"));
         assert.equal(
-          g.event?.body,
-          eventText("event_AUTO_DEFENSE_MAP_SENSORS_2_text"),
-        );
-        assert.equal(
-          g.log.some((line) => line.includes("remotely connected")),
+          g.log.some((line) => line.includes(eventText("event_AUTO_DEFENSE_MAP_SENSORS_2_text"))),
           false,
         );
         assert.equal(g.fightEvent, "auto-ship-near-sensor-station");
@@ -132,7 +129,7 @@ describe("Optional fight: Auto-ship at sensor station", () => {
     assert.equal(choiceDisabled(g, "c:auto-ship-near-sensor-station:3"), null);
     const guns = g.player.weapons.length;
     choose(g, "c:auto-ship-near-sensor-station:3");
-    assert.match(g.event?.body ?? "", /long-range scanner/);
+    assert.match(g.event?.body ?? "", textRe("event_AUTO_DEFENSE_MAP_c4_text"));
     assert.equal(g.event?.body?.includes("Scrap:"), false);
     assert.equal(g.scrap, 10);
     assert.equal(g.player.weapons.length, guns);

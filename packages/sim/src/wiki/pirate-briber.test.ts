@@ -40,7 +40,7 @@ describe("Pirate bribe", () => {
     const crew = g.crew.filter((c) => c.side === "player").length;
     choose(g, "c:pirate-briber:0");
     const body = g.event?.body ?? "";
-    assert.match(body, /richer/);
+    assert.match(body, textRe("event_PIRATE_BRIBER_c1_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -76,7 +76,7 @@ describe("Pirate bribe", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "pirate-briber", false), true);
       const body = g.event?.body ?? "";
-      assert.match(body, /substantial collection/);
+      assert.match(body, textRe("ship_PIRATE_BRIBER_destroyed_text"));
       assert.equal(resources(body), 0, body);
       assert.equal(g.player.weapons.length, guns);
       const n = scraps(body)[0]!;
@@ -115,7 +115,7 @@ describe("Pirate bribe", () => {
     const gone = createGame(4);
     open(gone);
     pageGotAway(gone, "pirate-briber");
-    assert.match(gone.event?.body ?? "", /abandoned pursuit/);
+    assert.match(gone.event?.body ?? "", textRe("ship_PIRATE_BRIBER_gotaway_text"));
     assert.equal(gone.scrap, 10);
     assert.equal(
       gone.event?.choices.some((c) => c.id === "q:pirate-briber:gone"),
@@ -138,9 +138,10 @@ describe("Pirate bribe", () => {
       const body = g.event?.body ?? "";
       if (g.event?.choices.some((c) => c.id === "q:open-store")) {
         seen.add("store");
-        assert.match(body, /arms dealer/);
+        const store = eventText("event_PIRATE_BRIBER_WIN_4_text");
+        assert.ok(body.includes(store));
         assert.equal(
-          g.log.some((line) => /arms dealer/.test(line)),
+          g.log.some((line) => line.includes(store)),
           false,
         );
         assert.equal(g.scrap, scrap);
@@ -150,7 +151,7 @@ describe("Pirate bribe", () => {
         seen.add("repair");
         assert.equal(g.player.hull, hull + 15);
         assert.equal(g.scrap, scrap);
-      } else if (/Rebel scout/.test(body)) {
+      } else if (textRe("event_PIRATE_BRIBER_WIN_1_text").test(body)) {
         seen.add("rebel");
         rebelSeed = seed;
         assert.equal(g.scrap, scrap);
@@ -162,7 +163,7 @@ describe("Pirate bribe", () => {
           g.event?.choices.some((c) => c.id === "q:pirate-briber:delay"),
           true,
         );
-      } else if (/hull breach/.test(body)) {
+      } else if (textRe("event_PIRATE_BRIBER_WIN_2_text").test(body)) {
         seen.add("scrap");
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
@@ -174,7 +175,7 @@ describe("Pirate bribe", () => {
         assert.equal(g.player.parts, parts);
       } else {
         seen.add("nothing");
-        assert.match(body, /jumps away/);
+        assert.match(body, textRe("event_PIRATE_BRIBER_WIN_3_text"));
         assert.match(body, /Nothing happens/);
         assert.equal(g.scrap, scrap);
       }
@@ -192,7 +193,7 @@ describe("Pirate bribe", () => {
     const parts = salvage.player.parts;
     choose(salvage, "q:pirate-briber:salvage");
     const body = salvage.event?.body ?? "";
-    assert.match(body, /strip the ship/);
+    assert.match(body, textRe("event_PIRATE_BRIBER_WIN_1_c1_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);

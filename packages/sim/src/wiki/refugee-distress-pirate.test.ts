@@ -53,22 +53,22 @@ describe("Refugee ship distress (pirate)", () => {
       const g = createGame(seed);
       open(g);
       choose(g, "c:refugee-distress-pirate:0");
-      const text = `${g.event?.body ?? ""}\n${g.log.join("\n")}`;
-      assert.equal(/Zoltan ship suddenly jumps|Slug ship jumps|pirate ambush/i.test(text), false);
       const bait =
         g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume";
       if (bait) {
         fight = true;
         assert.equal(g.enemyEscape?.mode, "never");
         assert.equal(g.fightEvent, "refugee-distress-pirate");
-        assert.match(g.event?.body ?? "", /using the refugee ship as bait/);
-        assert.equal(g.log.join("\n").includes("using the refugee ship as bait"), false);
+        const lead = eventText("event_REFUGEE_HAIL_LIST_3_text");
+        assert.equal(g.event?.body, lead);
+        assert.equal(g.log.join("\n").includes(lead), false);
+        assert.equal(g.enemy?.pirate, true);
         choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
       } else {
         trade = true;
         assert.ok((g.event?.body ?? "").includes(eventText("event_REFUGEE_TRADER_text")));
-        assert.equal(g.event?.choices[1]?.label, "Politely decline.");
+        assert.equal(g.event?.choices[1]?.id, "s:refugee-distress-pirate:decline");
         const scrap = g.scrap;
         const crew = g.crew.filter((c) => c.side === "player").length;
         choose(g, g.event?.choices[1]?.id ?? "");
@@ -104,7 +104,7 @@ describe("Refugee ship distress (pirate)", () => {
     assert.equal(destroyed.scrap, before + paid[0]!);
     choose(destroyed, "s:refugee-distress-pirate:contact");
     const thanks = destroyed.event?.body ?? "";
-    assert.ok((thanks).includes(eventText("ship_PIRATE_REFUGEE_destroyed_c1_text")));
+    assert.ok(thanks.includes(eventText("ship_PIRATE_REFUGEE_destroyed_c1_text")));
     const low = scraps(thanks);
     assert.equal(low.length, 1, thanks);
     assert.ok(low[0]! >= 7 && low[0]! <= 10, thanks);
@@ -114,11 +114,16 @@ describe("Refugee ship distress (pirate)", () => {
     open(killed);
     assert.equal(pageWin(killed, "refugee-distress-pirate", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(dead, textRe("ship_PIRATE_REFUGEE_deadCrew_text", "ship_ZOLTAN_REFUGEE_deadCrew_text"));
+    assert.match(
+      dead,
+      textRe("ship_PIRATE_REFUGEE_deadCrew_text", "ship_ZOLTAN_REFUGEE_deadCrew_text"),
+    );
     const high = scraps(dead);
     assert.equal(high.length, 1, dead);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);
     choose(killed, "s:refugee-distress-pirate:contact-dead");
-    assert.ok((killed.event?.body ?? "").includes(eventText("ship_PIRATE_REFUGEE_deadCrew_c1_text")));
+    assert.ok(
+      (killed.event?.body ?? "").includes(eventText("ship_PIRATE_REFUGEE_deadCrew_c1_text")),
+    );
   });
 });

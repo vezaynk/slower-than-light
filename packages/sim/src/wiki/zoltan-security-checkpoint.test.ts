@@ -38,6 +38,11 @@ function boarders(g: Game): number {
     .length;
 }
 
+/** The wanted card offers to give up the crewmember. */
+function wanted(g: Game): boolean {
+  return g.event?.choices.some((c) => c.id === "q:zoltan-checkpoint:give") === true;
+}
+
 describe("Zoltan checkpoint", () => {
   it("attacking starts a Zoltan fight, and the blue options stay closed", () => {
     // Wiki citations:
@@ -98,7 +103,8 @@ describe("Zoltan checkpoint", () => {
         assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
       } else {
         seen.add("wanted");
-        assert.match(body, /Utter Villainy/);
+        assert.match(body, textRe("event_ZOLTAN_CREW_SCAN_LIST_2_text"));
+        assert.equal(wanted(g), true);
         assert.equal(g.scrap, 10);
       }
     }
@@ -110,12 +116,15 @@ describe("Zoltan checkpoint", () => {
       const g = createGame(seed);
       open(g);
       choose(g, "c:zoltan-security-checkpoint:1");
-      if (!/Utter Villainy/.test(g.event?.body ?? "")) continue;
+      if (!wanted(g)) continue;
       g.crew = g.crew.filter((c) => c.side === "player").slice(0, 1);
       choose(g, "q:zoltan-checkpoint:give");
       assert.equal(g.crew.filter((c) => c.side === "player").length, 1);
-      assert.match(g.event?.body ?? "", /shifty/);
-      assert.equal(/unharmed/.test(g.event?.body ?? ""), false);
+      assert.match(g.event?.body ?? "", textRe("event_ZOLTAN_CREW_SCAN_LIST_2_c1_text"));
+      assert.equal(
+        textRe("event_ZOLTAN_CREW_SCAN_LIST_2_c1_c0_clone").test(g.event?.body ?? ""),
+        false,
+      );
       break;
     }
 
@@ -127,7 +136,7 @@ describe("Zoltan checkpoint", () => {
       g.crew.push({ ...g.crew[0]!, id: "spare", name: "Spare" });
       g.player.kits.clonebay = kit("clonebay");
       choose(g, "c:zoltan-security-checkpoint:1");
-      if (!/Utter Villainy/.test(g.event?.body ?? "")) continue;
+      if (!wanted(g)) continue;
       cloned = true;
       choose(g, "q:zoltan-checkpoint:give");
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
@@ -151,12 +160,11 @@ describe("Zoltan checkpoint", () => {
       const g = createGame(seed);
       open(g);
       choose(g, "c:zoltan-security-checkpoint:1");
-      if (!/Utter Villainy/.test(g.event?.body ?? "")) continue;
+      if (!wanted(g)) continue;
       fought = true;
       assert.equal(powerMask(g.player).some(Boolean), true);
       choose(g, "q:zoltan-checkpoint:fight");
-      const lead =
-        eventText("event_ZOLTAN_CREW_SCAN_LIST_2_c2_text");
+      const lead = eventText("event_ZOLTAN_CREW_SCAN_LIST_2_c2_text");
       assert.equal(g.phase, "event");
       assert.equal(g.event?.body, lead);
       assert.equal(g.log.includes(lead), false);

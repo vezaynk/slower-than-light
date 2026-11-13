@@ -605,6 +605,7 @@ export const TEXT: Record<string, string> = {
     "1 in 6 each: a crew offer; gain medium scrap and resources; gain low scrap and resources; a weapon offer; repair 5 hull; nothing.",
   ship_REBEL_AUTO_CIVILIAN_destroyed_text: "Gain low scrap and resources.",
   ship_REBEL_AUTO_FUEL_destroyed_text: "Gain medium scrap and fuel.",
+  ship_REBEL_AUTO_HACKSHIELDS_destroyed_text: "Gain medium scrap and resources.",
   ship_REBEL_AUTO_ITEM_destroyed_c1_choice:
     "1 in 4: nothing. 1 in 4: gain a drone schematic and low scrap. 1 in 4: gain a weapon and low scrap. 1 in 4: gain medium resources.",
   ship_REBEL_AUTO_ITEM_destroyed_text: "Gain medium scrap.",

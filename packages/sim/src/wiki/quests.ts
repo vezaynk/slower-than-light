@@ -1914,8 +1914,9 @@ Fuel: ${n}.`,
     const n = rollPrice("FUELING_STATION", "offer", (lo, hi) => between(g, [lo, hi]));
     if (n == null || g.scrap < n) return;
     g.scrap -= n;
-    g.fuel += rollFuel("s:refuel-dock:accept", (lo, hi) => between(g, [lo, hi]));
-    result(g, "", undefined, ["", ""]);
+    const fuel = rollFuel("s:refuel-dock:accept", (lo, hi) => between(g, [lo, hi]));
+    g.fuel += fuel;
+    result(g, "", undefined, [`Scrap: -${n}.`, `Fuel: ${fuel}.`]);
   },
   "s:refuel-dock:reject": (g) => {
     result(g, "Nothing happens.");
@@ -4969,7 +4970,7 @@ export const PAGE_WINS: Record<string, Win> = {
   // Destroyed pays medium scrap with resources. The page prints no crew-kill reward.
   "auto-ship-carrying-shield-virus": (g, deadCrew) => {
     if (deadCrew) return false;
-    result(g, eventText("ship_REBEL_AUTO_FUEL_destroyed_text"), rollStandard(g, "medium"));
+    result(g, eventText("ship_REBEL_AUTO_HACKSHIELDS_destroyed_text"), rollStandard(g, "medium"));
   },
   // Lanius ship attacking civilian. Destroyed pays medium standard. A crew kill pays high. Then the civilians.
   // Lanius ship attacking civilian distress prints the same two endings and the same contact.

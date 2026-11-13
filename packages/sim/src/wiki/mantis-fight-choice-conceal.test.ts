@@ -90,7 +90,8 @@ describe("Mantis fight choice conceal", () => {
         assert.notEqual(g.phase, "combat");
       }
     }
-    assert.equal(lines.size, CONCEAL_FIGHT.length);
+    // Lines that print the same functional text count once.
+    assert.equal(lines.size, new Set(CONCEAL_FIGHT).size);
     assert.ok(fights > hidden, `${fights} fights, ${hidden} hidden`);
     assert.ok(hidden > 0);
   });
@@ -110,8 +111,7 @@ describe("Mantis fight choice conceal", () => {
       cloak(g);
       assert.equal(choiceDisabled(g, "c:mantis-fight-choice:2"), null);
       choose(g, "c:mantis-fight-choice:2");
-      const spotted =
-        eventText("event_MANTIS_FIGHT_CHOICE_CLOAK_3_text");
+      const spotted = eventText("event_MANTIS_FIGHT_CHOICE_CLOAK_3_text");
       const fightCard =
         g.phase === "combat" ||
         (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
@@ -134,7 +134,7 @@ describe("Mantis fight choice conceal", () => {
         assert.equal(g.scrap, 10);
       }
     }
-    assert.equal(lines.size, CLOAK_AWAY.length);
+    assert.equal(lines.size, new Set(CLOAK_AWAY).size);
     assert.ok(away > fights, `${away} away, ${fights} fights`);
     assert.ok(fights > 0);
   });

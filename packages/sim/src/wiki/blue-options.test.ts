@@ -7,6 +7,7 @@ import type { Beacon, Game, Kit } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerChoose, fillerEvent } from "./filler-events.ts";
 import { questChoose } from "./quests.ts";
+import { eventText } from "../event-text.ts";
 
 function beacon(name: string, flag: string): Beacon {
   return {
@@ -173,7 +174,7 @@ describe("Skipped blue options", () => {
     const before = g.fuel;
     openCited(g, "no-fuel-engi-ship-repair", "No fuel: Engi ship repair");
     choose(g, "c:no-fuel-engi-ship-repair:2");
-    assert.match(g.event?.body ?? "", /happily accept your offer for help/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_FUEL_OFF_ENGI_DUBIOUS_c3_text")));
     assert.equal(g.player.parts, 0);
     const got = g.fuel - before;
     assert.ok(got >= 4 && got <= 6, String(got));
@@ -243,7 +244,7 @@ describe("Skipped blue options", () => {
     const ruwen = g.crew.find((c) => c.name === "Ruwen");
     assert.ok(ruwen);
     assert.equal(ruwen?.kin, "crystal");
-    assert.match(g.event?.body ?? "", /cryogenic system/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_ZOLTAN_CREW_STUDY_c4_text")));
     assert.doesNotMatch(g.event?.body ?? "", /lose the augment/i);
   });
 

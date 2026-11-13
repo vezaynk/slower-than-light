@@ -5,6 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { heldSchematics } from "../rules/make-room.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
 
 /**
  * Template:Pirate Smuggler / Rebel Transport. The unnamed weapon and drone schematic are random ones (Rewards,
@@ -47,7 +48,7 @@ describe("Rebel transport ship", () => {
   it("demanding the cargo starts a Rebel ship that is already running and does not surrender", () => {
     const g = createGame(1);
     open(g);
-    const lead = "You prepare to secure their cargo by force.";
+    const lead = eventText("event_REBEL_TRANSPORT_c1_text");
     choose(g, "c:rebel-transport-ship:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

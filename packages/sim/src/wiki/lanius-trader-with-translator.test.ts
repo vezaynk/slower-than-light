@@ -4,6 +4,7 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { joinCrew } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 const BASE: Record<string, [number, number]> = {
   fuel: [15, 30],
@@ -35,7 +36,7 @@ function inBand(n: number, lo: number, hi: number) {
 }
 
 const HAIL =
-  'A Lanius merchant appears to have a significantly improved translator as you clearly understand their message. "Metal content more than sufficient. Does your ship care to exchange resources for our excess metal?"';
+  eventText("event_LANIUS_TRADER_TRANSLATOR_text");
 
 describe("Lanius trader with translator", () => {
   it("shows the printed hail, then one base offer, and agreeing pays those amounts", () => {
@@ -50,7 +51,11 @@ describe("Lanius trader with translator", () => {
       inBand(got.scrap, BASE[got.res]![0], BASE[got.res]![1]);
       assert.deepEqual(
         g.event?.choices.map((c) => c.label),
-        ["Agree to the exchange.", "Decline", "Decline but ask about their translation device."],
+        [
+          eventText("event_LANIUS_TRADER_TRANSLATOR_c1_choice"),
+          eventText("event_LANIUS_TRADER_TRANSLATOR_c2_choice"),
+          eventText("event_LANIUS_TRADER_TRANSLATOR_c3_choice"),
+        ],
       );
       const fuel = g.fuel;
       choose(g, g.event!.choices[0]!.id);

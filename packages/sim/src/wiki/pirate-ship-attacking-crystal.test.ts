@@ -4,6 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -34,7 +35,7 @@ describe("Pirate ship attacking Crystal", () => {
     const g = createGame(1);
     open(g);
     const lead =
-      "You chase down the pirate before it has a chance to engage the civilian ship. When it detects the real threat, it turns to face you.";
+      eventText("event_CRYSTAL_PIRATE_CRYSTAL_c1_text");
     choose(g, "c:pirate-ship-attacking-crystal:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

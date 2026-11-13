@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -19,7 +20,7 @@ describe("Auto-ship near radar station approach", () => {
   it("approaching shows the power-up sentence on the card and starts an Auto-ship fight", () => {
     const g = createGame(1);
     open(g);
-    const told = "The ship powers up and targets you.";
+    const told = eventText("event_AUTO_DEFENSE_RADAR_c1_text");
     choose(g, "c:auto-ship-near-radar-station:0");
     assert.equal(g.phase, "event");
     assert.ok(g.event?.body?.includes(told));

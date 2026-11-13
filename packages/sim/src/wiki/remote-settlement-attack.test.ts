@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -19,7 +20,7 @@ describe("Remote settlement attack", () => {
   it("attacking prints the engage sentence and starts a Pirate ship fight", () => {
     const g = createGame(1);
     open(g);
-    const lead = '"You asked for it!" They pull away from the planet and move in to engage.';
+    const lead = eventText("event_PIRATE_STATION_CROPS_c1_text");
     choose(g, "c:remote-settlement:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);

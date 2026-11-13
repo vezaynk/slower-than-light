@@ -6,6 +6,7 @@ import { fillerChoose } from "./wiki/filler-events.ts";
 import { questChoose } from "./wiki/quests.ts";
 import { PART_B } from "./wiki/quests-b.ts";
 import { startedGame } from "./test-start.ts";
+import { eventText } from "./event-text.ts";
 
 function plant(g: Game, room: string, hp = 100): Crew {
   g.uid = (g.uid + 1) >>> 0;
@@ -147,7 +148,7 @@ describe("Boarders with no enemy ship", () => {
     PART_B.choices["q:research:drag"](g);
     resumeBoarding(
       g,
-      "As you get back on board, your injured friend rises up and starts to attack you, screaming. Caught off-guard, your remaining crew fall back as the other scientists fight their way onto the ship.",
+      eventText("event_STATION_SICK_LIST_3_c1_text"),
     );
     assert.match(g.log.join("\n"), /\d+ human boarders beam aboard\./);
     assert.equal(g.phase, "combat");
@@ -165,7 +166,7 @@ describe("Boarders with no enemy ship", () => {
     PART_B.choices["q:research:beam"](g);
     resumeBoarding(
       g,
-      "You beam your away team back to the ship and disengage from the station. Although the ship is safe, the infected crew member quickly becomes frenzied and attacks.",
+      eventText("event_STATION_SICK_LIST_3_c2_text"),
     );
     assert.equal(g.phase, "combat");
     assert.equal(g.enemy, null);
@@ -189,7 +190,7 @@ describe("Boarders with no enemy ship", () => {
     PART_B.choices["q:research:medbay"](g);
     resumeBoarding(
       g,
-      "You hold him down and the medbay is able to stop whatever neurotoxin was on the ship from fully infecting your crew. Once he recovers, you prepare to fight off the scientists, who are beyond help.",
+      eventText("event_STATION_SICK_LIST_3_c3_text"),
     );
     assert.match(g.log.join("\n"), /\d+ human boarders beam aboard\./);
     assert.equal(g.phase, "combat");

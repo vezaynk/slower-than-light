@@ -4,6 +4,7 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game, Kit } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -38,7 +39,7 @@ describe("Auto-ship near radar station", () => {
       g.event?.choices.some((c) => c.id === "c:auto-ship-near-radar-station:2"),
       true,
     );
-    const lead = "The ship powers up and targets you.";
+    const lead = eventText("event_AUTO_DEFENSE_RADAR_c1_text");
     choose(g, "c:auto-ship-near-radar-station:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

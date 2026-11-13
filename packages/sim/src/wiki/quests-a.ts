@@ -16,6 +16,7 @@ import { enterHiddenCrystal, log, rand, showEventLines } from "../sim.ts";
 import type { Game, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts";
 import { grantRandomItem } from "../rules/bonus-item.ts";
+import { eventText } from "../event-text.ts";
 import { affordStock, scrapLine, takeStock } from "./stock-spend.ts";
 import {
   addQuest,
@@ -155,7 +156,7 @@ const ARRIVE: QuestPart["arrive"] = {
     offer.fuel = between(g, resourceBand("fuel", "medium"));
     result(
       g,
-      "You arrive at the coordinates to find a massive Crystalline cruiser docked at a small repair station. You arrange for the ship to be sent back to the Federation base while the station upgrades your hull.",
+      eventText("event_CRYSTAL_UNLOCK_text"),
       offer,
       [unlocked, grantAug(g, "CRYSTAL_SHARDS"), repair(g, 10)],
     );
@@ -168,11 +169,7 @@ const ARRIVE: QuestPart["arrive"] = {
     const unlocked = grantUnlock(g, "PLAYER_SHIP_ROCK"); // @agent:unlocks. Rock war vessel encounter: "You unlock the Rock Cruiser."
     result(
       g,
-      `You arrive at a massive Rockman shipyard and notice the ship that had just tried to kill you is docked and already being repaired. "Well fought! I must say I did not expect you to survive."
-
-I am convinced of your strength and pledge to assist your cause. We'll immediately send an advanced cruiser to the Federation fleet and we will prepare our warships to move out.
-
-"Now that that's taken care of, let us patch up your hull. Maybe we can improve its armor plating while we're at it."`,
+      `${eventText("event_ROCK_UNLOCK3_text")}\n\n${eventText("event_ROCK_UNLOCK3_c1_text")}\n\n${eventText("event_ROCK_UNLOCK3_c1_c1_text")}`,
       undefined,
       [unlocked, grantAug(g, "ROCK_ARMOR"), repair(g, 29)],
     );
@@ -193,9 +190,7 @@ function zoltanHub(g: Game, text: string) {
   if (rand(g) < 0.5) {
     result(
       g,
-      `${text}
-
-You head into a ship supply store. It is a well-equipped, self-service affair. An order is dialed into a terminal, scrap is deposited, and the item is dispatched from a nearby chute.`,
+      `${text}\n\n${eventText("event_ZOLTAN_TRADE_HUB_SUCCESS_1_text")}`,
       undefined,
       [],
       STORE_CHOICES,
@@ -203,11 +198,7 @@ You head into a ship supply store. It is a well-equipped, self-service affair. A
   } else {
     result(
       g,
-      `${text}
-
-You head into the cantina for gossip. Topics of conversation in the cantina range from crop distribution microbes to the joys of Slug pleasure cruises.
-
-You overhear one group discussing a newly discovered planet yet to have first contact, and note down its location.`,
+      `${text}\n\n${eventText("event_ZOLTAN_TRADE_HUB_SUCCESS_2_text")}\n\n${eventText("event_ZOLTAN_TRADE_HUB_SUCCESS_2_c1_text")}`,
       undefined,
       [addQuest(g, "zoltan-primitives")],
     );
@@ -228,13 +219,13 @@ const CHOICES_A: QuestPart["choices"] = {
     if (rand(g) < 0.5) {
       result(
         g,
-        "You break it apart and take it for scrap. No one will miss it.",
+        eventText("event_ROCK_CRYSTAL_BEACON_LIST_1_text"),
         scrapOnly(g, "high"),
       );
     } else {
       pageFight(
         g,
-        'As you start to break it apart a Rock military ship jumps nearby, "You think you can come into our sector and just steal whatever you please?! Prepare to die, vandals!"',
+        eventText("event_ROCK_CRYSTAL_BEACON_LIST_2_text"),
         "Rock ship",
         "ancient-device",
       );
@@ -244,7 +235,7 @@ const CHOICES_A: QuestPart["choices"] = {
     // Wiki citations:
     // > "Nothing happens." — [[Ancient device]]
     // > "Better not risk it. The Rock people are unlikely to respond well to vandalism." — [[Ancient device]]
-    result(g, "Better not risk it. The Rock people are unlikely to respond well to vandalism."),
+    result(g, eventText("event_ROCK_CRYSTAL_BEACON_c2_text")),
   "c:ancient-device:2": (g) => {
     // Wiki citations:
     // > "(Crystal Crew) Reactivate it." — [[Ancient device]]
@@ -257,13 +248,7 @@ const CHOICES_A: QuestPart["choices"] = {
     enterHiddenCrystal(g);
     result(
       g,
-      `Your Crystalline companion says, "It looks like we have found the abandoned link to my home worlds. I can reactivate it." He transmits some codes to the device and it immediately powers on.
-
-Before you can react, the space around you distorts and a wormhole forms. You begin to sound the alarm, but your companion calms you and indicates that you should fly directly into the wormhole. You reluctantly do as he says.
-
-You arrive in a sector not listed in any star charts. Strange crystalline ships dot the horizon. Your companion speaks, "Here we are, my home sector. It has been a long time since others have set foot here, I wonder how you will be received."
-
-"You have done as you promised and so shall I. The coordinates of my old ship have been forwarded to your navigation system."`,
+      `${eventText("event_ROCK_CRYSTAL_BEACON_c3_text")}\n\n${eventText("event_ROCK_CRYSTAL_BEACON_c3_c1_text")}\n\n${eventText("event_START_BEACON_CRYSTAL_text")}\n\n${eventText("event_START_BEACON_CRYSTAL_c1_text")}`,
       undefined,
       [addQuest(g, "crystal-unlock")],
     );
@@ -276,7 +261,7 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
     // > "If the Federation is as weak as you it deserves to fall." — [[Rock war vessel encounter]]
     result(
       g,
-      '"Heh. Like I expected. If the Federation is as weak as you it deserves to fall." They jump away without another word.',
+      eventText("event_ROCK_UNLOCK1_c3_text"),
     );
   },
   // INFERRED: no surrender (the page prints none). The M-class star's flares are rules/flare.ts eventHasFlare("quest-rock-sun"): the arrival page's `<environment type="sun">`.
@@ -287,7 +272,7 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
     // > "The Rock ship starts to power up their FTL drive." — [[Rock war vessel encounter#Sun Quest Marker]]
     pageFight(
       g,
-      "The Rock ship starts to power up their FTL drive. If we're going to earn their trust we must endure the heat for as long as they can!",
+      eventText("ship_ROCK_UNLOCK2_escape_text"),
       "Rock Assault (Elite)",
       "quest-rock-sun",
       startRun(32),
@@ -307,7 +292,7 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
     if (rand(g) < 0.5) {
       pageFight(
         g,
-        "You charge your weapons - not that this will take much.",
+        eventText("event_ZOLTAN_PEACE_QUEST_ATTACK_1_text"),
         "Zoltan ship",
         "unarmed-zoltan-transport",
       );
@@ -327,14 +312,14 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
       }
       // {{Winning|surrender=true|...}}. INFERRED: no threshold is printed and the ship cannot fight back, so the offer
       // opens with the fight. Zoltan ships otherwise never surrender (surrender.ts), so this card is the only one.
-      card(g, "They are clearly not putting up a fight. Are you sure you want to destroy them?", [
-        { id: "qa:uzt:finish", label: "Finish them off." },
-        { id: "qa:uzt:go", label: "Let them go." },
+      card(g, eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_text"), [
+        { id: "qa:uzt:finish", label: eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_c1_choice") },
+        { id: "qa:uzt:go", label: eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_c2_choice") },
       ]);
     } else {
       pageFight(
         g,
-        "Just as you're preparing to attack you detect a nearby jump signature. A Zoltan defense ship comes to their aid!",
+        eventText("event_ZOLTAN_PEACE_QUEST_ATTACK_2_text"),
         "Zoltan ship",
         "unarmed-zoltan-defense",
       );
@@ -345,7 +330,7 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
     // > "Finish them off." — [[Unarmed Zoltan transport]]
     // > "You continue the assault." — [[Unarmed Zoltan transport]]
     // > "The fight continues." — [[Unarmed Zoltan transport]]
-    resume(g, "You continue the assault.");
+    resume(g, eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_c1_text"));
   },
   "qa:uzt:go": (g) => {
     // Wiki citations:
@@ -355,7 +340,7 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
     closeFight(g);
     result(
       g,
-      "You power down your weapons and after a time the ship slowly limps away. They refuse all communications. You can't help but feel somewhat guilty.",
+      eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_c2_text"),
     );
   },
   "c:unarmed-zoltan-transport:2": (g) => {
@@ -364,7 +349,7 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
     // > "Nothing happens." — [[Unarmed Zoltan transport]]
     result(
       g,
-      "The galaxy is at war - there's no time for talk of peace. You leave their hails unanswered and charge the jump drive.",
+      eventText("event_ZOLTAN_PEACE_QUEST_c3_text"),
     );
   },
   // Quest Marker. Every Rebel fight here is "(default rewards)", so no PAGE wins entry.
@@ -372,7 +357,7 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
     // Wiki citations:
     // > "You power your weapons and prepare to fight." — [[Unarmed Zoltan transport#Quest Marker]]
     // > "Fight a Rebel ship (default rewards)." — [[Unarmed Zoltan transport#Quest Marker]]
-    pageFight(g, "You power your weapons and prepare to fight.", PEACE_FIGHT, "quest-zoltan-peace");
+    pageFight(g, eventText("event_ZOLTAN_PEACE_QUEST2_c1_text"), PEACE_FIGHT, "quest-zoltan-peace");
   },
   "qa:peace:hail": (g) => {
     // Wiki citations:
@@ -382,21 +367,21 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
     // > "Your Rebellion is causing millions of deaths." — [[Unarmed Zoltan transport#Quest Marker]]
     card(
       g,
-      "They open communications: \"I can't imagine there's anything you could say that will save you. The rebellion must destroy those that are still loyal to the obsolete Federation.\"",
+      eventText("event_ZOLTAN_PEACE_QUEST2_c2_text"),
       [
         {
           id: "qa:peace:reconcile",
-          label: '"Perhaps there could be a reconciliation of our ideals without war?"',
+          label: eventText("event_ZOLTAN_PEACE_QUEST2_c2_c1_choice"),
         },
         {
           id: "qa:peace:surrender",
           label:
-            '"Surrender. Your ultimate destruction is inevitable. We\'ve left scores of Rebels destroyed in our wake."',
+            eventText("event_ZOLTAN_PEACE_QUEST2_c2_c2_choice"),
         },
         {
           id: "qa:peace:unity",
           label:
-            '"Your Rebellion is causing millions of deaths. Your beliefs are dividing the galaxy. Unity is the only option!"',
+            eventText("event_ZOLTAN_PEACE_QUEST2_c2_c3_choice"),
         },
       ],
     );
@@ -407,16 +392,16 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
     // > "True progress can only be achieved without bloodshed." — [[Unarmed Zoltan transport#Quest Marker]]
     card(
       g,
-      '"Our ideals are too different to be so easily reconciled. You think this could end any way but war?"',
+      eventText("event_ZOLTAN_PEACE_QUEST2_c2_c1_text"),
       [
         {
           id: "qa:peace:elsewhere",
           label:
-            "The galaxy is huge, you can find a place for your ideals elsewhere without causing this destruction.",
+            eventText("event_ZOLTAN_PEACE_QUEST2_c2_c1_c1_choice"),
         },
         {
           id: "qa:peace:bloodless",
-          label: "True progress can only be achieved without bloodshed.",
+          label: eventText("event_ZOLTAN_PEACE_QUEST2_c2_c1_c2_choice"),
         },
       ],
     );
@@ -426,7 +411,7 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
     // > "Fight a Rebel ship (default rewards)." — [[Unarmed Zoltan transport#Quest Marker]]
     pageFight(
       g,
-      "\"No! We will not be consigned to the backwaters of space just because we don't fit into your 'Federation ideals'\" They charge.",
+      eventText("event_ZOLTAN_PEACE_QUEST2_c2_c1_c1_text"),
       PEACE_FIGHT,
       "quest-zoltan-peace",
     );
@@ -437,7 +422,7 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
     // > "Fight a Rebel ship (default rewards)." — [[Unarmed Zoltan transport#Quest Marker]]
     pageFight(
       g,
-      "They shut off communications and immediately engage.",
+      eventText("event_ZOLTAN_PEACE_QUEST2_c2_c2_text"),
       PEACE_FIGHT,
       "quest-zoltan-peace",
     );
@@ -447,7 +432,7 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
     // > "Fight a Rebel ship (default rewards)." — [[Unarmed Zoltan transport#Quest Marker]]
     pageFight(
       g,
-      "\"Humans are treated as 'equal' to aliens in the weak Federation. The sacrifice of BILLIONS of alien or human lives are justified if it means we reach our full potential!\" They charge.",
+      eventText("event_ZOLTAN_PEACE_QUEST2_c2_c3_text"),
       PEACE_FIGHT,
       "quest-zoltan-peace",
     );
@@ -457,19 +442,15 @@ You arrive in a sector not listed in any star charts. Strange crystalline ships 
     // > "Suddenly all indications of the Rebel ship fade away and a Zoltan fleet appears around your ship." — [[Unarmed Zoltan transport#Quest Marker]]
     // > "You unlock the Zoltan Cruiser; receive Zoltan Shield augmentation and low scrap." — [[Unarmed Zoltan transport#Quest Marker]]
     // > "You unlock the Zoltan Cruiser; receive a Zoltan crewmember named Envoy maxed in all skills and high scrap with resources." — [[Unarmed Zoltan transport#Quest Marker]]
-    const intro =
-      "Suddenly all indications of the Rebel ship fade away and a Zoltan fleet appears around your ship. The captain of the ship you met previously materializes on your bridge.";
-    const said =
-      "\"Although your methods are crude and most certainly ineffective, it is clear you took our previous meeting to heart. If your ship represents the Federation's willingness to adapt we shall do what we can to aid in their fight.";
+    // ftl.dat pages: the fleet arrives, then one of two reward pages.
+    const intro = eventText("event_ZOLTAN_PEACE_QUEST2_c2_c1_c2_text");
     const unlocked = grantUnlock(g, "PLAYER_SHIP_ENERGY"); // @agent:unlocks. Unarmed Zoltan transport: "You unlock the Zoltan Cruiser".
     // "(50% chance)" each.
     if (rand(g) < 0.5) {
       // "You unlock the Zoltan Cruiser; receive Zoltan Shield augmentation and low scrap."
       result(
         g,
-        `${intro}
-
-${said} This technology should aid your quest."`,
+        `${intro}\n\n${eventText("event_ZOLTAN_PEACE_QUEST_REWARD_1_text")}`,
         scrapOnly(g, "low"),
         [unlocked, zoltanShield(g)],
       );
@@ -477,9 +458,7 @@ ${said} This technology should aid your quest."`,
       // "You unlock the Zoltan Cruiser; receive a Zoltan crewmember named Envoy maxed in all skills and high scrap with resources."
       result(
         g,
-        `${intro}
-
-${said} I will personally assist."`,
+        `${intro}\n\n${eventText("event_ZOLTAN_PEACE_QUEST_REWARD_2_text")}`,
         rollStandard(g, "high"),
         [unlocked, maxedCrew(g, "Zoltan", "Envoy")],
       );
@@ -502,14 +481,14 @@ ${said} I will personally assist."`,
     if (r === "study") {
       result(
         g,
-        'Your crew calmly lines up for the Zoltans to take their readings. After a short time, the process is done. They contact you, "Thank you for your participation in our study. Please accept these small cakes made from stiff dough as well as some scrap."',
+        eventText("event_ZOLTAN_CREW_STUDY_LIST_1_text"),
         scrapOnly(g, "low"),
       );
       return;
     }
     pageFight(
       g,
-      'As soon as you dock, pirates burst on board and a hostile ship appears on the radar. You hear the Zoltans yell in the distance, "We\'re being held hostage!"',
+      eventText("event_ZOLTAN_CREW_STUDY_LIST_3_text"),
       "Pirate ship",
       "zoltan-research-facility",
       { ...NEVER_RUN },
@@ -521,7 +500,7 @@ ${said} I will personally assist."`,
     // Wiki citations:
     // > "Alright. Fly safe." — [[Zoltan research facility]]
     // > "Nothing happens." — [[Zoltan research facility]]
-    result(g, '"Alright. Fly safe." You prepare to leave.'),
+    result(g, eventText("event_ZOLTAN_CREW_STUDY_c2_text")),
   "c:zoltan-research-facility:2": (g) => {
     // Wiki citations:
     // > "Requires level 3 Medbay" — [[Zoltan research facility]]
@@ -530,7 +509,7 @@ ${said} I will personally assist."`,
     if (medbayLevel(g) < 3) return;
     result(
       g,
-      "\"Thank you! We didn't expect to receive such a significant amount of data regarding your crew's health during FTL travel. Please, accept this for your trouble.\"",
+      eventText("event_ZOLTAN_CREW_STUDY_c3_text"),
       rollSurrenderOffer(g, "low", true),
       [grantRandomItem(g, "drone")],
     );
@@ -543,7 +522,7 @@ ${said} I will personally assist."`,
     // > "Fight the Zoltan ship." — [[Zoltan quest primitives]]
     pageFight(
       g,
-      "The local people - furry, one-eyed tree lizard things - begin chanting when they see you. Suddenly the sky is lit by laser fire - the Zoltan opened fire on your ship! You dash back to the shuttle and join the fight.",
+      eventText("event_ZOLTAN_QUEST_PRIMITIVES_c1_c1_text"),
       "Zoltan ship",
       "zoltan-quest-primitives-interfere",
     );
@@ -556,7 +535,7 @@ ${said} I will personally assist."`,
     // > "Fight the Rebel Ship." — [[Zoltan quest primitives]]
     pageFight(
       g,
-      "These creatures should be left to develop at their own pace. You direct all weapons on the Rebel ship and begin the firing sequence.",
+      eventText("event_ZOLTAN_QUEST_PRIMITIVES_c1_c2_text"),
       "Rebel ship",
       "zoltan-quest-primitives-protect",
     );
@@ -573,11 +552,7 @@ ${said} I will personally assist."`,
     const joined = crew(g, "Crystal", undefined, "Ruwen");
     result(
       g,
-      `"Interesting. I've never seen a cryogenic system like this. It appears to still be functioning..." They hook it up to their system and run a number of tests on it.
-
-"Amazing! It has the ability to reconstruct the body if it was damaged during transit. Watch." They reactivate the pod and you watch as the hunks of crystal inside reform to build a humanoid structure. The pod slides open and the re-formed alien steps out.
-
-It speaks slowly, "Greetings. I appear to be in your debt. My people isolated themselves a long time ago, but perhaps it's time to re-establish a connection. There's a hidden wormhole near the Rock home-worlds. Perhaps you can take me there so I can properly repay you?"`,
+      `${eventText("event_ZOLTAN_CREW_STUDY_c4_text")}\n\n${eventText("event_ZOLTAN_CREW_STUDY_c4_c1_text")}\n\n${eventText("event_ZOLTAN_CREW_STUDY_c4_c1_c1_text")}`,
       undefined,
       [joined],
     );
@@ -588,7 +563,7 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
     // > "You receive a drone schematic with low resources and scrap." — [[Zoltan research facility]]
     result(
       g,
-      '"Thank you for rescuing us! They held us hostage to ambush unsuspecting passersby. Please, take this."',
+      eventText("ship_PIRATE_ZOLTAN_CREW_STUDY_destroyed_c1_text"),
       rollSurrenderOffer(g, "low", true),
       [grantRandomItem(g, "drone")],
     );
@@ -603,7 +578,7 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
     if (rand(g) < 0.5) {
       pageFight(
         g,
-        "They don't see many of your species in these parts, and you stick out like a Casvagarian Sea Slug in a Plutonian Shrimp Stew. You make it back to the ship with a gang of Zoltan guards in tow!",
+        eventText("event_ZOLTAN_TRADE_HUB_TALK_1_text"),
         "Zoltan ship",
         "zoltan-trade-hub",
         { ...NEVER_RUN },
@@ -612,7 +587,7 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
     } else {
       zoltanHub(
         g,
-        "You pose as traders and succeed in bypassing airlock security - however, it's only a matter of time before someone realizes your ID cards are counterfeit!",
+        eventText("event_ZOLTAN_TRADE_HUB_TALK_2_text"),
       );
     }
   },
@@ -623,7 +598,7 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
     if (!hasTeleporter(g)) return;
     zoltanHub(
       g,
-      "You re-materialize in a dark corner of the main concourse and are able to conduct your investigations in peace.",
+      eventText("event_ZOLTAN_TRADE_HUB_c2_text"),
     );
   },
   "c:zoltan-trade-hub:2": (g) => {
@@ -636,9 +611,7 @@ It speaks slowly, "Greetings. I appear to be in your debt. My people isolated th
     takeStock(g, "scrap", cost);
     zoltanHub(
       g,
-      `They scan ID that declares your crewmember an official citizen, collect their fee, and let you pass.
-
-${scrapLine(cost)}`,
+      `${eventText("event_ZOLTAN_TRADE_HUB_c3_text")}\n\n${scrapLine(cost)}`,
     );
   },
   "c:zoltan-trade-hub:3": (g) =>
@@ -647,7 +620,7 @@ ${scrapLine(cost)}`,
     // > "You don't have the papers" — [[Zoltan trade hub]]
     result(
       g,
-      "You don't have the papers - well, the neuro-laced identity bracelets - to get in, so best not to try.",
+      eventText("event_ZOLTAN_TRADE_HUB_c4_text"),
     ),
 
   // ---- Rock bride ----
@@ -657,7 +630,7 @@ ${scrapLine(cost)}`,
     // > "Arranged marriages aren't on your list of worthy causes." — [[Rock bride]]
     result(
       g,
-      "Arranged marriages aren't on your list of worthy causes. You leave the Rock to their business.",
+      eventText("event_ROCK_QUEST_MARRIAGE_START_c2_text"),
     ),
   // The augmentation is not named: Rewards, "Augment": "A random augmentation and T scrap."
   "qa:bride:hand": (g) => {
@@ -666,7 +639,7 @@ ${scrapLine(cost)}`,
     // > "You receive an augmentation with low scrap." — [[Rock bride#Quest Marker]]
     result(
       g,
-      '"May your children erode into dust!" she screams as she\'s bundled into the waiting shuttle. The Rock guards on board hurriedly drop off an exotic piece of technology and return to the Grand Basilisk.',
+      eventText("event_ROCK_QUEST_MARRIAGE_c1_c1_text"),
       scrapOnly(g, "low"),
       [grantRandomItem(g, "augment")],
     );
@@ -678,7 +651,7 @@ ${scrapLine(cost)}`,
     const joined = crew(g, "Rock", undefined, "Ariadne");
     pageFight(
       g,
-      "\"I was led to believe your kind did not know mercy. I will join you. But quickly, we must jump away - they will not tolerate...\" She's interrupted by weapons fire from the Basilisk's escort!",
+      eventText("event_ROCK_QUEST_MARRIAGE_c1_c2_text"),
       "Rock ship",
       "quest-rock-bride",
     );
@@ -704,10 +677,21 @@ function disabledA(_g: Game, _id: string): string | null {
 // Page wins and "gotaway" results
 // ---------------------------------------------------------------------------------------------------------------
 
-/** Destroyed -> `destroyed` tier; deadCrew -> "a random amount of scrap with resources". */
-function lowOrRandom(textD: string, textK: string): Win {
+/** Destroyed -> `destroyed` tier; deadCrew -> "a random amount of scrap with resources". Text by ftl.dat id. */
+function lowOrRandom(idD: string, idK: string): Win {
   return (g, deadCrew) =>
-    result(g, deadCrew ? textK : textD, rollStandard(g, deadCrew ? undefined : "low"));
+    result(g, eventText(deadCrew ? idK : idD), rollStandard(g, deadCrew ? undefined : "low"));
+}
+
+/** quests.ts `std`, with the text read by ftl.dat id when the fight ends. */
+function stdText(
+  destroyed: Parameters<typeof std>[0],
+  killed: Parameters<typeof std>[1],
+  idD: string,
+  idK = idD,
+  then?: Choice[],
+): Win {
+  return (g, deadCrew) => std(destroyed, killed, eventText(deadCrew ? idK : idD), undefined, then)(g, deadCrew);
 }
 
 const WINS_A: QuestPart["wins"] = {
@@ -717,8 +701,8 @@ const WINS_A: QuestPart["wins"] = {
   // > "You begin to strip their ship and don't find anything that would indicate they were on anything other than a peaceful mission." — [[Unarmed Zoltan transport]]
   // > "You receive a random amount of scrap with resources." — [[Unarmed Zoltan transport]]
   "unarmed-zoltan-transport": lowOrRandom(
-    "You can't help but feel somewhat guilty as you search through the debris. It was probably a trap... right?",
-    "You begin to strip their ship and don't find anything that would indicate they were on anything other than a peaceful mission. Perhaps you were too hasty.",
+    "ship_ZOLTAN_PEACE_QUEST_ATTACK1_destroyed_text",
+    "ship_ZOLTAN_PEACE_QUEST_ATTACK1_deadCrew_text",
   ),
   // Wiki citations:
   // > "After destroying enemy ship You defeat your assailant, but the peace ship has jumped away in the commotion." — [[Unarmed Zoltan transport]]
@@ -726,30 +710,30 @@ const WINS_A: QuestPart["wins"] = {
   // > "You receive low scrap with resources." — [[Unarmed Zoltan transport]]
   // > "You receive a random amount of scrap with resources." — [[Unarmed Zoltan transport]]
   "unarmed-zoltan-defense": lowOrRandom(
-    "You defeat your assailant, but the peace ship has jumped away in the commotion.",
-    "You defeat your assailant, but the peace ship has jumped away in the commotion.",
+    "ship_ZOLTAN_PEACE_QUEST_ATTACK2_destroyed_text",
+    "ship_ZOLTAN_PEACE_QUEST_ATTACK2_destroyed_text",
   ),
   // Wiki citations:
   // > "Their ship breaks apart and you feel a twinge of guilt." — [[Rock war vessel encounter#Sun Quest Marker]]
   // > "You receive medium scrap with resources." — [[Rock war vessel encounter#Sun Quest Marker]]
   // > "Their ship goes quiet and you feel a twinge of guilt." — [[Rock war vessel encounter#Sun Quest Marker]]
   // > "You receive high scrap with resources." — [[Rock war vessel encounter#Sun Quest Marker]]
-  "quest-rock-sun": std(
+  "quest-rock-sun": stdText(
     "medium",
     "high",
-    "Their ship breaks apart and you feel a twinge of guilt. Perhaps they could have helped the Federation if this had gone another way. You scrap what you can and prepare to jump out of the heat.",
-    "Their ship goes quiet and you feel a twinge of guilt. Perhaps they could have helped the Federation if this had gone another way. You scrap what you can and prepare to jump out of the heat.",
+    "ship_ROCK_UNLOCK2_destroyed_text",
+    "ship_ROCK_UNLOCK2_deadCrew_text",
   ),
   // Wiki citations:
   // > "You take out the ship and contact the research station." — [[Zoltan research facility]]
   // > "You receive medium scrap with resources." — [[Zoltan research facility]]
   // > "You disable the ship and contact the research station." — [[Zoltan research facility]]
   // > "You receive high scrap with resources." — [[Zoltan research facility]]
-  "zoltan-research-facility": std(
+  "zoltan-research-facility": stdText(
     "medium",
     "high",
-    "You take out the ship and contact the research station.",
-    "You disable the ship and contact the research station.",
+    "ship_PIRATE_ZOLTAN_CREW_STUDY_destroyed_text",
+    "ship_PIRATE_ZOLTAN_CREW_STUDY_deadCrew_text",
     CONTINUE,
   ),
   // Interfere. "pursuit is doubled for 1 jump". Destroyed is low scrap with resources. A crew kill is a random amount.
@@ -761,7 +745,7 @@ const WINS_A: QuestPart["wins"] = {
       // > "Rebel Fleet pursuit is doubled for 1 jump and you receive a random amount of scrap with resources." — [[Zoltan quest primitives]]
       result(
         g,
-        "The Rebel contacts you. \"Lovely, you've done our job for us! We'll let you live as thanks. However, I can't promise the fleet will show you the same courtesy.\" They jump off. You collect what you can from the remains of the Zoltan ship.",
+        eventText("ship_ZOLTAN_PRIMITIVES_ZOLTAN_destroyed_text"),
         rollStandard(g),
         ["Rebel Fleet pursuit is doubled for 1 jump."],
       );
@@ -772,7 +756,7 @@ const WINS_A: QuestPart["wins"] = {
     // > "Rebel Fleet pursuit is doubled for 1 jump and you receive low scrap with resources." — [[Zoltan quest primitives]]
     result(
       g,
-      "The Rebel contacts you. \"Lovely, you've done our job for us! We'll let you live as thanks. However, I can't promise the fleet will show you the same courtesy.\" They jump off. You collect what you can from the remains of the Zoltan ship.",
+      eventText("ship_ZOLTAN_PRIMITIVES_ZOLTAN_destroyed_text"),
       rollStandard(g, "low"),
       ["Rebel Fleet pursuit is doubled for 1 jump."],
     );
@@ -785,7 +769,7 @@ const WINS_A: QuestPart["wins"] = {
       // > "You receive a weapon with medium scrap." — [[Zoltan quest primitives]]
       result(
         g,
-        'The Zoltan hail once the smoke disperses. "Thank you. We were led to believe Federation ideals died along with the Federation itself. Let us aid you a little, for old times\' sake." You accept their reward and scrap, then collect some remains from the Rebel ship.',
+        eventText("ship_ZOLTAN_PRIMITIVES_REBEL_destroyed_text"),
         scrapOnly(g, "medium"),
         [grantRandomItem(g, "weapon")],
       );
@@ -796,7 +780,7 @@ const WINS_A: QuestPart["wins"] = {
     // > "You receive a weapon with low scrap." — [[Zoltan quest primitives]]
     result(
       g,
-      'The Zoltan hail once the smoke disperses. "Thank you. We were led to believe Federation ideals died along with the Federation itself. Let us aid you a little, for old times\' sake." You accept their reward and scrap, then collect some remains from the Rebel ship.',
+      eventText("ship_ZOLTAN_PRIMITIVES_REBEL_destroyed_text"),
       scrapOnly(g, "low"),
       [grantRandomItem(g, "weapon")],
     );
@@ -806,10 +790,10 @@ const WINS_A: QuestPart["wins"] = {
   // > "You receive medium scrap with resources." — [[Rock bride#Quest Marker]]
   // > "After killing enemy crew His escort eliminated, the Grand Basilisk dispatches his entire fleet. There's just time to take your pick from the wreck before you jump out of reach." — [[Rock bride#Quest Marker]]
   // > "You receive high scrap with resources." — [[Rock bride#Quest Marker]]
-  "quest-rock-bride": std(
+  "quest-rock-bride": stdText(
     "medium",
     "high",
-    "His escort eliminated, the Grand Basilisk dispatches his entire fleet. There's just time to take your pick from the wreck before you jump out of reach.",
+    "ship_ROCK_QUEST_MARRIAGE_destroyed_text",
   ),
 };
 
@@ -821,7 +805,7 @@ const GOT_AWAY_A: QuestPart["gotAway"] = {
     // > "Another quest marker is added to your map." — [[Rock war vessel encounter#Sun Quest Marker]]
     result(
       g,
-      "As they jump away they relay coordinates to your navigation system. They must mean for you to follow them!",
+      eventText("ship_ROCK_UNLOCK2_gotaway_text"),
       undefined,
       [addQuest(g, "rock-shipyard")],
     );

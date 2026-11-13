@@ -4,6 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageGotAway, pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -39,7 +40,7 @@ describe("Lanius ship absorbing automated scout", () => {
   it("fighting starts a Lanius escape with no surrender offer", () => {
     const g = createGame(1);
     open(g);
-    const told = "You power up your weapons, which quickly gets the attention of the ship.";
+    const told = eventText("event_LANIUS_AUTO_REBEL_c1_text");
     choose(g, "c:lanius-ship-absorbing-automated-scout:0");
     assert.equal(g.phase, "event");
     assert.ok(g.event?.body?.includes(told));

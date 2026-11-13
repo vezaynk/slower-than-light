@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const INTROS = [
   `You arrive at a quiet spaceport and are immediately hailed by another ship at port with a "once in a lifetime deal!"`,
@@ -71,10 +72,10 @@ describe("Trade resources", () => {
       assert.equal(ev.choices.length, 2);
       const take = ev.choices[0]!;
       const ignore = ev.choices[1]!;
-      assert.equal(take.label, "Trade.");
+      assert.equal(take.label, eventText("event_TRADER_CIV_c1_choice"));
       assert.match(take.id, TAKE);
       assert.equal(ignore.id, "c:trade-resources:4");
-      assert.equal(ignore.label, "Ignore.");
+      assert.equal(ignore.label, eventText("event_TRADER_CIV_c2_choice"));
       const m = TAKE.exec(take.id);
       assert.ok(m);
       const pay = m[1] as Res;

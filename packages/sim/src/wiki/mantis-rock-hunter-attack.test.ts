@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -23,7 +24,7 @@ describe("Mantis ship with Rock body parts", () => {
     const g = createGame(1);
     open(g);
     const lead =
-      "No species deserves a Mantis hunter on their back - time to make the galaxy a little safer. Engage!";
+      eventText("event_ROCK_MANTIS_HUNTER_c1_text");
     choose(g, "c:mantis-ship-with-rock-body-parts:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

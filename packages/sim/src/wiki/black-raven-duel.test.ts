@@ -5,6 +5,7 @@ import { choose, createGame, choiceDisabled } from "../sim.ts";
 import type { Game } from "../types.ts";
 import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const DUEL = "s:the-black-raven:duel";
 
@@ -74,7 +75,7 @@ describe("The Black Raven mind duel", () => {
         assert.equal(g.enemy!.faction, "slug");
         assert.ok(g.enemy!.pirate);
         assert.equal(g.fightEvent, "the-black-raven");
-        assert.match(g.event?.body ?? "", /grunts in pain and collapses onto the floor, stunned/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_DONOR_BLACK_RAVEN_SLUG_1_text")));
         assert.equal(
           g.log.some((line) =>
             line.includes("grunts in pain and collapses onto the floor, stunned."),
@@ -100,8 +101,8 @@ describe("The Black Raven mind duel", () => {
           (x) => x.kind === "weapon",
         ).length;
         assert.equal(g.player.weapons.length + stowed, weapons.length + 1);
-        assert.match(g.event!.body, /shakes off the daze and appears victorious/);
-        assert.match(g.event!.body, /concedes his defeat/);
+        assert.ok(g.event!.body.includes(eventText("event_DONOR_BLACK_RAVEN_SLUG_2_text")));
+        assert.ok(g.event!.body.includes(eventText("event_DONOR_BLACK_RAVEN_SLUG_2_c1_text")));
         assert.match(g.event!.body, /mounted\.|stowed in cargo\.|choose what to leave behind\./);
       }
     }

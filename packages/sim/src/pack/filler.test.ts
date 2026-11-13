@@ -287,7 +287,7 @@ describe("filler lists", () => {
     beacon.flag = moonsPage.flag;
     beacon.name = moonsPage.dest;
     const moonCard = citedEvent(createGame(1), beacon);
-    assert.match(moonCard?.body ?? "", /one of the nine moons/);
+    assert.match(moonCard?.body ?? "", /Nine moons\./);
     assert.equal(moonCard?.choices[0]?.id, "c:slug-moons-question:ask:9");
     resetPackForTests();
     assert.equal(eventDef("SLUG_DISTRESS_QUESTION")?.rolls?.length, 4);

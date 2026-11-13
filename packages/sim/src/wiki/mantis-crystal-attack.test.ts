@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -20,7 +21,7 @@ describe("Mantis ship attacking Crystal", () => {
     const g = createGame(1);
     open(g);
     const told =
-      "You activate your impulse engines and fly between the Mantis and their prey, weapons charging. You appear to have their full attention.";
+      eventText("event_CRYSTAL_MANTIS_CRYSTAL_c1_text");
     choose(g, "c:mantis-ship-attacking-crystal:0");
     assert.equal(g.phase, "event");
     assert.ok(g.event?.body?.includes(told));

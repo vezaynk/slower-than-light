@@ -5,6 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { joinCrew } from "./surrender.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -56,8 +57,7 @@ describe("Lanius powered-down ship", () => {
       g.event?.body,
       "You have picked up a Lanius vessel drifting in this sector. There is no damage to the hull, and it appears to be powered down.",
     );
-    const lead =
-      "As you scan the vessel, the scan frequencies awaken the Lanius from hibernation - and they're hungry for raw materials!";
+    const lead = eventText("event_LANIUS_DORMANT_EVENT_c1_text");
     choose(g, "c:lanius-powered-down-ship:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);

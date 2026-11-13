@@ -193,7 +193,7 @@ function zoltanHub(g: Game, text: string) {
       `${text}\n\n${eventText("event_ZOLTAN_TRADE_HUB_SUCCESS_1_text")}`,
       undefined,
       [],
-      STORE_CHOICES,
+      STORE_CHOICES(),
     );
   } else {
     result(

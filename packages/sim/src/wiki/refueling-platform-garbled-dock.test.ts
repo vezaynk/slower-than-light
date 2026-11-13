@@ -13,22 +13,22 @@ const CONT = "s:garbled-dock:continue";
 const S2 = "s:garbled-dock:sensors2";
 const S3 = "s:garbled-dock:sensors3";
 
-const BERTH = "Your ship enters one of the refueling station berths, grateful for a rest.";
+const BERTH = eventText("event_LANIUS_FUELING_STATION_c2_text");
 const ABANDONED =
-  "No one answers your hails. You run some scans and discover that the station has been recently abandoned, no doubt due to the threat of the Lanius. You empty their fuel reserves before leaving.";
+  eventText("button_store");
 const TRAP =
-  "What seemed to be a brief respite turns into a Lanius trap... the first warning is an explosion from your engine room, followed moments later by detection of a Lanius ship at sensor range!";
+  eventText("event_LANIUS_FUELING_STATION_LIST_2_text");
 const BREACH =
-  "Your ship's dash suddenly lights up with warnings - a hull breach! Lanius were on board the platform and are now on board your ship. A hidden cruiser comes into view!";
+  eventText("event_LANIUS_FUELING_STATION_LIST_1_text");
 const DOORS_TEXT =
-  "Your reinforced doors save you from an attempted ambush by the Lanius, who cluster around the doors and hull, attempting to consume your ship. Coldly, you wipe them out one by one with your weapon array, then take control of the station and take its fuel reserves.";
+  eventText("event_LANIUS_FUELING_STATION_c2_c2_text");
 const SCAN_FUEL =
-  "You run an additional more focused scan and find one of the auxiliary refueling platforms has some unclaimed fuel.";
+  eventText("event_LANIUS_FUELING_STATION_LIST_3_c2_text");
 const SCAN_PARTS =
-  "You run an additional more focused scan and find one of the auxiliary refueling platforms has some unclaimed fuel and drone parts.";
-const DESTROYED = "The ship explodes, leaving behind a collection of useful scrap material.";
+  eventText("event_LANIUS_FUELING_STATION_LIST_3_c3_text");
+const DESTROYED = eventText("ship_LANIUS_FUELING_STATION_SHIP_destroyed_text");
 const STATION_FUEL =
-  "It looks as if the Lanius were uninterested in the fuel reserves on the station, and there is a good amount of fuel left. You take what your ship can hold and prepare to jump to the next beacon.";
+  eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice");
 
 const HIDDEN = [S2, S3, DOORS];
 

@@ -4,6 +4,7 @@ import { choose, commitJump, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -38,7 +39,7 @@ describe("Auto-ship fight (Crystal)", () => {
     const augments = destroyed.augments.length;
     assert.equal(pageWin(destroyed, "auto-ship-fight-crystal", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /substantial collection of useful scrap material/);
+    assert.match(body, textRe("event_DESTROYED_DEFAULT_1_text", "ship_PIRATE_BRIBER_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);

@@ -4,8 +4,9 @@ import { armSpike, launchSpike } from "../extras/spike.ts";
 import { choiceDisabled, choose, createGame, playerHackingOff } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const LEAD = `"Sssilence won't protect you. I'll make the choice mysself... Wait. Why isn't this working?" You cut transmission and move in to attack.`;
+const LEAD = eventText("event_NEBULA_SLUG_CHOOSE_DEATH_c5_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

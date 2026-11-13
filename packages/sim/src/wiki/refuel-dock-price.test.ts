@@ -6,9 +6,10 @@ import type { Beacon, Game } from "../types.ts";
 import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
 import { priceBand, rollPrice } from "./event-prices.ts";
+import { eventText } from "../event-text.ts";
 
 const DOCK = "c:refueling-platform:0";
-const OFFER = "The platform makes an offer.";
+const OFFER = eventText("event_FUELING_STATION_NORMAL_LIST_1_text");
 
 afterEach(() => resetPackForTests());
 

@@ -4,6 +4,8 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -52,7 +54,7 @@ describe("Lanius ship attacking Slug", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "lanius-ship-attacking-slug", dead), true);
       const body = g.event?.body ?? "";
-      assert.match(body, dead ? /no more life-signs/ : /useful scrap material/);
+      assert.match(body, dead ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text") : textRe("event_DESTROYED_DEFAULT_1_text", "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text", "ship_PIRATE_BRIBER_destroyed_text"));
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -78,7 +80,7 @@ describe("Lanius ship attacking Slug", () => {
       const guns = g.player.weapons.length;
       choose(g, "q:lanius-slug:contact");
       const body = g.event?.body ?? "";
-      if (/reluctantly thank you/.test(body)) {
+      if (textRe("event_LANIUS_SLUG_DISTRESS_END_2_text").test(body)) {
         const extra = scraps(body);
         assert.equal(extra.length, 1, body);
         assert.ok(extra[0]! >= 12 && extra[0]! <= 19, body);
@@ -86,7 +88,7 @@ describe("Lanius ship attacking Slug", () => {
         assert.equal(g.scrap, before + extra[0]!);
         paid = true;
       } else {
-        assert.match(body, /fled the system/);
+        assert.match(body, textRe("event_LANIUS_SLUG_DISTRESS_END_1_text"));
         assert.match(body, /Nothing happens/);
         assert.equal(body.includes("Scrap:"), false);
         assert.equal(g.scrap, before);
@@ -104,7 +106,7 @@ describe("Lanius ship attacking Slug", () => {
     choose(g, "c:lanius-ship-attacking-slug:1");
     assert.equal(
       g.event?.body,
-      "You leave the Lanius ship alone, and prepare to jump to the next beacon.\n\nNothing happens.",
+      [eventText("event_LANIUS_SLUG_DISTRESS_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

@@ -4,6 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 /** Weapons held anywhere: rack, cargo, or a make-room choice. */
 function weaponsHeld(g: Game): number {
@@ -75,7 +76,7 @@ describe("Mantis ship attacking civilian", () => {
       const parts = g.player.parts;
       assert.equal(pageWin(g, "mantis-ship-attacking-civilian", deadCrew), true);
       const body = g.event?.body ?? "";
-      if (deadCrew) assert.match(body, /hasten to contact the civilian ship/);
+      if (deadCrew) assert.match(body, textRe("ship_LANIUS_CIVILIAN_deadCrew_text", "ship_LANIUS_CIVILIAN_destroyed_text", "ship_PIRATE_CIVILIAN_deadCrew_text", "ship_PIRATE_CIVILIAN_destroyed_text", "ship_REBEL_AUTO_CIVILIAN_destroyed_text"));
       else assert.match(body, /The Mantis ship breaks apart/);
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
@@ -118,7 +119,7 @@ describe("Mantis ship attacking civilian", () => {
         assert.equal(g.scrap, before + paid[0]!);
         assert.equal(g.player.hull, 20);
         seen.add("weapon");
-      } else if (/patch up some of your hull/.test(body)) {
+      } else if (textRe("event_QUEST_ESCORT_ARRIVE_3_text", "event_SAVE_CIVILIAN_LIST_LANIUS_5_text").test(body)) {
         assert.match(body, /Hull repairs: 5/);
         assert.equal(body.includes("Scrap:"), false);
         assert.equal(g.scrap, before);
@@ -131,7 +132,7 @@ describe("Mantis ship attacking civilian", () => {
         assert.equal(resources(body), 2, body);
         assert.equal(g.scrap, before + paid[0]!);
         seen.add("medium");
-      } else if (/did not survive/.test(body)) {
+      } else if (textRe("event_SAVE_CIVILIAN_LIST_LANIUS_3_text").test(body)) {
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
         assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);

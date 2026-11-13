@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -29,7 +30,7 @@ describe("The Engi virus purge", () => {
     g.player.systems.engines.damage = 0;
     g.player.systems.engines.ion = [];
     const lead =
-      "Wiping your engine core and shields proves useless... eventually you trap the virus in the weapons systems to purge it, but before you do, the Engi grow restless and attack!";
+      eventText("event_ENGI_VIRUS_c1_c1_text");
     choose(g, "c:the-engi-virus:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

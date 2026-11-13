@@ -42,7 +42,7 @@ describe("Mantis ship attacking Crystal", () => {
     choose(g, "c:mantis-ship-attacking-crystal:1");
     assert.equal(
       g.event?.body,
-      "You try to keep a low profile and quickly prepare to jump.\n\nNothing happens.",
+      [eventText("event_CRYSTAL_MANTIS_CRYSTAL_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

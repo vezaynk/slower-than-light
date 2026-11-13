@@ -4,6 +4,8 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageGotAway, pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -54,7 +56,7 @@ describe("Pirate briber", () => {
     const fight = createGame(2);
     open(fight);
     choose(fight, "c:pirate-briber:1");
-    const lead = "The pirate ship stops its pursuit and locks weapons onto your ship.";
+    const lead = eventText("event_PIRATE_BRIBER_c2_text");
     assert.equal(fight.phase, "event");
     assert.equal(fight.event?.body, lead);
     assert.equal(fight.log.includes(lead), false);
@@ -98,7 +100,7 @@ describe("Pirate briber", () => {
     const parts = killed.player.parts;
     assert.equal(pageWin(killed, "pirate-briber", true), true);
     const body = killed.event?.body ?? "";
-    assert.match(body, /dead in space/);
+    assert.match(body, textRe("ship_PIRATE_BRIBER_deadCrew_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -144,7 +146,7 @@ describe("Pirate briber", () => {
         assert.equal(g.scrap, scrap);
         choose(g, "q:open-store");
         assert.equal(g.phase, "store");
-      } else if (/patch your ship/.test(body)) {
+      } else if (textRe("event_PIRATE_BRIBER_WIN_5_text").test(body)) {
         seen.add("repair");
         assert.equal(g.player.hull, hull + 15);
         assert.equal(g.scrap, scrap);

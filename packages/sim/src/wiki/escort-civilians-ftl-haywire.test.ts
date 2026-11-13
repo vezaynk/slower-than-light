@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, choiceDisabled, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -62,7 +63,7 @@ describe("Escort civilians FTL haywire", () => {
     choose(out, "c:escort-civilians-ftl-haywire:1");
     assert.equal(
       out.event?.body,
-      "Alright... If you're not going that way I guess it can't be helped. We'll just wait for the next ship to come.\n\nNothing happens.",
+      [eventText("event_ESCORT_BEACON_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(out.phase, "event");
     assert.equal(out.scrap, 10);

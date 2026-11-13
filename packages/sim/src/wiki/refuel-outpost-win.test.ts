@@ -4,6 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
@@ -35,7 +36,7 @@ describe("Rebel ship attacking refueling outpost reward", () => {
     assert.equal(destroyed.fightEvent, "rebel-ship-attacking-refueling-outpost");
     assert.equal(pageWin(destroyed, "rebel-ship-attacking-refueling-outpost", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /The ship breaks apart and you quickly salvage what you can/);
+    assert.match(body, textRe("ship_SQUAT_REFUEL_STATION_destroyed_text"));
     assert.ok(destroyed.event?.choices.some((c) => c.id === "q:refuel-outpost:contact"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
@@ -50,7 +51,7 @@ describe("Rebel ship attacking refueling outpost reward", () => {
     choose(killed, "c:rebel-ship-attacking-refueling-outpost:0");
     assert.equal(pageWin(killed, "rebel-ship-attacking-refueling-outpost", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(dead, /With the crew dead you quickly salvage what you can/);
+    assert.match(dead, textRe("ship_SQUAT_REFUEL_STATION_deadCrew_text"));
     const high = scraps(dead);
     assert.equal(high.length, 1, dead);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);
@@ -67,7 +68,7 @@ describe("Rebel ship attacking refueling outpost reward", () => {
     const before = g.scrap;
     choose(g, "q:refuel-outpost:contact");
     const body = g.event?.body ?? "";
-    assert.match(body, /The pompous bastards expected free service/);
+    assert.match(body, textRe("ship_SQUAT_REFUEL_STATION_destroyed_c1_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);

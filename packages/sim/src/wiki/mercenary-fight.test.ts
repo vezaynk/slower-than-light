@@ -21,7 +21,7 @@ describe("The Mercenary fight", () => {
     const g = createGame(1);
     open(g);
     const lead =
-      "Mercenaries are worse than rebels. The only honorable course is to engage the mercenary in battle.";
+      eventText("event_MERCENARY_c3_text");
     choose(g, "c:the-mercenary:1");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

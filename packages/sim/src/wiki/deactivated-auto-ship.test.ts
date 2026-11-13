@@ -3,6 +3,8 @@ import { describe, it } from "node:test";
 import { choose, choiceDisabled, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -92,7 +94,7 @@ describe("Deactivated Auto-ship", () => {
       const seen = visited(g);
       choose(g, "c:deactivated-auto-ship:1");
       const reactivate =
-        "You accidentally reactivate the ships AI. Its weapons and shields immediately go online; prepare for a fight!";
+        eventText("event_DOWNLOAD_DRONE_DATA_2_text");
       const armed =
         g.phase === "combat" ||
         (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
@@ -149,7 +151,7 @@ describe("Deactivated Auto-ship", () => {
       const seen = visited(g);
       choose(g, "c:deactivated-auto-ship:2");
       const body = g.event?.body ?? "";
-      if (/safe to hack/.test(body)) {
+      if (textRe("event_BROKEN_REBEL_DRONE_SENSORS_1_text").test(body)) {
         safe = true;
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
@@ -175,14 +177,14 @@ describe("Deactivated Auto-ship", () => {
         no.player.systems.sensors.level = 3;
         choose(no, "c:deactivated-auto-ship:2");
         choose(no, "q:deactivated-auto:no");
-        assert.match(no.event?.body ?? "", /leave the ship alone/);
+        assert.match(no.event?.body ?? "", textRe("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_text"));
         assert.match(no.event?.body ?? "", /Nothing happens/);
         assert.equal(no.scrap, 10);
         assert.equal(no.fleet, 5);
         assert.equal(no.phase, "event");
         choose(g, "q:deactivated-auto:yes");
         const reactivate =
-          "You accidentally reactivate the ships AI. Its weapons and shields immediately go online; prepare for a fight!";
+          eventText("event_DOWNLOAD_DRONE_DATA_2_text");
         const armed =
           g.phase === "combat" ||
           (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");

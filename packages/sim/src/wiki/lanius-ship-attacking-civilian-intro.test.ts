@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const INTROS = [
   `You immediately receive a message upon arrival, "Help! These metal bastards have gone crazy!" The communication originates from the hull of a partially dismantled ship which lies among a number of other destroyed ships. The violent Lanius ship responsible for this carnage is advancing on the survivors.`,
@@ -40,7 +41,7 @@ describe("Lanius ship attacking civilian intro", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:lanius-ship-attacking-civilian:0");
-    const lead = "You charge your weapons, which quickly gets the Lanius ship's attention.";
+    const lead = eventText("event_LANIUS_CIVILIAN_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);

@@ -4,6 +4,8 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -35,7 +37,7 @@ describe("Pirate ship attacking civilian (Lanius)", () => {
       g.event?.choices.some((c) => c.id === "c:pirate-ship-attacking-civilian-lanius:0"),
       true,
     );
-    const lead = "You charge the weapons, which quickly gets the pirate ship's attention.";
+    const lead = eventText("event_LANIUS_PIRATE_CIVILIAN_c1_text");
     choose(g, "c:pirate-ship-attacking-civilian-lanius:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
@@ -56,7 +58,7 @@ describe("Pirate ship attacking civilian (Lanius)", () => {
     const crew = destroyed.crew.filter((c) => c.side === "player").length;
     assert.equal(pageWin(destroyed, "pirate-ship-attacking-civilian-lanius", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /The pirate ship breaks apart/);
+    assert.match(body, textRe("ship_PIRATE_CIVILIAN_destroyed_text", "ship_PIRATE_REFUGEE_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -73,7 +75,7 @@ describe("Pirate ship attacking civilian (Lanius)", () => {
     open(killed);
     assert.equal(pageWin(killed, "pirate-ship-attacking-civilian-lanius", true), true);
     const killedBody = killed.event?.body ?? "";
-    assert.match(killedBody, /hasten to contact the civilian ship/);
+    assert.match(killedBody, textRe("ship_LANIUS_CIVILIAN_deadCrew_text", "ship_LANIUS_CIVILIAN_destroyed_text", "ship_PIRATE_CIVILIAN_deadCrew_text", "ship_PIRATE_CIVILIAN_destroyed_text", "ship_REBEL_AUTO_CIVILIAN_destroyed_text"));
     const high = scraps(killedBody);
     assert.equal(high.length, 1, killedBody);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, killedBody);
@@ -88,7 +90,7 @@ describe("Pirate ship attacking civilian (Lanius)", () => {
     choose(g, "c:pirate-ship-attacking-civilian-lanius:1");
     assert.equal(
       g.event?.body,
-      "Unfortunately it is not your mission to save every person affected by this war or the Lanius invasion.\n\nNothing happens.",
+      [eventText("event_LANIUS_CIVILIAN_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.notEqual(g.phase, "combat");

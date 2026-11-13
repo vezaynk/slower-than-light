@@ -3,8 +3,9 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const SENTENCE = "You charge your weapons, which quickly gets the Lanius ship's attention.";
+const SENTENCE = eventText("event_LANIUS_CIVILIAN_c1_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

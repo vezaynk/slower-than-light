@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { addQuest, pageGotAway, pageWin, QUEST_ADDED } from "./quests.ts";
+import { addQuest, pageGotAway, pageWin, questAdded } from "./quests.ts";
 import { choose, commitJump, createGame, step } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
+import { eventText } from "../event-text.ts";
 
 function scraps(body: string): number[] {
   return [...body.matchAll(/Scrap: (-?\d+)/g)].map((m) => Number(m[1]));
@@ -25,7 +26,7 @@ function here(g: Game): Beacon {
 /** Jump to the marker `id` and return the arrival card, or null when this seed did not place it. */
 function arriveQuest(seed: number, id: string): Game | null {
   const g = createGame(seed);
-  if (addQuest(g, id) !== QUEST_ADDED) return null;
+  if (addQuest(g, id) !== questAdded()) return null;
   const b = g.beacons.find((x) => x.quest === id);
   if (!b) return null;
   const from = here(g);
@@ -41,9 +42,9 @@ function arriveQuest(seed: number, id: string): Game | null {
 }
 
 function cardKind(body: string): "auto" | "asb" | "wing" | null {
-  if (body.includes("bombarded by an automated drone")) return "auto";
-  if (body.includes("using their Anti-Ship Battery")) return "asb";
-  if (body.includes("taking down the wing leader")) return "wing";
+  if (body.includes(eventText("event_FEDERATION_BASE_ASSIST_1_text"))) return "auto";
+  if (body.includes(eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text"))) return "asb";
+  if (body.includes(eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"))) return "wing";
   return null;
 }
 
@@ -59,10 +60,10 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
       choose(g, id);
       const lead =
         kind === "asb"
-          ? "You move in to assist."
+          ? eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text")
           : kind === "wing"
-            ? "You swoop in to assist, taking down the wing leader."
-            : "The automated drone turns on you.";
+            ? eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice")
+            : eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice");
       assert.equal(g.phase, "event");
       assert.equal(g.event?.body, lead);
       assert.equal(g.log.includes(lead), false);
@@ -116,8 +117,8 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const guns = g.player.weapons.length;
     choose(g, "q:fed-base:assist-asb");
     assert.equal(g.phase, "event");
-    assert.equal(g.event?.body, "You move in to assist.");
-    assert.equal(g.log.includes("You move in to assist."), false);
+    assert.equal(g.event?.body, eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text"));
+    assert.equal(g.log.includes(eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text")), false);
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
     choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
@@ -126,7 +127,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     assert.equal(g.enemy?.faction, "auto");
     assert.equal(pageWin(g, "quest-fed-assist-asb", false), true);
     const body = g.event?.body ?? "";
-    assert.ok(body.startsWith("You scrap the wreckage."));
+    assert.ok(body.startsWith(eventText("ship_AUTO_FEDERATION_BASE_destroyed_text")));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -145,7 +146,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const contact = g.event?.body ?? "";
     assert.ok(
       contact.startsWith(
-        "You contact the station once the Rebel ship is destroyed. The lone survivor responds, \"This base is no longer safe. Let me join your crew and I'll have the station's drones patch up your ship.\"",
+        eventText("ship_AUTO_FEDERATION_BASE2_destroyed_c1_text"),
       ),
     );
     const high = scraps(contact);
@@ -164,7 +165,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     choose(killed, "q:fed-base:assist-asb");
     assert.equal(pageWin(killed, "quest-fed-assist-asb", true), true);
     const dead = killed.event?.body ?? "";
-    assert.ok(dead.startsWith("You scrap the wreckage."));
+    assert.ok(dead.startsWith(eventText("ship_AUTO_FEDERATION_BASE_destroyed_text")));
     const low = scraps(dead);
     assert.equal(low.length, 1, dead);
     assert.ok(low[0]! >= 7 && low[0]! <= 10, dead);
@@ -177,9 +178,9 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const crew = crewCount(destroyed);
     choose(destroyed, "q:fed-base:assist-wing");
     assert.equal(destroyed.phase, "event");
-    assert.equal(destroyed.event?.body, "You swoop in to assist, taking down the wing leader.");
+    assert.equal(destroyed.event?.body, eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"));
     assert.equal(
-      destroyed.log.includes("You swoop in to assist, taking down the wing leader."),
+      destroyed.log.includes(eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice")),
       false,
     );
     assert.equal(destroyed.event?.choices[0]?.id, "ship-resume");
@@ -196,7 +197,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     assert.ok(threshold >= 40 && threshold <= 60);
     assert.equal(pageWin(destroyed, "quest-fed-assist-wing", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.ok(body.startsWith("You scrap the wreckage."));
+    assert.ok(body.startsWith(eventText("ship_AUTO_FEDERATION_BASE_destroyed_text")));
     const low = scraps(body);
     assert.equal(low.length, 1, body);
     assert.ok(low[0]! >= 7 && low[0]! <= 10, body);
@@ -209,7 +210,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     choose(killed, "q:fed-base:assist-wing");
     assert.equal(pageWin(killed, "quest-fed-assist-wing", true), true);
     const dead = killed.event?.body ?? "";
-    assert.ok(dead.startsWith("With the crew dead, you scrap the ship."));
+    assert.ok(dead.startsWith(eventText("ship_REBEL_FEDERATION_PDS_deadCrew_text")));
     const mid = scraps(dead);
     assert.equal(mid.length, 1, dead);
     assert.ok(mid[0]! >= 12 && mid[0]! <= 19, dead);
@@ -220,7 +221,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const gone = createGame(5);
     const goneCrew = crewCount(gone);
     pageGotAway(gone, "quest-fed-assist-wing");
-    assert.equal(gone.event?.body, "The Rebel ship jumped away.");
+    assert.equal(gone.event?.body, eventText("ship_REBEL_FEDERATION_PDS_gotaway_text"));
     assert.equal(gone.scrap, 10);
     assert.equal(crewCount(gone), goneCrew);
     assert.deepEqual(
@@ -231,7 +232,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const contact = gone.event?.body ?? "";
     assert.ok(
       contact.startsWith(
-        'With the threat gone, you contact the Federation outpost. They respond, "Our location has been compromised! Take everything you can and please drop our survivors off at the next station." One soldier offers to stay and fight.',
+        eventText("ship_AUTO_FEDERATION_BASE_destroyed_c1_text"),
       ),
     );
     assert.match(contact, /crewmember joins you/);
@@ -244,8 +245,8 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const g = createGame(6);
     choose(g, "q:fed-base:assist-asb");
     assert.equal(g.phase, "event");
-    assert.equal(g.event?.body, "You move in to assist.");
-    assert.equal(g.log.includes("You move in to assist."), false);
+    assert.equal(g.event?.body, eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text"));
+    assert.equal(g.log.includes(eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text")), false);
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
     choose(g, "ship-resume");
     assert.equal(g.phase, "combat");

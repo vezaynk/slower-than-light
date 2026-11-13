@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const INTROS = [
   "You spot a Mantis ship hunting in the distance.",
@@ -44,7 +45,7 @@ describe("Mantis ship attacking civilian intro", () => {
     open(g);
     choose(g, "c:mantis-ship-attacking-civilian:0");
     const lead =
-      "You frown, power up the weapons and prepare to engage the Mantis ship. Not today.";
+      eventText("event_MANTIS_CIVILIAN_c1_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);

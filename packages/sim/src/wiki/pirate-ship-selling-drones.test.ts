@@ -87,7 +87,7 @@ describe("Pirate ship selling drones", () => {
     choose(leave, "q:pirate-drones:hail");
     choose(leave, "q:pirate-drones:leave");
     const leaveLead =
-      "As soon as you start to reverse your ship, the pirate reveals hidden weaponry and sets off in pursuit. You'll have to fight him to escape!";
+      eventText("event_CONTACT_PIRATE_SALESMAN_c2_text");
     assert.equal(leave.phase, "event");
     assert.equal(leave.event?.body, leaveLead);
     assert.equal(leave.log.includes(leaveLead), false);
@@ -108,7 +108,7 @@ describe("Pirate ship selling drones", () => {
       choose(g, "q:pirate-drones:dock");
       choose(g, "q:pirate-drones:nothing");
       const nothing =
-        '"Ah, I\'m sorry to hear that! Pleasant journeys." Once back to the helm, a series of explosions rocks your ship. The pirate ship has powered its weapons! You receive a message, "You shouldn\'t waste people\'s time Captain!"';
+        eventText("event_DOCK_DRONE_SALESMAN_c6_text");
       assert.equal(g.phase, "event");
       assert.equal(g.event?.body, nothing);
       assert.equal(g.log.includes(nothing), false);

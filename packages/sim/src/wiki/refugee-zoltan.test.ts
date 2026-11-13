@@ -5,6 +5,8 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -98,7 +100,7 @@ describe("Refugee (Zoltan)", () => {
     const before = destroyed.scrap;
     assert.equal(pageWin(destroyed, "refugee-zoltan", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /The Zoltan ship breaks apart and you salvage what you can/);
+    assert.match(body, textRe("ship_ZOLTAN_REFUGEE_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -106,7 +108,7 @@ describe("Refugee (Zoltan)", () => {
     assert.equal(destroyed.scrap, before + paid[0]!);
     assert.deepEqual(
       destroyed.event?.choices.map((c) => c.label),
-      ["Contact the refugee ship."],
+      [eventText("ship_ZOLTAN_REFUGEE_destroyed_c1_choice")],
     );
     const mid = destroyed.scrap;
     choose(destroyed, "s:refugee-zoltan:contact");
@@ -123,7 +125,7 @@ describe("Refugee (Zoltan)", () => {
     const start = killed.scrap;
     assert.equal(pageWin(killed, "refugee-zoltan", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(dead, /now empty of lifeforms/);
+    assert.match(dead, textRe("ship_PIRATE_REFUGEE_deadCrew_text", "ship_ZOLTAN_REFUGEE_deadCrew_text"));
     const high = scraps(dead);
     assert.equal(high.length, 1, dead);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);

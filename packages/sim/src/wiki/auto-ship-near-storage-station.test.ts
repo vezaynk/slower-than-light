@@ -5,6 +5,8 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { heldSchematics } from "../rules/make-room.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 /** Weapons held anywhere: rack, cargo, or a make-room choice. */
 function weaponsHeld(g: Game): number {
@@ -112,7 +114,7 @@ describe("Auto-ship near storage station", () => {
       assert.equal(choiceDisabled(g, "c:auto-ship-near-storage-station:2"), null);
       choose(g, "c:auto-ship-near-storage-station:2");
       const detected =
-        "Before you can get close enough to scan the station, the automated ship detects you and moves in to attack!";
+        eventText("event_AUTO_DEFENSE_ITEM_CLOAK_2_text");
       const fightCard =
         g.phase === "combat" ||
         (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
@@ -153,10 +155,10 @@ describe("Auto-ship near storage station", () => {
       choose(g, "q:auto-storage:investigate");
       const body = g.event?.body ?? "";
       // The weapon and the schematic are unnamed: Rewards, "Weapon" / "Drone": a random one & T scrap.
-      assert.equal(weaponsHeld(g), guns + (/military grade weapons/.test(body) ? 1 : 0));
+      assert.equal(weaponsHeld(g), guns + (textRe("event_DEFENSE_ITEM_LIST_3_text").test(body) ? 1 : 0));
       assert.equal(schematicsHeld(g), kits + (/functioning Schematic/.test(body) ? 1 : 0));
       assert.equal(g.augments.length, augs);
-      if (/military grade weapons/.test(body) || /functioning Schematic/.test(body)) {
+      if (textRe("event_DEFENSE_ITEM_LIST_3_text").test(body) || /functioning Schematic/.test(body)) {
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
         assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);

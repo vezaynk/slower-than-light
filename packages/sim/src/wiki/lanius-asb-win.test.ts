@@ -4,6 +4,8 @@ import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -40,7 +42,7 @@ describe("Lanius fight with friendly ASB support reward", () => {
       const body = g.event?.body ?? "";
       assert.match(
         body,
-        /The ship breaks apart\. You decide to salvage it when the opportunity arises/,
+        textRe("ship_LANIUS_BOARDERS_PDS_destroyed_text"),
       );
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
@@ -49,13 +51,13 @@ describe("Lanius fight with friendly ASB support reward", () => {
       assert.equal(g.scrap, 10 + paid[0]!);
       assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
       assert.equal(g.player.weapons.length, guns);
-      if (body.includes("patch up your ship")) {
+      if (body.includes(eventText("event_LANIUS_BOARDERS_PDS_LIST_1_text"))) {
         repaired = true;
         assert.match(body, /Hull repairs: 8/);
         assert.equal(g.player.hull, 18);
       } else {
         left = true;
-        assert.match(body, /fight rages on in the distance/);
+        assert.match(body, textRe("event_LANIUS_BOARDERS_PDS_LIST_2_text"));
         assert.match(body, /Nothing happens/);
         assert.equal(g.player.hull, 10);
       }
@@ -67,7 +69,7 @@ describe("Lanius fight with friendly ASB support reward", () => {
     killed.player.hull = killed.player.hullMax;
     assert.equal(pageWin(killed, "lanius-fight-with-friendly-asb-support", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(dead, /No more life signs detected on the Lanius ship/);
+    assert.match(dead, textRe("ship_LANIUS_AUTO_REBEL_deadCrew_text", "ship_LANIUS_BOARDERS_PDS_deadCrew_text", "ship_LANIUS_CIVILIAN_deadCrew_text"));
     const high = scraps(dead);
     assert.equal(high.length, 1, dead);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);

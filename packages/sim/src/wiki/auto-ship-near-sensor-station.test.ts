@@ -4,6 +4,8 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -88,7 +90,7 @@ describe("Auto-ship near sensor station", () => {
         fight = true;
         assert.equal(
           g.event?.body,
-          "The automated ship must be remotely connected to the station; as soon as you attempt to log on, the ship activates and charges you.",
+          eventText("event_AUTO_DEFENSE_MAP_SENSORS_2_text"),
         );
         assert.equal(
           g.log.some((line) => line.includes("remotely connected")),
@@ -100,7 +102,7 @@ describe("Auto-ship near sensor station", () => {
         assert.equal(g.phase, "combat");
       } else {
         map = true;
-        assert.match(g.event?.body ?? "", /local map data/);
+        assert.match(g.event?.body ?? "", textRe("event_AUTO_DEFENSE_MAP_SENSORS_1_text"));
         assert.equal(g.event?.body?.includes("Scrap:"), false);
         assert.equal(g.scrap, 10);
       }

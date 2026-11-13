@@ -4,6 +4,7 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
 
 const INTROS = [
   "A rather large fleet of civilian ships",
@@ -19,9 +20,9 @@ const HIDES = [
 ];
 const BRIBES = [
   "easily swayed",
-  "just men trying to get by",
-  "awaiting inspection is human",
-  "revolutionaries are under paid",
+  eventText("text_REBEL_BRIBE_TEXT_2"),
+  eventText("text_REBEL_BRIBE_TEXT_3"),
+  eventText("text_REBEL_BRIBE_TEXT_4"),
 ];
 
 function open(g: Game) {

@@ -5,6 +5,7 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -81,8 +82,8 @@ describe("Rock and Slug standoff", () => {
       choose(g, debt.id);
       assert.equal(g.scrap, 40 - n);
       const body = g.event?.body ?? "";
-      assert.match(body, /pay off the debt/);
-      if (/free reactor upgrade/.test(body)) {
+      assert.match(body, textRe("event_ROCK_SLUG_ARGUMENT_c1_c1_text"));
+      if (textRe("event_ROCK_SLUG_GRATEFUL_2_text").test(body)) {
         free = true;
         assert.equal(g.player.reactor, reactor + 1);
         assert.match(body, /Your ship reactor is upgraded/);
@@ -173,14 +174,14 @@ describe("Rock and Slug standoff", () => {
         const paid = scraps(body).filter((n) => n > 0);
         assert.equal(paid.length, 1, body);
         if (dead) {
-          assert.match(body, /Rock crew dead/);
+          assert.match(body, textRe("ship_ROCK_SLUG_REACTOR_SHIP_deadCrew_text"));
           assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
         } else {
-          assert.match(body, /Rock Ship destroyed/);
+          assert.match(body, textRe("ship_ROCK_SLUG_REACTOR_SHIP_destroyed_text"));
           assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
         }
         assert.equal(resources(body), 2, body);
-        if (/free reactor upgrade/.test(body)) {
+        if (textRe("event_ROCK_SLUG_GRATEFUL_2_text").test(body)) {
           free = true;
           assert.equal(g.player.reactor, reactor + 1);
         } else if (/fair' price/.test(body)) {
@@ -242,7 +243,7 @@ describe("Rock and Slug standoff", () => {
       g.phase = "combat";
       g.player.reactor = 25;
       pageWin(g, "rock-and-slug-standoff", false);
-      if (!/free reactor upgrade/.test(g.event?.body ?? "")) continue;
+      if (!textRe("event_ROCK_SLUG_GRATEFUL_2_text").test(g.event?.body ?? "")) continue;
       assert.equal(g.player.reactor, 25);
       assert.equal((g.event?.body ?? "").includes("Your ship reactor is upgraded."), false);
       capped = true;

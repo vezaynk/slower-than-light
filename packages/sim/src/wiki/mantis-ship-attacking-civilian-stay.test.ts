@@ -3,11 +3,12 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const STAY = [
-  "Smoking, the civilian ship limps on. You set your sights on the future.",
-  "The noise of the FTL spinning up almost drowns out the explosions. Almost.",
-  "You let them pass and try not to think about it.",
+  eventText("text_MANTIS_CIVILIAN_AVOID_1"),
+  eventText("text_MANTIS_CIVILIAN_AVOID_2"),
+  eventText("text_MANTIS_CIVILIAN_AVOID_3"),
 ];
 
 function open(g: Game) {

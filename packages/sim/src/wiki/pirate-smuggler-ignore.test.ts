@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -27,7 +28,7 @@ describe("Pirate smuggler ignore", () => {
     open(g);
     g.fleet = 5;
     choose(g, "c:pirate-smuggler:1");
-    assert.equal(g.event?.body, "It jumps away after a time.\n\nNothing happens.");
+    assert.equal(g.event?.body, [eventText("event_NEBULA_PIRATE_SMUGGLE_c2_text"), "Nothing happens."].join("\n\n"));
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.fuel, fuel);

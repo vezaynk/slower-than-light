@@ -3,8 +3,9 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const LEAD = "Detecting the higher threat, the automated ship moves in to engage your ship.";
+const LEAD = eventText("event_AUTO_REFUEL_STATION_c1_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

@@ -103,7 +103,7 @@ describe("Lanius trader", () => {
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, scrap);
     assert.equal(g.fuel, fuel);
-    assert.equal(g.event?.body, "They leave without a word.\n\nNothing happens.");
+    assert.equal(g.event?.body, [eventText("event_LANIUS_TRADER_c2_text"), "Nothing happens."].join("\n\n"));
   });
 
   it("a short offer stays closed", () => {

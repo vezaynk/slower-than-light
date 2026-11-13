@@ -5,7 +5,7 @@ import { choiceDisabled, choose, commitJump, createGame } from "../sim.ts";
 import type { Beacon, Game, WeaponInst } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerEvent } from "./filler-events.ts";
-import { addQuest, QUEST_ADDED } from "./quests.ts";
+import { addQuest, questAdded } from "./quests.ts";
 
 const CRYSTALS = ["CRYSTAL_BURST_1", "CRYSTAL_BURST_2", "CRYSTAL_HEAVY_1", "CRYSTAL_HEAVY_2"];
 
@@ -22,7 +22,7 @@ function fit(seed: number, defId: string): Game {
 
 function warCampOffers(defId: string): boolean {
   const g = fit(6, defId);
-  assert.equal(addQuest(g, "mantis-war-camp"), QUEST_ADDED);
+  assert.equal(addQuest(g, "mantis-war-camp"), questAdded());
   const beacon = g.beacons.find((b) => b.quest === "mantis-war-camp");
   assert.ok(beacon);
   const from = g.beacons.find((b) => b.id === g.here)!;

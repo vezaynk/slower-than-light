@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const INTROS = [
   `After a short time you receive a message, "Hello. I hope it's not a bother, but I'm looking for an escort to a nearby system. This region is quite dangerous and our ship is not well-armed."`,
@@ -55,7 +56,7 @@ describe("Escort civilians intro", () => {
     choose(g, "c:escort-civilians:1");
     assert.equal(
       g.event?.body,
-      '"We understand. Not everyone is confident they can survive in these hostile times, let alone take the responsibility of protecting others."\n\nNothing happens.',
+      [eventText("event_QUEST_ESCORT_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

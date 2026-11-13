@@ -4,6 +4,7 @@ import { choose, choiceDisabled, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -126,9 +127,9 @@ describe("Slug drink", () => {
         assert.equal(g.scrap, 80);
         assert.ok(g.event?.body?.includes("Hull repairs: 10."));
         assert.equal(g.log.includes("Hull repairs: 10."), false);
-        assert.ok(/Rock digestive system/.test(g.event?.body ?? ""));
+        assert.ok(textRe("event_SLUG_DRINK_ROCK_1_text").test(g.event?.body ?? ""));
         assert.equal(
-          g.log.some((line) => /Rock digestive system/.test(line)),
+          g.log.some((line) => textRe("event_SLUG_DRINK_ROCK_1_text").test(line)),
           false,
         );
         choose(g, "q:open-store");

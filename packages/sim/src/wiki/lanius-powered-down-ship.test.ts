@@ -6,6 +6,7 @@ import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { joinCrew } from "./surrender.ts";
 import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -74,13 +75,13 @@ describe("Lanius powered-down ship", () => {
       open(g);
       choose(g, "c:lanius-powered-down-ship:1");
       if (fightCard(g)) {
-        assert.match(g.event?.body ?? "", /does the same/);
-        assert.equal(/does the same/.test(g.log.join("\n")), false);
+        assert.match(g.event?.body ?? "", textRe("event_LANIUS_DORMANT_WEAPONS_1_text", "ship_JELLY_UNLOCK3_escape_text"));
+        assert.equal(textRe("event_LANIUS_DORMANT_WEAPONS_1_text", "ship_JELLY_UNLOCK3_escape_text").test(g.log.join("\n")), false);
         choose(g, "ship-resume");
         assertDefaultFight(g);
         seen.add("fight");
       } else {
-        assert.match(g.event?.body ?? "", /don't get a response/);
+        assert.match(g.event?.body ?? "", textRe("event_LANIUS_DORMANT_WEAPONS_2_text"));
         assert.deepEqual(
           g.event?.choices.map((c) => c.id),
           ["q:lanius-dormant:investigate", "q:lanius-dormant:destroy"],

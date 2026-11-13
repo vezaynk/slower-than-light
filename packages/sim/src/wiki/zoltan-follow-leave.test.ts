@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -26,7 +27,7 @@ describe("Zoltan ship follows Mantis ship leave", () => {
     choose(g, "c:zoltan-ship-follows-mantis-ship:2");
     assert.equal(
       g.event?.body,
-      "The Zoltan know their business better than most - best to leave them to it. You prepare to jump.\n\nNothing happens.",
+      [eventText("event_ZOLTAN_DISTRESS_MANTIS_c3_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

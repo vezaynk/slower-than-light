@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -22,7 +23,7 @@ describe("Crystal ship attacking Federation loyalists leave", () => {
     choose(g, "c:crystal-ship-attacking-federation-loyalists:1");
     assert.equal(
       g.event?.body,
-      "With the Federation ship distracting the guard, you are free to continue on your mission.\n\nNothing happens.",
+      [eventText("event_CRYSTAL_FED_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

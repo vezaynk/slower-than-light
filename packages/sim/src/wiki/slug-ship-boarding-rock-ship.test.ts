@@ -6,6 +6,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { fillerChoose } from "./filler-events.ts";
 import { pageWin } from "./quests.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -116,9 +117,9 @@ describe("Slug ship boarding Rock ship", () => {
         const paid = scraps(body);
         assert.ok(paid.length >= 1, body);
         assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
-        if (dead) assert.match(body, /no longer a threat/);
-        else assert.match(body, /Slug ship destroyed/);
-        if (/long since abandoned/.test(body)) {
+        if (dead) assert.match(body, textRe("ship_JELLY_DISTRESS_ROCK_deadCrew_text"));
+        else assert.match(body, textRe("ship_JELLY_DISTRESS_ROCK_destroyed_text"));
+        if (textRe("event_SLUG_DISTRESS_ROCK_RESULT_3_text").test(body)) {
           abandoned = true;
           assert.equal(paid.length, 2, body);
           assert.ok(paid[1]! >= 12 && paid[1]! <= 19, body);

@@ -4,6 +4,8 @@ import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { heldSchematics } from "../rules/make-room.ts";
 import { pageWin } from "./quests.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 /**
  * Template:Pirate Smuggler / Rebel Transport. The unnamed weapon and drone schematic are random ones (Rewards,
@@ -19,8 +21,8 @@ function held(g: Game, kind: "weapon" | "drone"): number {
 
 /** The rows whose sentence hands over a weapon / a drone schematic. */
 function gives(text: string, kind: "weapon" | "drone"): number {
-  if (kind === "drone") return /military-grade Drone Schematics/.test(text) ? 1 : 0;
-  return /new military-grade weaponry|You find a piece still intact|You find military-grade weaponry/.test(
+  if (kind === "drone") return textRe("event_REBEL_TRANSPORT_CAPTURED_4_text", "event_REBEL_TRANSPORT_DESTROYED_5_text").test(text) ? 1 : 0;
+  return textRe("event_REBEL_TRANSPORT_DESTROYED_1_text", "event_REBEL_TRANSPORT_DESTROYED_3_text", "event_REBEL_TRANSPORT_CAPTURED_1_text").test(
     text,
   )
     ? 1
@@ -68,21 +70,21 @@ describe("Pirate smuggler cargo", () => {
       assert.equal(g.crew.length, crew, body);
       assert.equal(g.beacons.filter((b) => b.visited).length, visited);
       const lines = resourceLines(body);
-      if (text.startsWith("The debris implies")) {
+      if (text.startsWith(eventText("event_REBEL_TRANSPORT_DESTROYED_6_text"))) {
         assert.deepEqual(lines, ["Drone parts"]);
         assert.equal(g.player.parts, 1);
         assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
       } else if (
-        text.startsWith("You detect faint life") ||
-        text.startsWith("The ship appears to have been transporting prisoners") ||
-        text.startsWith("You search the remains of the ship")
+        text.startsWith(eventText("event_REBEL_TRANSPORT_DESTROYED_9_text")) ||
+        text.startsWith(eventText("event_REBEL_TRANSPORT_DESTROYED_10_text")) ||
+        text.startsWith(eventText("event_REBEL_TRANSPORT_DESTROYED_2_text"))
       ) {
         assert.equal(lines.length, 2, body);
         assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
-      } else if (text.startsWith("The ship was carrying military supplies")) {
+      } else if (text.startsWith(eventText("event_REBEL_TRANSPORT_DESTROYED_11_text"))) {
         assert.equal(lines.length, 2, body);
         assert.ok(paid[0]! >= 19 && paid[0]! <= 23, body);
-      } else if (text.startsWith("The ship was transporting weaponry")) {
+      } else if (text.startsWith(eventText("event_REBEL_TRANSPORT_DESTROYED_3_text"))) {
         assert.equal(lines.length, 0, body);
         assert.ok(paid[0]! >= 7 && paid[0]! <= 23, body);
         if (paid[0]! >= 7 && paid[0]! <= 10) randomTiers.add("low");

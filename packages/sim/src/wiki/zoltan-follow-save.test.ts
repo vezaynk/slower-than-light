@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -23,7 +24,7 @@ describe("Zoltan ship follows Mantis ship save", () => {
     const g = createGame(1);
     open(g);
     const lead =
-      "Sometimes you have to bet on the underdog - even on the rare occasions that the underdog is a Mantis warship. You set off for the heart of the asteroid field and engage the Zoltan there.";
+      eventText("event_ZOLTAN_DISTRESS_MANTIS_c1_text");
     choose(g, "c:zoltan-ship-follows-mantis-ship:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -21,7 +22,7 @@ describe("Lanius ship in rich debris field escape", () => {
     open(g);
     choose(g, "c:lanius-ship-in-rich-debris-field:1");
     const lead =
-      "You go on the offensive and power up your weapons - with any luck, you'll soon have the mineral field all to yourself.";
+      eventText("event_LANIUS_HARVESTER_c4_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);

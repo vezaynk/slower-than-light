@@ -3,6 +3,7 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -27,7 +28,7 @@ describe("Destroyed cargo ship leave", () => {
     choose(g, "c:destroyed-cargo-ship:1");
     assert.equal(
       g.event?.body,
-      "You leave the cargo alone and prepare to jump.\n\nNothing happens.",
+      [eventText("event_FLOATING_CARGO_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

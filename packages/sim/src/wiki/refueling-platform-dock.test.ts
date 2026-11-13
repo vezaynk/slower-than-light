@@ -3,19 +3,20 @@ import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 const DOCK = "c:refueling-platform:0";
-const OFFER = "The platform makes an offer.";
+const OFFER = eventText("event_FUELING_STATION_NORMAL_LIST_1_text");
 const STEAL =
-  "The automated platform seems to be damaged. You can likely steal as much fuel as remains.";
-const IGNITE = "The platform seems to be malfunctioning and could ignite at any moment.";
-const STAFF = "You dock and signal the fuel station's staff to begin refueling.";
+  eventText("event_FUELING_STATION_NORMAL_LIST_2_text");
+const IGNITE = eventText("event_FUELING_STATION_NORMAL_LIST_3_text");
+const STAFF = eventText("event_FUELING_STATION_PIRATE_LIST_1_text");
 const AMBUSH =
-  "The refueling station welcomes you into one of its berths, and as you hail them, there is an explosion from your engine room! While assessing the damage, you detect a Pirate Ship closing fast!";
+  eventText("event_FUELING_STATION_PIRATE_LIST_2_text");
 const BOOM =
-  "Just as you hook up to refuel, the station ignites and explodes. Your own fuel reserve ignites, losing your precious fuel and damaging your ship.";
+  eventText("event_FUELING_STATION_BLOW_2_text");
 const WAIT =
-  "As you dock with the refueling platform, there is an explosion from your engine room! Warning lights flash in your ship as pirates from the station swarm aboard your vessel!";
+  eventText("event_FUELING_STATION_PIRATE_LIST_1_c1_text");
 
 type Kind = "offer" | "steal" | "ignite" | "staff" | "ambush";
 

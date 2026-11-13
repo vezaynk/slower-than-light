@@ -95,7 +95,7 @@ describe("Remote settlement", () => {
     choose(g, "c:remote-settlement:1");
     assert.equal(
       g.event?.body,
-      "It's just not possible to save every civilian affected by this war. You prepare to jump.\n\nNothing happens.",
+      [eventText("event_PIRATE_STATION_CROPS_c2_text"), "Nothing happens."].join("\n\n"),
     );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);

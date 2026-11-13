@@ -4,6 +4,7 @@ import { kinOf } from "../extras/kin.ts";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -25,7 +26,7 @@ describe("Zoltan ship follows Mantis ship help", () => {
     const g = createGame(1);
     open(g);
     const told =
-      "You overtake the Zoltan and catch up with the Mantis ship in the asteroid belt. Time to make some friends.";
+      eventText("event_ZOLTAN_DISTRESS_MANTIS_c2_text");
     choose(g, "c:zoltan-ship-follows-mantis-ship:1");
     assert.equal(g.phase, "event");
     assert.ok(g.event?.body?.includes(told));

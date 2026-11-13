@@ -4,6 +4,7 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -38,7 +39,7 @@ describe("Pirate smuggler weapons", () => {
     g.player.systems.weapons.level = 6;
     assert.equal(choiceDisabled(g, "c:pirate-smuggler:2"), null);
     choose(g, "c:pirate-smuggler:2");
-    assert.match(g.event?.body ?? "", /no need for aggression/i);
+    assert.match(g.event?.body ?? "", textRe("event_NEBULA_PIRATE_SMUGGLE_c3_text"));
     const fuel = g.fuel;
     const missiles = g.missiles;
     const parts = g.player.parts;

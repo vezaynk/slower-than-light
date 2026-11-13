@@ -3,8 +3,9 @@ import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const BODY = `"I really am feeling generousss..." They take the scrap and leave.\n\nYou avoided the fight.`;
+const BODY = [eventText("event_NEBULA_SLUG_CHOOSE_DEATH_c4_text"), "You avoided the fight."].join("\n\n");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

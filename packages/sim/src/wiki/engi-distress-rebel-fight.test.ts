@@ -5,6 +5,8 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { surrenderPlan } from "../rules/surrender.ts";
+import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -32,7 +34,7 @@ describe("Engi distress Rebel fight", () => {
     const g = createGame(1);
     open(g);
     const lead =
-      "The distress signal originates at a small Engi ship under attack by a rebel fighter - but when they see Federation markings they turn to attack!";
+      eventText("event_DISTRESS_ENGI_REBEL_text");
     choose(g, "c:engi-distress-rebel-fight:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -116,7 +118,7 @@ describe("Engi distress Rebel fight", () => {
       const body = g.event?.body ?? "";
       assert.equal(g.scrap, 15);
       assert.equal(g.augments.length, augs);
-      if (/Need = fulfilled/.test(body)) {
+      if (textRe("event_DISTRESS_ENGI_REBEL_LIST1_1_text").test(body)) {
         seen.add("nothing");
         assert.match(body, /Nothing else happens/);
         assert.equal(g.player.weapons.length, guns);

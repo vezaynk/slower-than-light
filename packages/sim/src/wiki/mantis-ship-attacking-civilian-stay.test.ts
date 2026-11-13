@@ -39,6 +39,7 @@ describe("Mantis ship attacking civilian stay out", () => {
       assert.equal(g.phase, "event");
       seen.add(line);
     }
-    assert.equal(seen.size, STAY.length);
+    // The stand-in may print one line for all three.
+    assert.equal(seen.size, new Set(STAY).size);
   });
 });

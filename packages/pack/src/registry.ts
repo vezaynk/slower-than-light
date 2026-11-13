@@ -1,4 +1,4 @@
-import { clearArchivePhrases } from "./extras/phrases.ts";
+import { restoreArchivePhrases, snapshotArchivePhrases } from "./extras/phrases.ts";
 import { pickOpening } from "./ftl.ts";
 import { cloneGrid } from "./grid.ts";
 import { bonusChance, resourceBounds, scrapBounds, type RewardDifficulty } from "./rewards.ts";
@@ -590,6 +590,7 @@ function copyHull(row: HullDef): HullDef {
 /** `"base"` replaces the maps. `"append"` adds or overwrites by id. */
 export function loadPack(pack: ContentPack, mode: "base" | "append"): void {
   if (mode === "base") {
+    snapshotArchivePhrases();
     crew.clear();
     weapons.clear();
     augments.clear();
@@ -1667,7 +1668,7 @@ export function allEmptyBeacons(): EmptyBeaconDef[] {
 
 /** Puts the campaign rows back. Appends made by tests do not survive this. */
 export function resetPackForTests(): void {
-  clearArchivePhrases();
+  restoreArchivePhrases();
   crew.clear();
   weapons.clear();
   augments.clear();

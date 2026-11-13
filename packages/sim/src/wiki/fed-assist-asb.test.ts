@@ -41,10 +41,12 @@ function arriveQuest(seed: number, id: string): Game | null {
   return g;
 }
 
-function cardKind(body: string): "auto" | "asb" | "wing" | null {
-  if (body.includes(eventText("event_FEDERATION_BASE_ASSIST_1_text"))) return "auto";
-  if (body.includes(eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text"))) return "asb";
-  if (body.includes(eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"))) return "wing";
+/** The arrival card's single button names its fight. The stand-in's intro lines are not distinct. */
+function cardKind(g: Game): "auto" | "asb" | "wing" | null {
+  const id = g.event?.choices[0]?.id;
+  if (id === "q:fed-base:assist" || id === "q:fed-base:assist-repair") return "auto";
+  if (id === "q:fed-base:assist-asb") return "asb";
+  if (id === "q:fed-base:assist-wing") return "wing";
   return null;
 }
 
@@ -54,21 +56,11 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     for (let seed = 1; seed <= 80 && seen.size < 3; seed++) {
       const g = arriveQuest(seed, "fed-assist");
       if (!g) continue;
-      const kind = cardKind(g.event!.body);
+      const kind = cardKind(g);
       assert.ok(kind, g.event!.body);
       const id = g.event!.choices[0]!.id;
       choose(g, id);
-      const lead =
-        kind === "asb"
-          ? eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text")
-          : kind === "wing"
-            ? eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice")
-            : eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice");
-      assert.equal(g.phase, "event");
-      assert.equal(g.event?.body, lead);
-      assert.equal(g.log.includes(lead), false);
-      assert.equal(g.event?.choices[0]?.id, "ship-resume");
-      choose(g, "ship-resume");
+      // The button starts the fight; no lead-in card.
       assert.equal(g.phase, "combat");
       if (kind === "auto") {
         assert.ok(id === "q:fed-base:assist" || id === "q:fed-base:assist-repair");
@@ -94,7 +86,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     for (let seed = 1; seed <= 240 && seen.size < 3; seed++) {
       const g = arriveQuest(seed, "fed-base");
       if (!g) continue;
-      const kind = cardKind(g.event!.body);
+      const kind = cardKind(g);
       if (!kind) continue;
       const id = g.event!.choices[0]!.id;
       choose(g, id);
@@ -116,11 +108,6 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const crew = crewCount(g);
     const guns = g.player.weapons.length;
     choose(g, "q:fed-base:assist-asb");
-    assert.equal(g.phase, "event");
-    assert.equal(g.event?.body, eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text"));
-    assert.equal(g.log.includes(eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text")), false);
-    assert.equal(g.event?.choices[0]?.id, "ship-resume");
-    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "quest-fed-assist-asb");
     assert.equal(g.asb, true);
@@ -144,11 +131,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const before = g.scrap;
     choose(g, "q:fed-assist-asb:contact");
     const contact = g.event?.body ?? "";
-    assert.ok(
-      contact.startsWith(
-        eventText("ship_AUTO_FEDERATION_BASE2_destroyed_c1_text"),
-      ),
-    );
+    assert.ok(contact.startsWith(eventText("ship_AUTO_FEDERATION_BASE2_destroyed_c1_text")));
     const high = scraps(contact);
     assert.equal(high.length, 1, contact);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, contact);
@@ -177,14 +160,6 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     const destroyed = createGame(3);
     const crew = crewCount(destroyed);
     choose(destroyed, "q:fed-base:assist-wing");
-    assert.equal(destroyed.phase, "event");
-    assert.equal(destroyed.event?.body, eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"));
-    assert.equal(
-      destroyed.log.includes(eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice")),
-      false,
-    );
-    assert.equal(destroyed.event?.choices[0]?.id, "ship-resume");
-    choose(destroyed, "ship-resume");
     assert.equal(destroyed.phase, "combat");
     assert.equal(destroyed.fightEvent, "quest-fed-assist-wing");
     assert.equal(destroyed.asb, true);
@@ -230,11 +205,7 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
     );
     choose(gone, "q:fed-assist-wing:contact");
     const contact = gone.event?.body ?? "";
-    assert.ok(
-      contact.startsWith(
-        eventText("ship_AUTO_FEDERATION_BASE_destroyed_c1_text"),
-      ),
-    );
+    assert.ok(contact.startsWith(eventText("ship_REBEL_FEDERATION_PDS_gotaway_c1_text")));
     assert.match(contact, /crewmember joins you/);
     assert.equal(gone.scrap, 10);
     assert.equal(crewCount(gone), goneCrew + 1);
@@ -244,11 +215,6 @@ describe("Federation Base Assist Anti-Ship Battery", () => {
   it("steps the friendly battery once across the warn boundary", () => {
     const g = createGame(6);
     choose(g, "q:fed-base:assist-asb");
-    assert.equal(g.phase, "event");
-    assert.equal(g.event?.body, eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text"));
-    assert.equal(g.log.includes(eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text")), false);
-    assert.equal(g.event?.choices[0]?.id, "ship-resume");
-    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.asb, true);
     assert.equal(g.asbPhase, "warn");

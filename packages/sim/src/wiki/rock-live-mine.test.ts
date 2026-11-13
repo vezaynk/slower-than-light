@@ -65,7 +65,7 @@ describe("Live mine", () => {
       assert.ok((g.event?.body ?? "").includes(eventText("event_ROCK_STARSHIP_MINE_c1_text")));
       choose(g, "s:rock-mine:defuse");
       const body = g.event?.body ?? "";
-      if ((body).includes(eventText("event_ROCK_STARSHIP_MINE_DEFUSE_1_text"))) {
+      if (body.includes(eventText("event_ROCK_STARSHIP_MINE_DEFUSE_1_text"))) {
         paid = true;
         const got = scraps(body);
         assert.equal(got.length, 1, body);
@@ -75,7 +75,7 @@ describe("Live mine", () => {
         assert.equal(g.crew.length, crew);
       } else {
         wires = true;
-        assert.ok((body).includes(eventText("event_ROCK_STARSHIP_MINE_DEFUSE_2_text")));
+        assert.ok(body.includes(eventText("event_ROCK_STARSHIP_MINE_DEFUSE_2_text")));
         assert.deepEqual(
           g.event?.choices.map((c) => c.id),
           ["s:rock-mine:red", "s:rock-mine:blue"],
@@ -120,7 +120,7 @@ describe("Live mine", () => {
         };
       choose(g, seed % 3 === 0 ? "s:rock-mine:blue" : "s:rock-mine:red");
       const body = g.event?.body ?? "";
-      if ((body).includes(eventText("event_ROCK_STARSHIP_MINE_DEFUSE2_1_text"))) {
+      if (body.includes(eventText("event_ROCK_STARSHIP_MINE_DEFUSE2_1_text"))) {
         safe = true;
         const got = scraps(body);
         assert.equal(got.length, 1, body);
@@ -129,9 +129,9 @@ describe("Live mine", () => {
         assert.equal(g.crew.length, crew);
       } else {
         boom = true;
-        assert.ok((body).includes(eventText("event_ROCK_STARSHIP_MINE_DEFUSE2_2_text")));
+        assert.ok(body.includes(eventText("event_ROCK_STARSHIP_MINE_DEFUSE2_2_text")));
         assert.match(body, /Hull damage: 6/);
-        assert.match(body, /breach opens/);
+        assert.match(body, /Breach: /);
         assert.equal(g.player.hull, hull - 6);
         assert.equal(breaches(g), holes + 1);
         assert.equal(g.scrap, 10);
@@ -175,7 +175,7 @@ describe("Live mine", () => {
     assert.equal(choiceDisabled(g, "s:rock-mine:missile"), null);
     choose(g, "s:rock-mine:missile");
     const body = g.event?.body ?? "";
-    assert.ok((body).includes(eventText("event_ROCK_STARSHIP_MINE_c1_c2_text")));
+    assert.ok(body.includes(eventText("event_ROCK_STARSHIP_MINE_c1_c2_text")));
     const got = scraps(body);
     assert.equal(got.length, 1, body);
     assert.ok(got[0]! >= 7 && got[0]! <= 10, body);
@@ -213,7 +213,7 @@ describe("Live mine", () => {
     assert.equal(choiceDisabled(g, "s:rock-mine:beam"), null);
     choose(g, "s:rock-mine:beam");
     const body = g.event?.body ?? "";
-    assert.ok((body).includes(eventText("event_ROCK_STARSHIP_MINE_c1_c3_text")));
+    assert.ok(body.includes(eventText("event_ROCK_STARSHIP_MINE_c1_c3_text")));
     assert.match(body, /Drone parts: -1/);
     const got = scraps(body);
     assert.equal(got.length, 1, body);

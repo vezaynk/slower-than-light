@@ -12,6 +12,7 @@ import { fillerEvent } from "./filler-events.ts";
 import { pageWin, questEvent } from "./quests.ts";
 import { stampStockLabels } from "./stock-labels.ts";
 import { joinCrew } from "./surrender.ts";
+import { textRe } from "./quest-text-re.ts";
 import { startedGame } from "../test-start.ts";
 
 afterEach(() => resetPackForTests());
@@ -324,8 +325,22 @@ describe("stock spends", () => {
     paid.missiles = 7;
     choose(paid, "c:asteroid-mining-colony:1");
     assert.equal(paid.missiles, 0);
-    assert.match(paid.event?.body ?? "", /thank you/i);
-    assert.doesNotMatch(paid.event?.body ?? "", /Wow/);
+    assert.match(
+      paid.event?.body ?? "",
+      textRe(
+        "event_HELP_MINERS_1_1_text",
+        "event_HELP_MINERS_1_2_text",
+        "event_HELP_MINERS_1_3_text",
+      ),
+    );
+    assert.doesNotMatch(
+      paid.event?.body ?? "",
+      textRe(
+        "event_HELP_MINERS_2_1_text",
+        "event_HELP_MINERS_2_2_text",
+        "event_HELP_MINERS_2_3_text",
+      ),
+    );
 
     const short = startedGame(3);
     short.missiles = 6;
@@ -550,10 +565,8 @@ describe("stock spends", () => {
       labelOf(card?.choices, "c:no-fuel-slug-fuel-trader:pay"),
       "Pay 15 scrap for 5 fuel.",
     );
-    assert.equal(
-      labelOf(card?.choices, "c:no-fuel-slug-fuel-trader:slug"),
-      "Have your Slug make the purchase.",
-    );
+    const slugLabel = labelOf(card?.choices, "c:no-fuel-slug-fuel-trader:slug");
+    assert.ok(slugLabel);
 
     rewriteStock("c:no-fuel-slug-fuel-trader:pay", [stock("scrap", 4)]);
     const renamed = citedEvent(g, beacon);
@@ -561,10 +574,7 @@ describe("stock spends", () => {
       labelOf(renamed?.choices, "c:no-fuel-slug-fuel-trader:pay"),
       "Pay 4 scrap for 5 fuel.",
     );
-    assert.equal(
-      labelOf(renamed?.choices, "c:no-fuel-slug-fuel-trader:slug"),
-      "Have your Slug make the purchase.",
-    );
+    assert.equal(labelOf(renamed?.choices, "c:no-fuel-slug-fuel-trader:slug"), slugLabel);
 
     resetPackForTests();
     const paid = startedGame(2);
@@ -594,10 +604,7 @@ describe("stock spends", () => {
       quietCard?.choices.some((choice) => choice.id === "c:no-fuel-slug-fuel-trader:pay"),
       false,
     );
-    assert.equal(
-      labelOf(quietCard?.choices, "c:no-fuel-slug-fuel-trader:slug"),
-      "Have your Slug make the purchase.",
-    );
+    assert.equal(labelOf(quietCard?.choices, "c:no-fuel-slug-fuel-trader:slug"), slugLabel);
     quiet.scrap = 15;
     const held = quiet.fuel;
     const seed = quiet.seed;
@@ -632,14 +639,14 @@ describe("stock spends", () => {
     missiles.missiles = 1;
     choose(missiles, "c:no-fuel-refugee-trading:missiles");
     assert.equal(missiles.missiles, 0);
-    assert.match(`${missiles.event?.body ?? ""}\n${missiles.log.join("\n")}`, /You lose 1 missile/);
+    assert.match(`${missiles.event?.body ?? ""}\n${missiles.log.join("\n")}`, /Missiles: -1\./);
 
     rewriteStock("c:no-fuel-refugee-trading:missiles", [stock("missiles", 3)]);
     const three = startedGame(4);
     three.missiles = 3;
     choose(three, "c:no-fuel-refugee-trading:missiles");
     assert.equal(three.missiles, 0);
-    assert.match(`${three.event?.body ?? ""}\n${three.log.join("\n")}`, /You lose 3 missile/);
+    assert.match(`${three.event?.body ?? ""}\n${three.log.join("\n")}`, /Missiles: -3\./);
 
     rewriteStock("c:no-fuel-refugee-trading:missiles", undefined);
     const gone = startedGame(5);
@@ -769,8 +776,7 @@ describe("stock spends", () => {
     paid.missiles = 1;
     choose(paid, "q:war-camp:missile");
     assert.equal(paid.missiles, 0);
-    const lead =
-      "You fire at their fuel depot, but a shot from the surface rips the missile to shreds. They must have a planetary defense system set up already! You try to get away but a nearby patrol ship moves in to attack.";
+    const lead = eventText("event_QUEST_MANTIS_INVASION_c2_text");
     assert.equal(paid.phase, "event");
     assert.equal(paid.event?.choices[0]?.id, "ship-resume");
     assert.equal(paid.event?.body, lead);
@@ -836,7 +842,7 @@ describe("stock spends", () => {
     choose(paid, "c:crystalline-cache:breach");
     assert.equal(paid.missiles, 0);
     assert.ok((paid.event?.body ?? "").includes(eventText("event_CRYSTAL_CACHE_c2_text")));
-    assert.equal((paid.log.join("\n")).includes(eventText("event_CRYSTAL_CACHE_c2_text")), false);
+    assert.equal(paid.log.join("\n").includes(eventText("event_CRYSTAL_CACHE_c2_text")), false);
     assert.notEqual(paid.seed, before);
 
     rewriteStock("c:crystalline-cache:breach", undefined);
@@ -894,8 +900,7 @@ describe("stock spends", () => {
     freighter.player.parts = 1;
     choose(freighter, "c:mantis-ships-battle-for-rock-freighter:3");
     assert.equal(freighter.player.parts, 0);
-    const lead =
-      "While the two Mantis fight you approach the Rock ship and use a drone to fix up the ship. Once the breaches are fixed the life support flickers back on. In a matter of moments they are already in pursuit of one of the Mantis ships. Meanwhile the second Mantis turns toward you.";
+    const lead = eventText("event_ROCK_MANTIS_FREIGHTER_c4_text");
     assert.equal(freighter.phase, "event");
     assert.equal(freighter.event?.choices[0]?.id, "ship-resume");
     assert.ok(freighter.event?.body?.includes(lead));

@@ -6,8 +6,7 @@ import type { Game } from "../types.ts";
 import { fillerChoose } from "./filler-events.ts";
 
 const ID = "c:refugee-comms-down:0";
-const CLONE =
-  eventText("event_REFUGEE_GHOST_LIST_4_c0_clone");
+const CLONE = eventText("event_REFUGEE_GHOST_LIST_4_c0_clone");
 
 function board(seed: number, cradle: boolean): Game {
   const g = createGame(seed);
@@ -35,7 +34,7 @@ describe("Refugee comms down clone bay", () => {
     let seed = 0;
     for (let n = 1; n <= 40; n++) {
       const g = board(n, false);
-      if ((g.event?.body ?? "").includes("leave them behind")) {
+      if ((g.event?.body ?? "").startsWith(eventText("event_REFUGEE_GHOST_LIST_4_text"))) {
         seed = n;
         break;
       }
@@ -50,7 +49,7 @@ describe("Refugee comms down clone bay", () => {
     const cloned = board(seed, true);
     assert.equal(players(cloned).length, start);
     assert.equal(cloned.event?.body?.includes(CLONE), true);
-    assert.equal(cloned.event?.body?.includes("The lost crewmember is revived."), true);
+    assert.equal(cloned.event?.body?.includes("Clone Bay: crew revived."), true);
     assert.equal(cloned.enemy, null);
   });
 });

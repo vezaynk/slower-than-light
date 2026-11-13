@@ -62,7 +62,16 @@ describe("Optional fight: Lanius ship in debris field", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "lanius-ship-in-rich-debris-field", dead), true);
       const body = g.event?.body ?? "";
-      assert.match(body, dead ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text") : textRe("event_DESTROYED_DEFAULT_1_text", "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text", "ship_PIRATE_BRIBER_destroyed_text"));
+      assert.match(
+        body,
+        dead
+          ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text")
+          : textRe(
+              "event_DESTROYED_DEFAULT_1_text",
+              "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text",
+              "ship_PIRATE_BRIBER_destroyed_text",
+            ),
+      );
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       inBand(paid[0]!, 12, 19);
@@ -92,7 +101,7 @@ describe("Optional fight: Lanius ship in debris field", () => {
       assert.equal(resources(body), 2, body);
       assert.equal(g.scrap, before + extra[0]!);
       assert.equal(g.player.weapons.length, guns);
-      if (/good haul/.test(body)) {
+      if (textRe("event_LANIUS_HARVESTER_SHIP_LIST_3_text").test(body)) {
         inBand(extra[0]!, 19, 23);
         seen.add("high");
       } else if (textRe("event_LANIUS_HARVESTER_SHIP_LIST_2_text").test(body)) {
@@ -147,7 +156,7 @@ describe("Optional fight: Lanius ship in debris field", () => {
     high.player.systems.pilot.level = 3;
     choose(high, "c:lanius-ship-in-rich-debris-field:4");
     const highBody = high.event?.body ?? "";
-    assert.match(highBody, /considerable amount/);
+    assert.match(highBody, textRe("event_LANIUS_HARVESTER_c3_text"));
     const highPaid = scraps(highBody);
     assert.equal(highPaid.length, 1, highBody);
     inBand(highPaid[0]!, 19, 23);

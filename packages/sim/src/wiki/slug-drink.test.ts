@@ -16,10 +16,7 @@ function open(g: Game) {
   g.phase = "event";
   g.fleet = 5;
   assert.equal(g.event?.title, "Slug drink offer");
-  assert.equal(
-    g.event?.body,
-    "Slug ship. Offer: a drink.",
-  );
+  assert.equal(g.event?.body, "Slug ship. Offer: a drink.");
 }
 
 describe("Slug drink offer", () => {
@@ -27,9 +24,11 @@ describe("Slug drink offer", () => {
     const g = createGame(1);
     open(g);
     assert.deepEqual(
-      g.event?.choices.map((c) => c.label),
-      [eventText("event_SLUG_DRINK_c1_choice"), "Refuse", eventText("event_SLUG_DRINK_c3_choice")],
+      g.event?.choices.map((c) => c.id),
+      ["c:slug-drink:1", "c:slug-drink:0", "c:slug-drink:2"],
     );
+    assert.equal(g.event?.choices[0]?.label, eventText("event_SLUG_DRINK_c1_choice"));
+    assert.equal(g.event?.choices[2]?.label, eventText("event_SLUG_DRINK_c3_choice"));
     assert.equal(choiceDisabled(g, "c:slug-drink:1"), null);
     assert.equal(choiceDisabled(g, "c:slug-drink:2"), "Needs a Rock crewmember");
     choose(g, "c:slug-drink:2");
@@ -44,8 +43,7 @@ describe("Slug drink offer", () => {
 
     const fight = createGame(3);
     open(fight);
-    const refused =
-      eventText("event_SLUG_DRINK_c2_text");
+    const refused = eventText("event_SLUG_DRINK_c2_text");
     choose(fight, "c:slug-drink:0");
     assert.equal(fight.phase, "event");
     assert.equal(fight.event?.choices[0]?.id, "ship-resume");
@@ -82,9 +80,9 @@ describe("Slug drink offer", () => {
         assert.equal(g.scrap, 100);
         assert.ok(g.event?.body?.includes("Hull repairs: 10."));
         assert.equal(g.log.includes("Hull repairs: 10."), false);
-        assert.ok(/trustworthy/.test(g.event?.body ?? ""));
+        assert.ok(textRe("event_SLUG_DRINK_DRINK_1_text").test(g.event?.body ?? ""));
         assert.equal(
-          g.log.some((line) => /trustworthy/.test(line)),
+          g.log.some((line) => textRe("event_SLUG_DRINK_DRINK_1_text").test(line)),
           false,
         );
         choose(g, "q:open-store");
@@ -96,7 +94,7 @@ describe("Slug drink offer", () => {
         assert.equal(g.phase, "event");
         assert.equal(g.player.hull, hull);
         const body = g.event?.body ?? "";
-        assert.match(body, /cargo hold/);
+        assert.match(body, textRe("event_SLUG_DRINK_DRINK_2_text"));
         const lost = Number(body.match(/Scrap: -(\d+)/)?.[1]);
         assert.ok(lost >= 25 && lost <= 35, body);
         assert.equal(g.scrap, 100 - lost);
@@ -138,9 +136,9 @@ describe("Slug drink offer", () => {
       } else if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         trap = true;
         assert.equal(g.phase, "event");
-        assert.ok(/anaesthetic/.test(g.event?.body ?? ""));
+        assert.ok(textRe("event_SLUG_DRINK_ROCK_2_text").test(g.event?.body ?? ""));
         assert.equal(
-          g.log.some((line) => /anaesthetic/.test(line)),
+          g.log.some((line) => textRe("event_SLUG_DRINK_ROCK_2_text").test(line)),
           false,
         );
         assert.equal(g.scrap, 80);
@@ -158,7 +156,7 @@ describe("Slug drink offer", () => {
         assert.equal(g.enemy?.faction, "slug");
         assert.equal(g.scrap, 80);
         assert.equal(g.player.hull, hull);
-        assert.ok(g.log.some((line) => /anaesthetic/.test(line)));
+        assert.ok(g.log.some((line) => textRe("event_SLUG_DRINK_ROCK_2_text").test(line)));
       }
     }
     assert.equal(trust, true);

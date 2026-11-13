@@ -5,7 +5,6 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
-import { eventText } from "../event-text.ts";
 import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
@@ -56,17 +55,17 @@ describe("Refugee ship (pirate)", () => {
       assert.equal(/Zoltan ship suddenly jumps|Slug ship jumps|pirate ambush/i.test(text), false);
       if (g.event?.choices.some((c) => c.id === "ship-resume")) {
         fight = true;
-        assert.match(g.event?.body ?? "", /using the refugee ship as bait/);
-        assert.equal(/using the refugee ship as bait/.test(g.log.join("\n")), false);
+        assert.match(g.event?.body ?? "", textRe("event_REFUGEE_HAIL_LIST_PIRATE_1_text"));
+        assert.equal(textRe("event_REFUGEE_HAIL_LIST_PIRATE_1_text").test(g.log.join("\n")), false);
         choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
         assert.equal(g.enemyEscape?.mode, "never");
         assert.equal(g.fightEvent, "refugee-pirate");
-        assert.equal(/using the refugee ship as bait/.test(g.log.join("\n")), false);
+        assert.equal(textRe("event_REFUGEE_HAIL_LIST_PIRATE_1_text").test(g.log.join("\n")), false);
       } else {
         trade = true;
         assert.ok((g.event?.body ?? "").includes(eventText("event_REFUGEE_TRADER_text")));
-        assert.equal(g.event?.choices[1]?.label, "Politely decline.");
+        assert.equal(g.event?.choices[1]?.label, eventText("event_REFUGEE_TRADER_c2_choice"));
         const scrap = g.scrap;
         const crew = g.crew.filter((c) => c.side === "player").length;
         choose(g, g.event?.choices[1]?.id ?? "");
@@ -107,8 +106,7 @@ describe("Refugee ship (pirate)", () => {
     const mid = destroyed.scrap;
     choose(destroyed, "s:refugee-pirate:contact");
     const thanks = destroyed.event?.body ?? "";
-    assert.ok((thanks).includes(eventText("ship_PIRATE_REFUGEE_destroyed_c1_text")));
-    assert.equal((thanks).includes(eventText("ship_PIRATE_REFUGEE_deadCrew_c1_text")), false);
+    assert.ok(thanks.includes(eventText("ship_PIRATE_REFUGEE_destroyed_c1_text")));
     const low = scraps(thanks);
     assert.equal(low.length, 1, thanks);
     assert.ok(low[0]! >= 7 && low[0]! <= 10, thanks);
@@ -120,7 +118,10 @@ describe("Refugee ship (pirate)", () => {
     const start = killed.scrap;
     assert.equal(pageWin(killed, "refugee-pirate", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(dead, textRe("ship_PIRATE_REFUGEE_deadCrew_text", "ship_ZOLTAN_REFUGEE_deadCrew_text"));
+    assert.match(
+      dead,
+      textRe("ship_PIRATE_REFUGEE_deadCrew_text", "ship_ZOLTAN_REFUGEE_deadCrew_text"),
+    );
     const high = scraps(dead);
     assert.equal(high.length, 1, dead);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);
@@ -129,7 +130,7 @@ describe("Refugee ship (pirate)", () => {
     const after = killed.scrap;
     choose(killed, "s:refugee-pirate:contact-dead");
     const followed = killed.event?.body ?? "";
-    assert.ok((followed).includes(eventText("ship_PIRATE_REFUGEE_deadCrew_c1_text")));
+    assert.ok(followed.includes(eventText("ship_PIRATE_REFUGEE_deadCrew_c1_text")));
     const spare = scraps(followed);
     assert.equal(spare.length, 1, followed);
     assert.ok(spare[0]! >= 7 && spare[0]! <= 10, followed);

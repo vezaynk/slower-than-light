@@ -21,10 +21,18 @@ function held(g: Game, kind: "weapon" | "drone"): number {
 
 /** The rows whose sentence hands over a weapon / a drone schematic. */
 function gives(text: string, kind: "weapon" | "drone"): number {
-  if (kind === "drone") return textRe("event_REBEL_TRANSPORT_CAPTURED_4_text", "event_REBEL_TRANSPORT_DESTROYED_5_text").test(text) ? 1 : 0;
-  return textRe("event_REBEL_TRANSPORT_DESTROYED_1_text", "event_REBEL_TRANSPORT_DESTROYED_3_text", "event_REBEL_TRANSPORT_CAPTURED_1_text").test(
-    text,
-  )
+  if (kind === "drone")
+    return textRe(
+      "event_REBEL_TRANSPORT_CAPTURED_4_text",
+      "event_REBEL_TRANSPORT_DESTROYED_5_text",
+    ).test(text)
+      ? 1
+      : 0;
+  return textRe(
+    "event_REBEL_TRANSPORT_DESTROYED_1_text",
+    "event_REBEL_TRANSPORT_DESTROYED_3_text",
+    "event_REBEL_TRANSPORT_CAPTURED_1_text",
+  ).test(text)
     ? 1
     : 0;
 }
@@ -95,7 +103,11 @@ describe("Pirate smuggler cargo", () => {
         assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
       }
     }
-    assert.equal(seen.size, 11, [...seen].join(" | "));
+    // Eleven rows. The stand-in prints one line for rows that pay the same, so count distinct lines.
+    const rows = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map((n) =>
+      eventText(`event_REBEL_TRANSPORT_DESTROYED_${n}_text`),
+    );
+    assert.equal(seen.size, new Set(rows).size, [...seen].join(" | "));
     assert.equal(
       randomTiers.has("low") && randomTiers.has("medium") && randomTiers.has("high"),
       true,
@@ -123,9 +135,11 @@ describe("Pirate smuggler cargo", () => {
       assert.equal(g.crew.length, crew);
       assert.equal(g.beacons.filter((b) => b.visited).length, visited);
       assert.equal(resourceLines(body).length, 0, body);
-      if (text.startsWith("The ship refuses")) assert.ok(paid[0]! >= 19 && paid[0]! <= 23, body);
+      if (text.startsWith(eventText("event_REBEL_TRANSPORT_CAPTURED_2_text")))
+        assert.ok(paid[0]! >= 19 && paid[0]! <= 23, body);
       else assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
     }
-    assert.equal(seen.size, 4);
+    const rows = [1, 2, 3, 4].map((n) => eventText(`event_REBEL_TRANSPORT_CAPTURED_${n}_text`));
+    assert.equal(seen.size, new Set(rows).size);
   });
 });

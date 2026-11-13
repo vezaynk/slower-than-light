@@ -8,7 +8,7 @@ import { scrapBand } from "./surrender.ts";
 import { eventText } from "../event-text.ts";
 
 const ENGAGE = "c:zoltan-retake-the-ship:0";
-const SALVAGE = "You salvage what you can from the ship.";
+const SALVAGE = eventText("ship_ZOLTAN_LIFERAFT_destroyed_text");
 const AIM = eventText("ship_ZOLTAN_LIFERAFT_destroyed_c1_text");
 const CREW = eventText("ship_ZOLTAN_LIFERAFT_deadCrew_text");
 const ACCEPT = eventText("event_ZOLTAN_LIFERAFT_HIRE_2_text");

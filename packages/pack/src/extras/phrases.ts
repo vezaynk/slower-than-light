@@ -11,9 +11,17 @@ export function archivePhrase(key: string | undefined): string | undefined {
   return text && text.trim() ? text : undefined;
 }
 
-/** Drops phrases when a test restores the stand-in snapshot without loading a pack. */
-export function clearArchivePhrases(): void {
+let basePhrases = new Map<string, string>();
+
+/** Keeps the phrases of the archive a `"base"` load installs, so a test reset can put them back. */
+export function snapshotArchivePhrases(): void {
+  basePhrases = new Map(phrases);
+}
+
+/** Puts back the phrases of the last `"base"` load when a test restores the stand-in snapshot. */
+export function restoreArchivePhrases(): void {
   phrases.clear();
+  for (const [key, value] of basePhrases) phrases.set(key, value);
 }
 
 /** `text-<code>.xml` is a translation. English tables are `text_<kind>.xml`. */

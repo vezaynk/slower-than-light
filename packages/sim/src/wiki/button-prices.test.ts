@@ -139,7 +139,8 @@ describe("named button prices", () => {
       choose(g, "c:rock-and-slug-standoff:0");
       g.scrap = 40;
       choose(g, "s:rock-slug:debt:8");
-      if (!/fair' price/.test(g.event?.body ?? "")) continue;
+      // The price card is the only one with the decline button.
+      if (!g.event?.choices.some((choice) => choice.id === "s:rock-slug:decline")) continue;
       assert.equal(
         g.event?.choices.find((choice) => choice.id.startsWith("s:rock-slug:upgrade:"))?.id,
         "s:rock-slug:upgrade:6",
@@ -185,7 +186,8 @@ describe("named button prices", () => {
       choose(g, "c:rock-and-slug-standoff:0");
       g.scrap = 40;
       choose(g, "s:rock-slug:debt:8");
-      if (!/fair' price/.test(g.event?.body ?? "")) continue;
+      // The price card is the only one with the decline button.
+      if (!g.event?.choices.some((choice) => choice.id === "s:rock-slug:decline")) continue;
       seen = true;
       const ids = g.event?.choices.map((choice) => choice.id) ?? [];
       assert.equal(
@@ -362,7 +364,8 @@ describe("named button prices", () => {
     let quiet: Game | undefined;
     for (let seed = 1; seed <= 40 && !quiet; seed++) {
       const g = open(seed);
-      if ((g.event?.body ?? "").includes(eventText("event_FUEL_OFF_ROCK_WRECK_LIST_4_text"))) quiet = g;
+      if ((g.event?.body ?? "").includes(eventText("event_FUEL_OFF_ROCK_WRECK_LIST_4_text")))
+        quiet = g;
     }
     assert.ok(quiet);
     assert.equal(

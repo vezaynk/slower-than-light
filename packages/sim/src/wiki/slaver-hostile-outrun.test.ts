@@ -5,7 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const ID = "c:slaver-hostile:1";
-const LABEL = "Attempt to out-run the slaver ship.";
+const LABEL = "1 in 3: fight the pirate ship. 2 in 3: nothing happens.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

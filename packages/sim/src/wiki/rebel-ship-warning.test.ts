@@ -23,7 +23,7 @@ describe("Fleeing Rebel ship", () => {
     // > "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!" — [[Rebel ship warning]]
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.body, "You stumble across a forward scout of the Rebel fleet.");
+    assert.equal(g.event?.body, "Fleeing Rebel ship.");
     assert.ok(g.event?.choices.some((c) => c.id === "c:rebel-ship-warning:0"));
     const told =
       "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!";
@@ -61,7 +61,7 @@ describe("Fleeing Rebel ship", () => {
     g.sector = 1;
     g.phase = "map";
     g.event = null;
-    const scout = "You stumble across a forward scout of the Rebel fleet.";
+    const scout = "Fleeing Rebel ship.";
     const told =
       "They are powering up their FTL! If they get away, they will no doubt warn the fleet of your position!";
     commitJump(g, dest.id);

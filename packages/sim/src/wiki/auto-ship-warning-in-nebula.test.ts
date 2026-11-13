@@ -36,7 +36,7 @@ describe("Fleeing Auto-ship in nebula", () => {
     open(g);
     assert.equal(
       g.event?.body,
-      "It appears that an automated Rebel scout was positioned within the nebula to warn of your passing.",
+      "Fleeing Auto-ship. Nebula.",
     );
     assert.equal(
       g.event?.choices.some((c) => c.id === "c:auto-ship-warning-in-nebula:0"),
@@ -105,7 +105,7 @@ describe("Fleeing Auto-ship in nebula", () => {
     g.event = null;
     commitJump(g, dest.id);
     const body =
-      "It appears that an automated Rebel scout was positioned within the nebula to warn of your passing.";
+      "Fleeing Auto-ship. Nebula.";
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, body);
     assert.equal(g.log.includes(body), false);

@@ -5,7 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const HAIL =
-  "A Zoltan academy sits docked just outside the beacon perimeter. They're happy to show you the fruits of their labor, and offer something to take home with you.";
+  "Free augment.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

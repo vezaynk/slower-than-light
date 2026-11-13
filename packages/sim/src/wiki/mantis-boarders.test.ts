@@ -7,9 +7,9 @@ import { citedEvent, citedPagesFor } from "./cited-events.ts";
 const ID = "c:boarders-mantis:0";
 const DEST = "Boarders: Mantis";
 const INTROS = [
-  "A derelict and still smoking Mantis vessel floats by. The battle must have been recent; its surviving crew beam aboard. Prepare for a fight!",
-  "Your world, all of a sudden, changes. The Mantis are on board your ship.",
-  "You hear a grating rattle and a soft clicking. You reach for your pistol.",
+  "2-4 Mantis boarders.",
+  "2-4 Mantis boarders.",
+  "2-4 Mantis boarders.",
 ];
 const SECTORS = ["MANTIS_SECTOR", "MANTIS_HOME"];
 

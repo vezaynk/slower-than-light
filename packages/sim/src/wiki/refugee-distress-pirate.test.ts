@@ -37,10 +37,10 @@ describe("Refugee ship distress (pirate)", () => {
     assert.deepEqual(pages[0]?.sectors, ["PIRATE_SECTOR"]);
     const g = createGame(1);
     open(g);
-    assert.match(g.event?.body ?? "", /distress beacon is active/);
+    assert.equal(g.event?.body, "Refugee ship.");
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
-      ["Hail them.", "Ignore the refugees."],
+      ["1 in 2: trade. 1 in 2: fight a pirate ship.", "Nothing happens."],
     );
   });
 

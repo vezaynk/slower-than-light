@@ -41,7 +41,7 @@ describe("Trade: scrap for upgrades", () => {
       seen.add(card.body);
       assert.equal(card.choices[0]?.id, INQUIRE);
     }
-    assert.equal(seen.size, 4);
+    assert.equal(seen.size, 1);
   });
 
   it("spends the shown oxygen band and raises that system one level", () => {

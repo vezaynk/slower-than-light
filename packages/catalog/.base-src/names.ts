@@ -1,0 +1,17 @@
+export const NAME_SYLLABLES = [
+  "ka",
+  "ren",
+  "vo",
+  "li",
+  "mar",
+  "tes",
+  "an",
+  "dru",
+  "sel",
+  "ko",
+  "ny",
+  "bel",
+  "ta",
+  "ri",
+  "os",
+];

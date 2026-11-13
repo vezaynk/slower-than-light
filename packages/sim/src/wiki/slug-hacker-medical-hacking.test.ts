@@ -47,7 +47,7 @@ describe("Slug hacker (medical) hacking", () => {
     open(g);
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === "c:slug-hacker-medical:1" && c.label === "Counter the remote hacking.",
+        (c) => c.id === "c:slug-hacker-medical:1" && c.label === "Fight. Hacking offline; medbay keeps power.",
       ),
     );
     assert.equal(choiceDisabled(g, "c:slug-hacker-medical:1"), "Needs a Hacking system");

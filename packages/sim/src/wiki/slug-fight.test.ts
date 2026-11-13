@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { choose, commitJump, createGame } from "../sim.ts";
 
 const BODY =
-  "It's rare for the Slugs to stay exposed in open space for long periods - the ship here may be lost, or just passing through, but either way he moves in to attack!";
+  "Hostile Slug ship.";
 
 describe("Hostile Slug ship", () => {
   it("shows the arrival card, then starts the Slug fight", () => {

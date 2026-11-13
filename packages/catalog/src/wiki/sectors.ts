@@ -211,7 +211,7 @@ export const SECTOR_TYPES: SectorType[] = [
     group: "nebula",
     notes: [
       "Can occur multiple times per game, and only at sector 4 or higher.",
-      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%, because the fleet was prepared for the nebula.",
+      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%.",
       "The beacon list gives 0-1 stores and 2 nebula stores.",
       "Crew bought or received as a crew-kill reward, common to rare: Slug and Human rarity 2, Engi, Mantis, Zoltan, and Rockmen 4. Rarity only affects store assortment probability.",
     ],
@@ -225,7 +225,7 @@ export const SECTOR_TYPES: SectorType[] = [
     group: "nebula",
     notes: [
       "Only once per game, and only at sector 4 or higher.",
-      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%, because the fleet was prepared for the nebula.",
+      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%.",
       "The beacon list places 1 Slug ship unlock fight, 0-1 stores, and 2 nebula stores.",
       "Crew bought or received as a crew-kill reward, common to rare: Slug and Human rarity 2, Engi, Mantis, Zoltan, and Rockmen 4. Rarity only affects store assortment probability.",
     ],
@@ -239,7 +239,7 @@ export const SECTOR_TYPES: SectorType[] = [
     group: "nebula",
     notes: [
       "Can occur multiple times per game.",
-      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%, because the fleet was prepared for the nebula.",
+      "Visiting a nebula beacon slows the Rebel Fleet by only 20% instead of the regular 50%.",
       "In normal circumstances the sector has 1-2 stores. Map generation leaves about 0.8% with no stores at all.",
       "The beacon list also shows 0-1 stores and 1 nebula store.",
       "Crew bought or received as a crew-kill reward, common to rare: Human rarity 1, Slug 3, Engi, Mantis, Zoltan, and Rockmen 4. Rarity only affects store assortment probability.",

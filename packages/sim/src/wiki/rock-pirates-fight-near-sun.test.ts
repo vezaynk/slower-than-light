@@ -5,8 +5,8 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "Unusual solar activity in this region means you need to get out, quick. The Rock pirate nearby apparently thinks otherwise as they move to attack your ship.",
-  `A Rock ship is silhouetted against a sun in supernova. They hail: "Even out here you follow us! We only wish to be left alone!" Out of panic or anger, they charge their weapons.`,
+  "Hostile Rock pirate ship. Sun: fires break out.",
+  "Hostile Rock pirate ship. Sun: fires break out.",
 ];
 
 function open(g: Game) {
@@ -28,7 +28,7 @@ describe("Hostile Rock pirate ship near sun", () => {
     // > "A Rock ship is silhouetted against a sun in supernova. They hail: \"Even out here you follow us! We only wish to be left alone!\" Out of panic or anger, they charge their weapons." — [[Rock pirates fight near sun]]
     // > "Fight a Rock pirate ship (default rewards)." — [[Rock pirates fight near sun]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 40 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -36,7 +36,7 @@ describe("Hostile Rock pirate ship near sun", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:rock-pirates-fight-near-sun:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);

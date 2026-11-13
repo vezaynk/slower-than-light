@@ -54,7 +54,7 @@ describe("Powered-down Lanius ship", () => {
     open(g);
     assert.equal(
       g.event?.body,
-      "You have picked up a Lanius vessel drifting in this sector. There is no damage to the hull, and it appears to be powered down.",
+      "Powered-down Lanius ship.",
     );
     const lead =
       "As you scan the vessel, the scan frequencies awaken the Lanius from hibernation - and they're hungry for raw materials!";

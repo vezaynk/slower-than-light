@@ -4,8 +4,7 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
-const OPENING =
-  'You arrive at the primitive planet that you heard about at the cantina and are surprised to see a Zoltan ship facing off against a Rebel assault craft.\n\nYou tap into their frequency and hear the Rebel captain yelling, "We are liberating this planet in the name of the new Galactic government! These aliens will not be left in ignorance where they cannot be of use!"';
+const OPENING = "Zoltan ship and Rebel ship over a planet.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

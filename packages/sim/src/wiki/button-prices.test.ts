@@ -221,11 +221,7 @@ describe("named button prices", () => {
     assert.equal(short.event?.body, shortBody);
 
     const forged = createGame(3);
-    const forgedHere = park(
-      forged,
-      "filler:friendly-ship-out-of-fuel",
-      "Fuel request",
-    );
+    const forgedHere = park(forged, "filler:friendly-ship-out-of-fuel", "Fuel request");
     forged.event = fillerEvent(forged, forgedHere);
     forged.fuel = 20;
     const forgedBody = forged.event?.body;

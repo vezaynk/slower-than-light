@@ -34,7 +34,10 @@ describe("event card heading", () => {
   });
 
   it("keeps a written title", () => {
-    assert.equal(shownEventTitle("Optional fight: Auto-ship at radar station"), "Optional fight: Auto-ship at radar station");
+    assert.equal(
+      shownEventTitle("Optional fight: Auto-ship at radar station"),
+      "Optional fight: Auto-ship at radar station",
+    );
     assert.equal(shownEventTitle("Ember"), "Ember");
     // Only a real id is dropped, not anything that looks like one.
     assert.equal(shownEventTitle("NOT_A_LOADED_ID"), "NOT_A_LOADED_ID");

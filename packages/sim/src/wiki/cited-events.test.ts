@@ -91,7 +91,7 @@ describe("cited events", () => {
     const g = createGame(4, "PLAYER_SHIP_HARD", "normal");
     const ev = citedEvent(g, beacon("Trade: drone parts for scrap"));
     assert.ok(ev);
-    const sell = ev.choices.find((c) => c.label === "Sell 3 drone parts for 12 scrap");
+    const sell = ev.choices.find((c) => c.label === "Lose 3 drone parts. Gain 12 scrap.");
     assert.ok(sell);
     g.player.parts = 2;
     g.scrap = 40;
@@ -163,7 +163,7 @@ describe("cited events", () => {
     assert.ok(ev);
     assert.equal(ev.body, "");
     assert.equal(g.seed, seed);
-    assert.equal(ev.choices[0]?.label, "You receive a drone schematic with low scrap");
+    assert.equal(ev.choices[0]?.label, "Gain a drone schematic and low scrap.");
     const held = heldSchematics(g).length;
     g.scrap = 0;
     const run = harness(g, [0]);
@@ -182,7 +182,7 @@ describe("cited events", () => {
     const seed = g.seed;
     const ev = citedEvent(g, beacon("Trade: scrap for upgrades", "TRADER_UPGRADES"));
     assert.ok(ev);
-    assert.match(ev.body, /automated message from a nearby space station/);
+    assert.equal(ev.body, "Upgrade seller.");
     assert.equal(g.seed, seed);
   });
 
@@ -253,7 +253,7 @@ describe("cited events", () => {
     g.sectorName = "Civilian Sector";
     const ev = citedEvent(g, beacon("Mercenary"));
     assert.ok(ev);
-    const hire = ev.choices.find((c) => c.label === "Hire the mercenary to delay the Rebels");
+    const hire = ev.choices.find((c) => c.label === "Lose 10-25 scrap. Fleet delayed 2.");
     assert.ok(hire);
     g.scrap = 9;
     assert.equal(citedChoiceDisabled(g, hire.id), "Need 10 scrap");
@@ -322,7 +322,7 @@ describe("cited events", () => {
     if (!here.links.includes(sell.id)) here.links.push(sell.id);
     commitJump(shop, sell.id);
     assert.equal(shop.phase, "event");
-    const choice = shop.event?.choices.find((c) => c.label === "Sell 3 drone parts for 12 scrap");
+    const choice = shop.event?.choices.find((c) => c.label === "Lose 3 drone parts. Gain 12 scrap.");
     assert.ok(choice);
     choose(shop, choice.id);
     assert.equal(shop.phase, "event");
@@ -556,8 +556,7 @@ describe("Hostile Zoltan ship with boarders", () => {
     g.phase = "map";
     g.event = null;
     commitJump(g, dest.id);
-    const body =
-      "There are few more zealous in their customs checks than the Zoltan. A team of border police beam on board. There's just a little confusion over your weapons licences, but things escalate rapidly from heated discussion to gunfire!";
+    const body = "Hostile Zoltan ship. 3-4 Zoltan boarders.";
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, body);
     assert.equal(g.log.includes(body), false);
@@ -721,12 +720,7 @@ describe("Hostile Rebel ship with boarders", () => {
     g.sector = 1;
     g.phase = "map";
     g.event = null;
-    const intros = [
-      'You receive a message from a nearby Rebel station, "You have a lot of guts passing through our space, I\'ll give you that." He turns giving an order, "Kill their crew, I want that ship intact."',
-      'Your sensors warn of an incoming Rebel ship at the same time as you hear the telltale signs of a teleporter. You hear someone taunt from within the ship, "Ready to die? I sure am ready to get a promotion!"',
-      'Incoming message, "Hello Captain," says a Rebel in an officer\'s garb. "How very generous of you to turn yourself in. Prepare to be boarded. Come quietly and we may be lenient."',
-      'You receive a message on a low-band channel. "You\'re surrounded, just like the last of your Federation friends. Just die already." The enemy has teleported onto your ship!',
-    ];
+    const intros = ["Hostile Rebel ship. Human boarders."];
     commitJump(g, dest.id);
     assert.equal(g.phase, "event");
     const body = g.event?.body ?? "";
@@ -819,8 +813,7 @@ describe("Hostile Mantis ship with boarders", () => {
     g.sector = 1;
     g.phase = "map";
     g.event = null;
-    const body =
-      "The Mantis outcasts sometimes make the mistake of taking the Zoltan for easy game. A scout moves in to attack while a boarding party beams aboard from a nearby transport!";
+    const body = "Hostile Mantis ship. 2-3 Mantis boarders.";
     commitJump(g, dest.id);
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, body);

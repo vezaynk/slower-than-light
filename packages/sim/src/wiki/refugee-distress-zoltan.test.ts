@@ -39,10 +39,10 @@ describe("Refugee ship distress (Zoltan)", () => {
     assert.equal(home, true);
     const g = createGame(1);
     open(g);
-    assert.match(g.event?.body ?? "", /distress beacon is active/);
+    assert.equal(g.event?.body, "Refugee ship.");
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
-      ["Hail them.", "Ignore the refugees."],
+      ["1 in 2: trade. 1 in 2: fight a Zoltan ship.", "Nothing happens."],
     );
   });
 

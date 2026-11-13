@@ -5,7 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "There appears to be some sort of research station near a pulsar, although it's hard to tell since a portion of it has been melted. The Lanius ship that has been working at it moves in to intercept you, totally oblivious to the threat of EM pulses.";
+  "Hostile Lanius ship. Pulsar: ion pulses.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

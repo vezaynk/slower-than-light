@@ -453,7 +453,7 @@ describe("scripted surrenders (event pages)", () => {
     const crew = before.length;
     const plain = before.filter((c) => c.kin === "human").length;
     offer(g);
-    assert.equal(g.event?.choices[0].label, "Accept their surrender.");
+    assert.equal(g.event?.choices[0].label, "Gain 1 Human crew. End the fight.");
     assert.equal(surrenderOfferView(g)?.crew, "Human");
     const kills = g.kills;
     choose(g, ACCEPT_ID);
@@ -524,7 +524,7 @@ describe("scripted surrenders (event pages)", () => {
     const note = g.reward?.note ?? "";
     assert.ok(
       note.includes(
-        "They accept your explanation and allow you to approach the fleet. It appears they are miners and colonists from a fringe settlement who are fleeing to more protected space after hearing reports of pirate and rebel attacks.\n\nThey apologize for their hasty response to your presence and spend some time refueling and repairing both ships.",
+        "Gain fuel. Repair 8 hull.",
       ),
     );
   });
@@ -554,7 +554,7 @@ describe("scripted surrenders (event pages)", () => {
       assert.equal([o.fuel, o.missiles, o.parts].filter((n) => n > 0).length, 2);
       if (o.fuel) assert.ok(o.fuel >= 3 && o.fuel <= 6);
       if (o.missiles) assert.ok(o.missiles >= 4 && o.missiles <= 8);
-      assert.equal(g.event?.choices[0].label, "Accept the more generous bribe and leave.");
+      assert.equal(g.event?.choices[0].label, "Gain high resources. End the fight.");
     }
   });
 
@@ -590,7 +590,7 @@ describe("scripted surrenders (event pages)", () => {
     const note = g.reward?.note ?? "";
     assert.ok(
       note.includes(
-        "This odd beam weapon does no damage to ships but instead greatly hurts the crew! Diabolical!",
+        "Gain a weapon.",
       ),
     );
     assert.ok(g.player.weapons.some((w) => w.defId === "BEAM_BIO"));

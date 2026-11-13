@@ -5,7 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "A Slug ship hails you: \"We've detected some worrying radiation coming from your medical unit, perhaps you should take a look?\" As he signs off, your medical bay shuts off and their crew teleports aboard from a nearby station. They don't look like engineers.";
+  "Hostile Slug ship. Medbay hacked. 2 Slug boarders.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

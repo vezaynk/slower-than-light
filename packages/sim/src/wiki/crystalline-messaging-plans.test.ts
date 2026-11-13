@@ -45,10 +45,10 @@ describe("Crystalline ship messaging about Rebels flight plans", () => {
     assert.deepEqual(
       g.event?.choices.map((c) => [c.id, c.label]),
       [
-        [`${PLANS}:0`, "Give them your flight plans"],
-        [`${PLANS}:1`, "Accept the scrap but give them false flight plans"],
-        [`${PLANS}:2`, "Accept the scrap but give them falsified flight plans."],
-        [`${PLANS}:3`, "Refuse"],
+        [`${PLANS}:0`, "Gain high scrap. Fleet advances 1."],
+        [`${PLANS}:1`, "1 in 2: gain high scrap, fleet delayed 1. 1 in 2: fight and 1-2 Crystal boarders."],
+        [`${PLANS}:2`, "Gain high scrap. Fleet delayed 1."],
+        [`${PLANS}:3`, "Nothing happens."],
       ],
     );
   });

@@ -5,7 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const HAIL =
-  'Your jump interrupts a Zoltan security ship as it follows a Mantis pirate into an asteroid field. They message you, "Your presence here will continue to be tolerated - but please, do not interfere."';
+  "Zoltan ship chasing a Mantis ship. Asteroid field.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

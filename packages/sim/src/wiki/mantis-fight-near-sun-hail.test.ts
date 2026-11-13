@@ -5,7 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "Who knows why the Mantis would venture so close to a sun. Perhaps it makes for more of a challenge?";
+  "Hostile Mantis ship. Sun: fires break out.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

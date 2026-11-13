@@ -12,7 +12,7 @@ const DWELLING =
   "The pirate watches as you teleport an incendiary explosive into their settlement. As the settlers scramble to put out the fires, their rudimentary planetary defenses power down. Forcing their surrender was almost laughably easy, but the pirate seems impressed with your tactics and agrees to share the settlement's 'tribute'.";
 const SCHEMATIC = "You receive a drone schematic with high scrap.";
 
-const BODY = `Scans show a remote settlement being blockaded by a pirate ship. The ship hastily messages you, "Stay out of this, or you'll be next!...Concentrate fire on..."`;
+const BODY = "Pirate ship blockading a settlement.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -54,11 +54,11 @@ describe("Optional fight: pirate ship and settlement", () => {
     );
     assert.equal(
       g.event?.choices.find((c) => c.id === "c:remote-settlement:2")?.label,
-      "Show the pirate how to intimidate settlers: burn their crops!",
+      "Gain a drone schematic and high scrap.",
     );
     assert.equal(
       g.event?.choices.find((c) => c.id === "c:remote-settlement:3")?.label,
-      "Show the pirate how to intimidate settlers: start fires in their crude dwellings.",
+      "Lose 1 missile. Gain a drone schematic and high scrap.",
     );
   });
 

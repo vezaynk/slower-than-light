@@ -5,7 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const ID = "c:slaver-hostile:2";
-const LABEL = "Draw straws and send a crew-member over to the slavers.";
+const LABEL = "Lose 1 crew.";
 const CLONE =
   "You briefly consider cloning a replacement, but decide to respect the Federation laws regarding simultaneous duplicates.";
 

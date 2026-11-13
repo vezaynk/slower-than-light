@@ -5,8 +5,8 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "You passively scan a small Rock station that is next to the beacon. However they must not have appreciated your curiosity. A Rock ship pulls away from the station and you register an incoming teleporter signal as well!",
-  "You find a Rock ship docked with a damaged Mantis fighter. Before you have a chance to hail them, the ship moves in to attack you and you register teleporter symbols from the disabled ship. They're using Mantis tech to board you!",
+  "Hostile Rock ship. Rock boarders.",
+  "Hostile Rock ship. Rock boarders.",
 ];
 
 function open(g: Game) {
@@ -28,7 +28,7 @@ describe("Hostile Rock ship with boarders", () => {
     // > "You find a Rock ship docked with a damaged Mantis fighter. Before you have a chance to hail them, the ship moves in to attack you and you register teleporter symbols from the disabled ship. They're using Mantis tech to board you!" — [[Rock fight with boarders]]
     // > "1-3 rock boarders beam aboard your ship, and you fight a Rock ship (default rewards)." — [[Rock fight with boarders]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 40 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 40 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -36,7 +36,7 @@ describe("Hostile Rock ship with boarders", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:rock-fight-with-boarders:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     const before = g.crew.filter((c) => c.side === "player").length;

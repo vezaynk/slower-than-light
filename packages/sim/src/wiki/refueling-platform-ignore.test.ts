@@ -5,7 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const ID = "c:refueling-platform:1";
-const LABEL = "Ignore the refueling platform.";
+const LABEL = "Fight the pirate ship.";
 const BAIT =
   "As you prepare to leave the system, a Pirate ship suddenly appears on scanners - it looks like it was attempting to use the platform as bait!";
 

@@ -77,7 +77,7 @@ export const QUEST_PAGES: QuestPage[] = [
   arrival(
     "slug-platform",
     "Quest: Slug construction platform",
-    "Construction platform guarded by a Slug ship. It has not seen you.",
+    "Construction platform guarded by a Slug ship, unaware of you.",
     [
       button("q:slug-platform:charge", "Fight the Slug ship."),
       button("q:slug-platform:tail", "Follow the platform."),

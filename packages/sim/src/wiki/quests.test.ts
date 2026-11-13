@@ -367,11 +367,11 @@ describe("Quest: tap Slug comms", () => {
     g.enemy!.weapons = [];
     g.enemy!.hull = Math.max(1, Math.floor(g.enemy!.hullMax * 0.25));
     for (let i = 0; i < 5 && g.phase === "combat"; i++) step(g, 1 / 30);
-    assert.equal(g.event!.choices[0].label, "Let the pirate escape and go after the Slugman ship.");
+    assert.equal(g.event!.choices[0].label, "End the fight. Gain high scrap.");
     const scrap = g.scrap;
     choose(g, ACCEPT_ID);
     assert.equal(g.phase, "reward");
-    assert.ok(g.reward!.note.startsWith("The pirate's too badly damaged"));
+    assert.ok(g.reward!.note.startsWith("Gain high scrap."));
     assert.ok(g.scrap > scrap);
     assert.equal(g.reward!.res?.fuel ?? 0, 0);
   });
@@ -591,7 +591,7 @@ describe("Page win rewards (destroyed / crew killed)", () => {
       "Slug Home Nebula",
       "Hostile Slug pirate ship",
       "s:the-black-raven:accept",
-      '"Hostile Slug pirate ship" breaks apart',
+      '"The Black Raven" breaks apart',
       "The once-dreaded pirate Nights",
     ],
     [

@@ -133,7 +133,10 @@ export const QUESTS: Record<string, { page: string; title: string }> = {
   "engi-real": { page: "Engi ships: Engi crew quest", title: "Quest: Rebel base (first)" },
   "engi-fake": { page: "Engi ships: Engi crew quest", title: "Quest: Rebel base (second)" },
   "engi-final": { page: "Engi ships: Engi crew quest", title: "Quest: Mantis convoy" },
-  "slug-platform": { page: "Hostile Slug ship: ship unlock", title: "Quest: Slug construction platform" },
+  "slug-platform": {
+    page: "Hostile Slug ship: ship unlock",
+    title: "Quest: Slug construction platform",
+  },
   "store-rescue": { page: "Quest offer: settlement", title: "Quest: space dock" },
 };
 

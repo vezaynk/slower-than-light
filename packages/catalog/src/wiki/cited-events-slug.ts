@@ -316,7 +316,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:rebel-fight-chance-in-nebula",
     aliases: [],
     sectors: ["Slug Controlled Nebula", "Slug Home Nebula", "Uncharted Nebula"],
-    body: "Rebel ship. It has not seen you. Nebula.",
+    body: "Rebel ship, unaware of you. Nebula.",
     choices: [
       {
         id: "c:rebel-fight-chance-in-nebula:0",

@@ -36,7 +36,7 @@ describe("Optional fight: Lanius ship and Slug ship", () => {
     open(g);
     assert.equal(
       g.event?.body,
-      "The distress signal from this system is coming from a Slug vessel under attack by the Lanius! The Slugs beg for assistance as the Lanius tear into their hull plating.",
+      "Lanius ship attacking a Slug ship.",
     );
     choose(g, "c:lanius-ship-attacking-slug:0");
     assert.equal(g.phase, "combat");

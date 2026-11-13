@@ -28,7 +28,7 @@ describe("Optional fight: unarmed Lanius ship", () => {
     open(g);
     assert.equal(
       g.event?.body,
-      `You arrive at the beacon to discover a civilian ship fleeing from a lone Lanius craft. The civilian messages you, "Help! The metal monsters are coming to melt down our ship!" Strangely, no active weapon signatures are detected.`,
+      "Unarmed Lanius ship chasing a civilian ship.",
     );
     const lead =
       "The civilian ship hastily retreats while you intercept the path of the ship and lock on weapons. It turns and prepares for a fight.";

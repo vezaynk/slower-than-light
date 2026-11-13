@@ -5,9 +5,9 @@ import type { Beacon, Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  "You see a small station nearby and feel the shudder of shots ringing through the ship. You can't be sure without sensors, but it seems there may be intruders on the ship!",
-  `You arrive in the nebula and immediately receive a message from an unknown source, "Prepare to be boarded!" With the static from the nebula, there's no way to tell where they came from, but you hear shots fired on board the ship.`,
-  "You see a number of derelict ships near this beacon. After a short time you hear the tell-tale sounds of a teleporter and shouts coming from within the ship. You've been boarded!",
+  "Nebula. 2-4 Human boarders.",
+  "Nebula. 2-4 Human boarders.",
+  "Nebula. 2-4 Human boarders.",
 ];
 
 function beacon(): Beacon {
@@ -40,7 +40,7 @@ describe("Boarders: Humans in nebula intros", () => {
     // > "You see a number of derelict ships near this beacon. After a short time you hear the tell-tale sounds of a teleporter and shouts coming from within the ship. You've been boarded!" — [[Boarders: Humans in nebula]]
     // > "2-4 human boarders beam aboard your ship." — [[Boarders: Humans in nebula]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 80 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -48,7 +48,7 @@ describe("Boarders: Humans in nebula intros", () => {
       assert.equal(g.event?.choices[0]?.id, "c:boarders-humans-in-nebula:0");
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(2);
     open(g);

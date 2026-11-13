@@ -37,12 +37,18 @@ describe("Destroyed cargo ship scan", () => {
     open(g);
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === SENSORS && c.label === "Run an advanced scan on the boxes.",
+        (c) =>
+          c.id === SENSORS &&
+          c.label ===
+            "1 in 3: gain 20-35 scrap. 1 in 3: gain medium scrap and resources. 1 in 3: more options.",
       ),
     );
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === SCANNERS && c.label === "Run an advanced scan on the boxes.",
+        (c) =>
+          c.id === SCANNERS &&
+          c.label ===
+            "1 in 3: gain 20-35 scrap. 1 in 3: gain medium scrap and resources. 1 in 3: more options.",
       ),
     );
     // INFERRED: the refusal lines. The page names the requirement and prints no sentence.
@@ -53,7 +59,7 @@ describe("Destroyed cargo ship scan", () => {
     assert.equal(g.phase, "event");
     assert.equal(g.enemy, null);
     assert.equal(g.scrap, 10);
-    assert.match(g.event?.body ?? "", /destroyed cargo ship/);
+    assert.equal(g.event?.body, "Cargo near a wreck.");
   });
 
   it("Sensors level 2 scans without the augment, and the augment scans at level 1", () => {

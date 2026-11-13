@@ -5,7 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "You detect a refueling platform near the beacon, although its broadcast signal is garbled, and you can't make out the message.";
+  "Fuel platform.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

@@ -220,7 +220,7 @@ describe("filler events (Sectors, Fallback events; EventList templates)", () => 
       step(g, 0.05);
       assert.equal(g.event?.title, "Exit beacon");
       assert.equal(g.event?.body, eventDef("FINISH_BEACON")?.body);
-      assert.equal(g.event?.choices.find((c) => c.id === "exit-leave")?.label, "Continue...");
+      assert.equal(g.event?.choices.find((c) => c.id === "exit-leave")?.label, "Continue.");
     }
     // An even split between the two halves.
     assert.ok(halves.neutral >= 10 && halves.items >= 10, JSON.stringify(halves));

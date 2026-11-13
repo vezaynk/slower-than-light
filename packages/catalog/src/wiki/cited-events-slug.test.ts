@@ -39,6 +39,11 @@ const TITLES = [
   "The Black Raven",
 ];
 
+/** A row's dest is its functional title; its slug is the wiki page title's slug. */
+function titleOf(ev: { slug: string }): string {
+  return (TITLES as readonly string[]).find((t) => slugOf(t) === ev.slug) ?? ev.slug;
+}
+
 function slugOf(title: string): string {
   return title
     .toLowerCase()
@@ -87,12 +92,12 @@ describe("EXTRA_EVENTS slug list", () => {
   const dump = pages();
 
   it("exports only these titles, with the slug, flag, and choice ids", () => {
-    assert.equal(new Set(EXTRA_EVENTS.map((event) => event.dest)).size, EXTRA_EVENTS.length);
+    assert.equal(new Set(EXTRA_EVENTS.map((event) => titleOf(event))).size, EXTRA_EVENTS.length);
     for (const event of EXTRA_EVENTS) {
-      assert.ok(TITLES.includes(event.dest), event.dest);
-      assert.equal(event.slug, slugOf(event.dest));
+      assert.ok(TITLES.includes(titleOf(event)), titleOf(event));
+      assert.equal(slugOf(titleOf(event)), event.slug);
       assert.equal(event.flag, `cited:${event.slug}`);
-      assert.ok(event.aliases.includes(event.dest));
+      assert.deepEqual(event.aliases, []);
       assert.ok(event.body.length <= 240);
       assert.ok(event.choices.length > 0);
       event.choices.forEach((choice, index) => {
@@ -102,9 +107,9 @@ describe("EXTRA_EVENTS slug list", () => {
       });
       // Refugee (Slug) keeps the fight inside the hail. The opening choices are the trade or the bait, not a fight button.
       if (
-        event.dest !== "Slocknog" &&
-        event.dest !== "Refugee (Slug)" &&
-        event.dest !== "Refugee distress (Slug)"
+        titleOf(event) !== "Slocknog" &&
+        titleOf(event) !== "Refugee (Slug)" &&
+        titleOf(event) !== "Refugee distress (Slug)"
       )
         assert.ok(event.choices.some((choice) => choice.fx.some((step) => step.k === "fight")));
     }
@@ -129,17 +134,16 @@ describe("EXTRA_EVENTS slug list", () => {
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Refugee (Slug)]]
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Refugee distress (Slug)]]
     for (const event of EXTRA_EVENTS) {
-      const text = dump.get(event.dest);
-      assert.ok(text, event.dest);
+      const text = dump.get(titleOf(event));
+      assert.ok(text, titleOf(event));
       assert.deepEqual(event.sectors, locationNames(text));
       const plain = wikiPlain(text);
-      // The intro sentence is on Template:Drifting Refugee Ship, not on this page.
-      if (event.body && event.dest !== "Refugee (Slug)" && event.dest !== "Refugee distress (Slug)")
-        assert.ok(plain.includes(event.body), event.dest);
+      // The stand-in's opening is functional text, never the page's sentence.
+      if (event.body.length >= 40) assert.ok(!plain.includes(event.body), titleOf(event));
       for (const choice of event.choices) {
         for (const step of choice.fx) {
           if (step.k === "fight")
-            assert.ok(plain.includes(step.tier), `${event.dest} ${step.tier}`);
+            assert.ok(plain.includes(step.tier), `${titleOf(event)} ${step.tier}`);
         }
       }
     }
@@ -147,10 +151,10 @@ describe("EXTRA_EVENTS slug list", () => {
 
   it("puts each reward and hull number on that page", () => {
     for (const event of EXTRA_EVENTS) {
-      const text = dump.get(event.dest) ?? "";
+      const text = dump.get(titleOf(event)) ?? "";
       const nums = event.choices.flatMap((choice) => fxNumbers(choice.fx));
       for (const n of nums) {
-        assert.ok(new RegExp(`(?<![\\d.])${n}(?!\\d)`).test(text), `${event.dest} ${n}`);
+        assert.ok(new RegExp(`(?<![\\d.])${n}(?!\\d)`).test(text), `${titleOf(event)} ${n}`);
       }
     }
   });

@@ -450,7 +450,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
       "Zoltan Controlled Sector",
       "Zoltan Homeworlds",
     ],
-    body: "Rebel ship. It has not seen you. Nebula.",
+    body: "Rebel ship, unaware of you. Nebula.",
     choices: [
       {
         id: "c:rebel-fight-choice-in-nebula:0",

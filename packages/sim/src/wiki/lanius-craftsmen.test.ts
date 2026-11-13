@@ -42,7 +42,9 @@ describe("Trade: scrap for items (Lanius)", () => {
   it("is one Abandoned Sector card", () => {
     // Wiki citations:
     // > "This random event occurs in Abandoned Sector." — [[Lanius craftsmen]]
-    const pages = citedPagesFor("LANIUS_SECTOR").filter((e) => e.dest === "Trade: scrap for items (Lanius)");
+    const pages = citedPagesFor("LANIUS_SECTOR").filter(
+      (e) => e.dest === "Trade: scrap for items (Lanius)",
+    );
     assert.equal(pages.length, 1);
     assert.equal(
       citedPagesFor("CIVILIAN_SECTOR").some((e) => e.dest === "Trade: scrap for items (Lanius)"),
@@ -57,10 +59,10 @@ describe("Trade: scrap for items (Lanius)", () => {
     // > "Leave them to their research." — [[Lanius craftsmen]]
     const g = createGame(1);
     open(g);
-    assert.match(g.event?.body ?? "", /studying the Lanius's ability to reshape metal/);
+    assert.equal(g.event?.body, "Item seller.");
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
-      ["Inquire about the process.", "Leave them to their research."],
+      ["More options: buy an augment, weapon or drone for scrap.", "Nothing happens."],
     );
     assert.equal(
       g.event?.choices.some((c) => /45|50|40|discount/.test(c.label)),

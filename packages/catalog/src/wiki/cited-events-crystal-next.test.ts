@@ -19,6 +19,11 @@ const CANDIDATES = [
 
 const TITLES = CANDIDATES;
 
+/** A row's dest is its functional title; its slug is the wiki page title's slug. */
+function titleOf(ev: { slug: string }): string {
+  return (TITLES as readonly string[]).find((t) => slug(t) === ev.slug) ?? ev.slug;
+}
+
 const SECTORS = new Set([
   "Civilian (Starting) Sector",
   "Civilian Sector",
@@ -88,16 +93,16 @@ describe("cited crystal next events", () => {
     // Wiki citations:
     // > "This random event occurs in Hidden Crystal Worlds." — [[Crystal scrap collector]]
     assert.equal(wiki.size, TITLES.length);
-    const dests = EXTRA_EVENTS.map((ev) => ev.dest);
+    const dests = EXTRA_EVENTS.map((ev) => titleOf(ev));
     assert.deepEqual(dests, ["Crystal scrap collector"]);
     for (const ev of EXTRA_EVENTS) {
-      assert.ok(TITLES.includes(ev.dest));
-      assert.ok(CANDIDATES.includes(ev.dest));
-      assert.equal(ev.slug, slug(ev.dest));
+      assert.ok(TITLES.includes(titleOf(ev)));
+      assert.ok(CANDIDATES.includes(titleOf(ev)));
+      assert.equal(slug(titleOf(ev)), ev.slug);
       assert.equal(ev.flag, `cited:${ev.slug}`);
       assert.ok(ev.body.length <= 240);
-      assert.deepEqual(ev.aliases, [ev.dest]);
-      const text = wiki.get(ev.dest);
+      assert.deepEqual(ev.aliases, []);
+      const text = wiki.get(titleOf(ev));
       assert.ok(text);
       assert.deepEqual(ev.sectors, locationNames(text));
       ev.choices.forEach((choice, i) => {
@@ -116,13 +121,13 @@ describe("cited crystal next events", () => {
     // > "Scrap lost: 35" — [[Crystal scrap collector]]
     // > "Turn him down." — [[Crystal scrap collector]]
     // > "Nothing happens." — [[Crystal scrap collector]]
-    assert.equal(offer.label, "Offer 35 scrap");
+    assert.equal(offer.label, "Lose 35 scrap. Then choose: 1 Crystal crew or a weapon.");
     assert.deepEqual(offer.fx, [
       { k: "res", id: "scrap", sign: -1, lo: 35, hi: 35 },
-      { k: "note", text: "Branched crew and weapon rewards are not granted." },
+      { k: "note", text: "Lose 35 scrap." },
     ]);
     const decline = EXTRA_EVENTS[0].choices[1];
-    assert.equal(decline.label, "Turn him down");
+    assert.equal(decline.label, "Nothing happens.");
     assert.deepEqual(decline.fx, [{ k: "nothing" }]);
   });
 });

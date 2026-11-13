@@ -44,6 +44,11 @@ const TITLES = [
   "Large trade station",
 ];
 
+/** A row's dest is its functional title; its slug is the wiki page title's slug. */
+function titleOf(ev: { slug: string }): string {
+  return (TITLES as readonly string[]).find((t) => slugOf(t) === ev.slug) ?? ev.slug;
+}
+
 const SHIPS = new Set([
   "Auto-ship",
   "Pirate ship",
@@ -125,15 +130,15 @@ describe("cited events civilian and abandoned", () => {
     assert.equal(pages.size, TITLES.length);
     const seen = new Set<string>();
     for (const ev of EXTRA_EVENTS) {
-      assert.ok(TITLES.includes(ev.dest), ev.dest);
-      assert.ok(!seen.has(ev.dest), ev.dest);
-      seen.add(ev.dest);
-      assert.equal(ev.slug, slugOf(ev.dest));
+      assert.ok(TITLES.includes(titleOf(ev)), titleOf(ev));
+      assert.ok(!seen.has(titleOf(ev)), titleOf(ev));
+      seen.add(titleOf(ev));
+      assert.equal(slugOf(titleOf(ev)), ev.slug);
       assert.equal(ev.flag, `cited:${ev.slug}`);
-      assert.ok(ev.aliases.includes(ev.dest));
+      assert.deepEqual(ev.aliases, []);
       // The printed Lanius pulsar intro is 247 characters.
       assert.ok(ev.body.length <= 280);
-      const names = locationNames(pages.get(ev.dest) ?? "");
+      const names = locationNames(pages.get(titleOf(ev)) ?? "");
       assert.deepEqual(ev.sectors, names);
       ev.choices.forEach((choice, index) => {
         assert.equal(choice.id, `c:${ev.slug}:${index}`);
@@ -151,21 +156,22 @@ describe("cited events civilian and abandoned", () => {
       );
       // Nebula boarder pages state the boarder line and no resource or fight.
       const boarders =
-        ev.dest === "Boarders: Humans in nebula" || ev.dest === "Boarders: rebels in nebula";
-      assert.ok(stated || boarders, ev.dest);
+        titleOf(ev) === "Boarders: Humans in nebula" ||
+        titleOf(ev) === "Boarders: rebels in nebula";
+      assert.ok(stated || boarders, titleOf(ev));
     }
   });
 
   it("matches every numeric lo, hi, and n to the page", () => {
     for (const ev of EXTRA_EVENTS) {
-      const page = pages.get(ev.dest) ?? "";
+      const page = pages.get(titleOf(ev)) ?? "";
       const pageNumbers = new Set(numberTokens(page));
       for (const choice of ev.choices) {
         for (const fx of choice.fx) {
           const nums =
             fx.k === "res" ? [fx.lo, fx.hi] : fx.k === "hull" || fx.k === "fleet" ? [fx.n] : [];
           for (const n of nums) {
-            assert.ok(pageNumbers.has(n), `${ev.dest} page missing ${n}`);
+            assert.ok(pageNumbers.has(n), `${titleOf(ev)} page missing ${n}`);
           }
           if (fx.k === "fight") assert.ok(SHIPS.has(fx.tier), fx.tier);
           if (fx.k === "tier")

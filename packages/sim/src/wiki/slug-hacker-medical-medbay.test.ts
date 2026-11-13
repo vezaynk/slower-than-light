@@ -45,7 +45,7 @@ describe("Slug hacker (medical) improved medbay", () => {
     open(g);
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === ID && c.label === "Try to squeeze some extra power to the system.",
+        (c) => c.id === ID && c.label === "Medbay at half power.",
       ),
     );
     assert.equal(choiceDisabled(g, ID), "Needs level 2 Medbay");

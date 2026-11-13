@@ -35,7 +35,7 @@ describe("Battlefield wreckage Improved Sensors", () => {
     const parts = g.player.parts;
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === SCAN && c.label === "Use your Sensors to scan the wreckage.",
+        (c) => c.id === SCAN && c.label === "Gain medium resources and some scrap.",
       ),
     );
     // INFERRED: the refusal line. The page names Sensors level 2 and prints no sentence.

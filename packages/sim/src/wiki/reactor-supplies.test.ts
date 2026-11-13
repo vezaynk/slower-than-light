@@ -4,7 +4,7 @@ import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon } from "../types.ts";
 import { fillerChoose, fillerEvent, pageForRow } from "./filler-events.ts";
 
-const INTROS = ["You look like a military vessel.", "You receive a message from a small convoy."];
+const INTROS = ["Offer: reactor upgrade for supplies."];
 
 const BUNDLES: { missiles: [number, number]; parts: [number, number]; fuel: [number, number] }[] = [
   { missiles: [3, 5], parts: [0, 2], fuel: [0, 0] },
@@ -68,7 +68,7 @@ describe("Trade: supplies for reactor", () => {
       assert.match(row.ev.choices[0].label, /Agree to the trade/);
       assert.equal(row.ev.choices[1].id, "c:improve-reactor-for-supplies:1");
     }
-    assert.equal(seenIntro.size, 2);
+    assert.equal(seenIntro.size, 1);
     assert.equal(seenBundle.size, 3);
   });
 

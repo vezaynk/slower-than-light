@@ -71,7 +71,7 @@ describe("Distress: defense satellites", () => {
   it("opens on the distress and hides the blue options", () => {
     const g = createGame(1);
     const ev = open(g);
-    assert.match(ev.body, /satellite defense system has gone haywire/);
+    assert.equal(ev.body, "Station with faulty defense satellites.");
     assert.deepEqual(
       ev.choices.map((c) => c.id),
       ["c:malfunctioning-defense-system:0", "c:malfunctioning-defense-system:1"],

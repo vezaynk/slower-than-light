@@ -25,7 +25,7 @@ describe("Pirate engine hacker hacking counter", () => {
     open(g);
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === "c:pirate-engine-hacker:1" && c.label === "Counter the remote hacking.",
+        (c) => c.id === "c:pirate-engine-hacker:1" && c.label === "Fight. Hacking offline; engines keep power.",
       ),
     );
     assert.equal(choiceDisabled(g, "c:pirate-engine-hacker:1"), "Needs a Hacking system");

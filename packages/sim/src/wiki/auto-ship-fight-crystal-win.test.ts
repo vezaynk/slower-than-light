@@ -78,7 +78,7 @@ describe("Hostile Auto-ship (Crystal sector)", () => {
     g.event = null;
     commitJump(g, dest.id);
     const intro =
-      "The Rebels must have sent their automated scouts to find you. One jumps in and immediately moves to attack.";
+      "Hostile Auto-ship.";
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, intro);
     assert.equal(g.log.includes(intro), false);

@@ -249,14 +249,14 @@ describe("Quest offer: settlement", () => {
       assert.ok(g.enemySurrender!.threshold >= 30 && g.enemySurrender!.threshold <= 40);
       const weapons = weaponsHeld(g);
       forceOffer(g);
-      assert.equal(g.event!.choices[0].label, "Let them live and then return to the settlement.");
-      assert.equal(g.event!.choices[1].label, "Forget your promise, they die!");
+      assert.equal(g.event!.choices[0].label, "End the fight. Gain medium scrap and a weapon.");
+      assert.equal(g.event!.choices[1].label, "Keep fighting.");
       const before = g.scrap;
       choose(g, ACCEPT_ID);
       // "You receive a weapon with medium scrap." The unnamed weapon is a random one; its line follows the page text.
       assert.ok(
         g.reward!.note.startsWith(
-          "With the pirates dissuaded from their career path, you return to the settlement. \"Thank you, they returned to us before you did. I don't think we'll need this anymore.\" ",
+          "Gain medium scrap and a weapon.",
         ),
       );
       const [lo, hi] = mediumScrapBand(g.difficulty, g.sector);
@@ -299,12 +299,12 @@ describe("Hostile Slug pirate ship", () => {
     assert.equal(g.enemySurrender!.chance, 100);
     const weapons = weaponsHeld(g);
     forceOffer(g);
-    assert.equal(g.event!.choices[0].label, "Accept his surrender.");
+    assert.equal(g.event!.choices[0].label, "Gain high scrap and a weapon. End the fight.");
     choose(g, ACCEPT_ID);
     assert.equal(g.phase, "reward");
     // "You receive a weapon with high scrap." The unnamed weapon is a random one.
     assert.ok(
-      g.reward!.note.startsWith("He transfers over the goods and starts to repair his ship. "),
+      g.reward!.note.startsWith("Gain high scrap and a weapon."),
     );
     assert.ok(g.reward!.scrap > 0);
     assert.equal(weaponsHeld(g), weapons + 1);

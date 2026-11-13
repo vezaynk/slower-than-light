@@ -222,11 +222,11 @@ describe("Quest: capture a ship", () => {
     choose(g, "q:capture:agree");
     assert.ok(g.event!.body.includes(QUEST_ADDED));
     choose(g, "ack");
-    assert.ok(arrive(g, "capture-ship").includes("WITHOUT destroying the ship"));
+    assert.ok(arrive(g, "capture-ship").includes("do not destroy the ship"));
     // Capture the ship, Quest Marker: "Fight a Pirate ship."
     assert.equal(
       g.event!.choices.find((c) => c.id === "q:capture:fight")?.label,
-      "Fight a Pirate ship.",
+      "Fight the pirate ship.",
     );
     choose(g, "q:capture:fight");
     assert.equal(g.phase, "event");
@@ -569,7 +569,7 @@ describe("Wreckage in nebula", () => {
       choose(g, "c:nebula-wreckage:0");
       choose(g, "q:nebula:assist");
       choose(g, "q:nebula:comfort");
-      assert.ok(g.event!.body.includes("ABADOTH"));
+      assert.ok(g.event!.body.includes("Quest beacon added."));
       choose(g, "ack");
       assert.ok(arrive(g, "abadoth").includes("dead crewman"));
       assert.deepEqual(ids(g), ["q:abadoth:slug", "q:abadoth:scan"]);

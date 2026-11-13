@@ -96,7 +96,7 @@ describe("Boarders: Rebels in nebula", () => {
     g.phase = "map";
     g.event = null;
     const intro =
-      "There appear to be a number of small stations nearby. Before you have time to scan them, warnings go off. A Rebel teleporter was used in one of the stations. You've been boarded!";
+      "Nebula. 3-4 Human boarders.";
     commitJump(g, dest.id);
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, intro);

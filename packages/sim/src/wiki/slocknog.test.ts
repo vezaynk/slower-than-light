@@ -33,7 +33,7 @@ describe("Hire: Slug crew", () => {
     open(g);
     assert.equal(choiceDisabled(g, "c:slocknog:0"), null);
     fillerChoose(g, "c:slocknog:0");
-    const slug = players(g).find((c) => c.name === "Hire: Slug crew");
+    const slug = players(g).find((c) => c.name === "Slocknog");
     assert.ok(slug);
     assert.equal(slug.kin, "slug");
     assert.equal(slug.skills, undefined);
@@ -52,7 +52,7 @@ describe("Hire: Slug crew", () => {
     fillerChoose(short, "c:slocknog:0");
     assert.equal(short.scrap, 54);
     assert.equal(
-      players(short).some((c) => c.name === "Hire: Slug crew"),
+      players(short).some((c) => c.name === "Slocknog"),
       false,
     );
 
@@ -63,7 +63,7 @@ describe("Hire: Slug crew", () => {
     fillerChoose(full, "c:slocknog:0");
     // Crew: at full crew a hire relieves "one of the existing crewmembers" (make-room.ts keepNewHire).
     assert.equal(full.scrap, 0);
-    const slug = players(full).find((c) => c.name === "Hire: Slug crew");
+    const slug = players(full).find((c) => c.name === "Slocknog");
     assert.ok(slug);
     assert.deepEqual(full.overflow, [{ kind: "crew", keep: slug.id }]);
   });
@@ -84,7 +84,7 @@ describe("Hire: Slug crew", () => {
     fillerChoose(g, "c:slocknog:1");
     assert.match(g.event?.body ?? "", /sssentient|sssly|remove me from this rock/);
     fillerChoose(g, "s:slocknog:rescue");
-    const slug = players(g).find((c) => c.name === "Hire: Slug crew");
+    const slug = players(g).find((c) => c.name === "Slocknog");
     assert.ok(slug);
     assert.equal(slug.skills, undefined);
     assert.equal(players(g).length, crew + 1);
@@ -98,7 +98,7 @@ describe("Hire: Slug crew", () => {
     assert.match(left.event?.body ?? "", /Nothing happens/);
     assert.equal(left.scrap, 10);
     assert.equal(
-      players(left).some((c) => c.name === "Hire: Slug crew"),
+      players(left).some((c) => c.name === "Slocknog"),
       false,
     );
   });

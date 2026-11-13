@@ -1231,7 +1231,7 @@ const REBEL_TRADE: EventDef = {
   flag: "STORE_REBELSIDE",
   aliases: [],
   sectors: [],
-  body: "Store. It refuses to trade with you.",
+  body: "Store: closed.",
   choices: [
     {
       id: "c:large-trade-station:1",

@@ -50,7 +50,7 @@ describe("Optional fight: Auto-ship at storage station", () => {
     open(g);
     assert.equal(
       g.event?.body,
-      "An advanced Rebel automated ship remains stationed near a small Rebel space-station. Sensors indicate it's a storage vessel for military goods.",
+      "Auto-ship guarding a storage station.",
     );
     assert.equal(
       g.event?.choices.some((c) => c.id === "c:auto-ship-near-storage-station:2"),

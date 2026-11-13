@@ -41,7 +41,7 @@ describe("Trade: weapon for scrap (nebula)", () => {
     assert.equal(choiceDisabled(g, MIND), "Needs Mind Control");
     const scrap = g.scrap;
     choose(g, MIND);
-    assert.match(g.event?.body ?? "", /black market weapons trader/);
+    assert.equal(g.event?.body, "Weapon seller. Nebula.");
     assert.equal(g.scrap, scrap);
     assert.equal(g.phase, "event");
   });

@@ -164,7 +164,7 @@ describe("Derelict in dense asteroid field", () => {
     assert.equal(choiceDisabled(g, "c:dense-asteroid-field-distress:2"), "Needs Rock Plating");
     fillerChoose(g, "c:dense-asteroid-field-distress:2");
     assert.equal(g.event?.title, "Derelict in dense asteroid field");
-    assert.match(g.event?.body ?? "", /distress call/);
+    assert.equal(g.event?.body, "Derelict ship. Dense asteroid field.");
     assert.equal(g.scrap, 10);
     assert.equal(g.player.hull, hull);
     assert.equal(g.augments.includes("STASIS_POD"), false);

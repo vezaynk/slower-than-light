@@ -46,7 +46,9 @@ function open(g: Game) {
 }
 
 function hired(g: Game) {
-  return g.crew.some((crew) => crew.side === "player" && crew.hp > 0 && crew.name === "Hire: Slug crew");
+  return g.crew.some(
+    (crew) => crew.side === "player" && crew.hp > 0 && crew.name === "Slocknog",
+  );
 }
 
 describe("slocknog stock", () => {

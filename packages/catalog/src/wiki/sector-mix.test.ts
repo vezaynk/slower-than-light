@@ -49,6 +49,9 @@ describe("sector mix", () => {
     assert.equal(classifyEvent(byDest("Free weapon")), "items");
     assert.equal(classifyEvent(byDest("Hostile Zoltan ship")), "hostile");
     assert.equal(classifyEvent(byDest("Deactivated Auto-ship")), "neutral");
-    assert.equal(classifyEvent(byDest("Optional fight: Rebel ship and Federation ship")), "neutral");
+    assert.equal(
+      classifyEvent(byDest("Optional fight: Rebel ship and Federation ship")),
+      "neutral",
+    );
   });
 });

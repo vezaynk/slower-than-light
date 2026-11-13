@@ -410,7 +410,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:rock-live-mine",
     aliases: [],
     sectors: ["Rock Controlled Sector", "Rock Homeworlds"],
-    body: "Mine. It is coming for your ship.",
+    body: "Mine approaching.",
     choices: [
       {
         id: "c:rock-live-mine:0",

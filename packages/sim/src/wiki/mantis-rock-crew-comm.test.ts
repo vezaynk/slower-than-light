@@ -28,7 +28,7 @@ describe("Mantis ship with Rock body parts Rock crew", () => {
       g.event?.choices.some(
         (c) =>
           c.id === "c:mantis-ship-with-rock-body-parts:2" &&
-          c.label === "Put your Rock crewmember on the comm.",
+          c.label === "Fight. Enemy engines offline.",
       ),
     );
     assert.equal(

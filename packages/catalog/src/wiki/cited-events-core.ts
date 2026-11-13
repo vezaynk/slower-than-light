@@ -432,7 +432,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:crystalline-ship-messaging-about-rebels",
     aliases: [],
     sectors: ["Hidden Crystal Worlds"],
-    body: "Crystal ship. Offer: scrap for your route.",
+    body: "Crystal ship. Offer: scrap for a fleet advance.",
     choices: [
       {
         id: "c:crystalline-ship-messaging-about-rebels:0",
@@ -1599,7 +1599,7 @@ export const CORE_EVENTS: CoreEvent[] = [
     flag: "cited:no-fuel-explore-the-system",
     aliases: [],
     sectors: [],
-    body: "Out of fuel. Explore the system?",
+    body: "Out of fuel. Option: explore the system.",
     choices: [
       {
         id: "c:no-fuel-explore-the-system:0",
@@ -2128,7 +2128,8 @@ export const CORE_EVENTS: CoreEvent[] = [
       },
       {
         id: "c:rebel-ship-supplying-civilians:2",
-        label: "Nothing happens.",
+        label:
+          "1 in 4: gain drone parts. 1 in 4: nothing happens. 1 in 4: gain scrap. 1 in 4: take 2 system damage.",
         fx: [
           {
             k: "nothing",

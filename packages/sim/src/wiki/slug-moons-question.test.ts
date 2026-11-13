@@ -47,7 +47,9 @@ function moons(body: string): number {
 
 describe("Distress: question in nebula", () => {
   it("is placed in the two slug sectors", () => {
-    assert.ok(citedPagesFor("SLUG_SECTOR").some((ev) => ev.dest === "Distress: question in nebula"));
+    assert.ok(
+      citedPagesFor("SLUG_SECTOR").some((ev) => ev.dest === "Distress: question in nebula"),
+    );
     assert.ok(citedPagesFor("SLUG_HOME").some((ev) => ev.dest === "Distress: question in nebula"));
     assert.equal(
       citedPagesFor("CIVILIAN_SECTOR").some((ev) => ev.dest === "Distress: question in nebula"),

@@ -66,7 +66,7 @@ describe("Distress: ship stuck in asteroids", () => {
   it("hides the beam choices until that gear is fitted", () => {
     const plain = createGame(1);
     const ev = open(plain);
-    assert.match(ev.body, /pirate markings/);
+    assert.equal(ev.body, "Pirate ship stuck between asteroids.");
     assert.deepEqual(
       ev.choices.map((c) => c.id),
       ["c:crushed-pirate:0", "c:crushed-pirate:1"],

@@ -5,11 +5,11 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  `An upgraded pirate ship sits among the remains of a number of Lanius ships. It hails you, "These punks think they can jus' waltz in here into our sector? Obnoxious, right? Well, I'm sure you know the routine, let's do this."`,
-  `The pirate ship patrolling this sector has been busy. The debris of several Rebel scouts and at least one civilian ship litter the area. "Welcome, welcome, there's room for one more!" The over-confident pirate hails you as he charges his weapons and moves in to attack.`,
-  "A pirate ship appears to be threatening a small refugee ship near the beacon. Upon seeing you jump in, it turns to approach. The civilian wastes no time and jumps away, but that appears only to harden the pirate's resolve.",
-  "Debris from a number of battleships are scattered around the beacon. As you approach the area a pirate ship thrusts itself through the hulks to attack. It must be using the metal to lure the Lanius into a trap.",
-  "The pirate sees you before you see him... prepare for a fight!",
+  "Hostile pirate ship.",
+  "Hostile pirate ship.",
+  "Hostile pirate ship.",
+  "Hostile pirate ship.",
+  "Hostile pirate ship.",
 ];
 
 function open(g: Game) {
@@ -34,7 +34,7 @@ describe("Hostile pirate ship (Lanius sector)", () => {
     // > "The pirate sees you before you see him... prepare for a fight!" — [[Pirate fight (Lanius)]]
     // > "Fight a Pirate ship (default rewards)." — [[Pirate fight (Lanius)]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 80 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -42,7 +42,7 @@ describe("Hostile pirate ship (Lanius sector)", () => {
       assert.ok(g.event?.choices.some((c) => c.id === "c:pirate-fight-lanius:0"));
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(1);
     open(g);

@@ -61,7 +61,7 @@ describe("SECTOR_TYPES", () => {
     assert.match(text["SLUG_HOME"], /only once/i);
     assert.match(text["NEBULA_SECTOR"], /0\.8%/);
     assert.doesNotMatch(text["NEBULA_SECTOR"], /sector 4/);
-    assert.match(text["CRYSTAL_HOME"], /Ancient device/);
+    assert.match(text["CRYSTAL_HOME"], /device event.s wormhole/);
     assert.match(text["FINAL"], /sector 8/);
     assert.match(text["FINAL"], /10 repairs/);
     assert.match(text["FINAL"], /22-44/);

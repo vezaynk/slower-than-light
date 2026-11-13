@@ -16,7 +16,7 @@ function open(g: Game) {
   assert.equal(g.event?.title, "Slug drink offer");
   assert.equal(
     g.event?.body,
-    'A Slug captain hails and invites himself aboard your ship to present a flask of something slimy. "Now, most gracioussss captain, you must join me please in a drink to our alliance!"',
+    "Slug ship. Offer: a drink.",
   );
 }
 
@@ -26,7 +26,7 @@ describe("Slug drink offer", () => {
     open(g);
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
-      ["Drink.", "Refuse", "Have your Rockman pose as captain."],
+      ["Drink.", "Fight the Slug ship.", "Have your Rockman pose as captain."],
     );
     assert.equal(choiceDisabled(g, "c:slug-drink:1"), null);
     assert.equal(choiceDisabled(g, "c:slug-drink:2"), "Needs a Rock crewmember");

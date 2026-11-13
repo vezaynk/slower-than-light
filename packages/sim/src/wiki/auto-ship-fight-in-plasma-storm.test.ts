@@ -26,7 +26,7 @@ describe("Hostile Auto-ship in plasma storm", () => {
     open(g);
     assert.equal(
       g.event?.body,
-      "You jump into a sector of the nebula beset by a plasma storm. An automated Rebel scout stationed at the beacon moves in to attack.",
+      "Hostile Auto-ship. Plasma storm.",
     );
     for (const n of [1, 2, 3]) {
       assert.equal(

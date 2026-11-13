@@ -50,7 +50,7 @@ describe("Distress: station infestation", () => {
   it("hides the blue options until that gear is fitted", () => {
     const plain = createGame(1);
     const ev = open(plain);
-    assert.match(ev.body, /giant alien spiders/);
+    assert.equal(ev.body, "Station overrun by creatures.");
     assert.deepEqual(
       ev.choices.map((c) => c.id),
       ["c:giant-alien-spiders:0", "c:giant-alien-spiders:1"],

@@ -7,7 +7,7 @@ import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "You spy two pirate ships lurking in the nebula here. They remain unaware of your presence; you're able to get your scanners to at least identify their cargo: One is carrying the fuel supplies, the other the ammunition. They begin to drift away from each other in the storm.";
+  "Two pirate ships. One carries fuel, one carries missiles. Plasma storm.";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -28,7 +28,9 @@ describe("Pirate ships in plasma storm hail", () => {
     // > "Let them leave." — [[Pirate ships in plasma storm]]
     const g = createGame(1);
     open(g);
-    const def = allEvents().find((event) => event.dest === "Optional fight: pirate ships in plasma storm");
+    const def = allEvents().find(
+      (event) => event.dest === "Optional fight: pirate ships in plasma storm",
+    );
     assert.ok(def);
     const ids = g.event?.choices.map((c) => c.id) ?? [];
     assert.equal(g.event?.title, "Optional fight: pirate ships in plasma storm");

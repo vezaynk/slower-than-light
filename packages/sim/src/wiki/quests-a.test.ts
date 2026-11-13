@@ -357,7 +357,7 @@ describe("quest openers (quests-a)", () => {
     if (!start.links.includes(entry.id)) start.links.push(entry.id);
     commitJump(g, entry.id);
     assert.equal(g.phase, "event");
-    assert.match(g.event!.body, /ancient device/i);
+    assert.equal(g.event!.body, "Inactive device.");
     assert.ok(g.event!.choices.some((c) => c.id === "c:ancient-device:2"));
     assert.equal(entry.quest, "ruwen-entry");
 

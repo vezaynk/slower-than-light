@@ -92,7 +92,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
     flag: "cited:lanius-ship-absorbing-rebel-base",
     aliases: [],
     sectors: ["Abandoned Sector"],
-    body: "Lanius ships. They could delay the fleet.",
+    body: "Lanius ships. Option: delay the fleet.",
     choices: [
       {
         id: "c:lanius-ship-absorbing-rebel-base:0",

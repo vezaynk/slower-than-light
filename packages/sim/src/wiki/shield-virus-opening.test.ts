@@ -5,7 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const BODY =
-  "Your arrival is greeted by numerous computer alerts. The nearby automated Rebel scout has deployed a virus and disrupted your shield system. Hopefully it won't cause further problems before you can destroy it.";
+  "Hostile Auto-ship. Your shields are hacked.";
 
 const HACKING =
   "Your hacking system automatically counters the digital assault and you move in to fight the ship.";

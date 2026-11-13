@@ -139,11 +139,7 @@ export const SECTOR_MIX: Record<string, MixLine[]> = {
   // Wiki citations:
   // > "at one beacon per Zoltan sector" — [[Zoltan research facility#Trivia]]
   ZOLTAN_SECTOR: [special("Zoltan crew scan"), ...ZOLTAN],
-  ZOLTAN_HOME: [
-    special("Zoltan crew scan"),
-    special("Unarmed Zoltan transport"),
-    ...ZOLTAN,
-  ],
+  ZOLTAN_HOME: [special("Zoltan crew scan"), special("Unarmed Zoltan transport"), ...ZOLTAN],
   LANIUS_SECTOR: [
     L("store", 2, 2, "2 stores"),
     L("empty", 1, 2, "1-2 empty beacons"),
@@ -159,7 +155,10 @@ export const SECTOR_MIX: Record<string, MixLine[]> = {
   MANTIS_HOME: [special("Hostile armored Mantis ship"), ...MANTIS],
   PIRATE_SECTOR: REBEL(L("quest", 0, 1, "0-1 quests")),
   REBEL_SECTOR: REBEL(L("quest", 0, 2, "0-2 quests")),
-  REBEL_SECTOR_MINIBOSS: [special("Optional fight: second flagship"), ...REBEL(L("quest", 0, 2, "0-2 quests"))],
+  REBEL_SECTOR_MINIBOSS: [
+    special("Optional fight: second flagship"),
+    ...REBEL(L("quest", 0, 2, "0-2 quests")),
+  ],
   ROCK_SECTOR: ROCK,
   ROCK_HOME: [special("Device: scrap or wormhole"), special("Quest: Rock ship unlock"), ...ROCK],
   SLUG_SECTOR: SLUG,

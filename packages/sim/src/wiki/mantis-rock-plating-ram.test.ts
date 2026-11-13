@@ -26,7 +26,7 @@ describe("Mantis ship with Rock body parts Rock Plating ram", () => {
     const hull = g.player.hull;
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === "c:mantis-ship-with-rock-body-parts:3" && c.label === "Ram the bastards.",
+        (c) => c.id === "c:mantis-ship-with-rock-body-parts:3" && c.label === "Fight the Mantis ship.",
       ),
     );
     assert.equal(choiceDisabled(g, "c:mantis-ship-with-rock-body-parts:3"), "Needs Rock Plating");

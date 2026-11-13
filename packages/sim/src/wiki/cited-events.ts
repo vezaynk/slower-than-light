@@ -483,7 +483,8 @@ function slugMoonsQuestion(ctx: CitedChoice, id: string): boolean | null {
     // > "As you drift closer, you are contacted by a Slug marooned on the moon's surface." — [[Slug moons question]]
     // > "How many moons are there in orbit here?" — [[Slug moons question]]
     const n = Number(ask[1]);
-    const title = ctx.g.beacons.find((b) => b.id === ctx.g.here)?.name ?? "Distress: question in nebula";
+    const title =
+      ctx.g.beacons.find((b) => b.id === ctx.g.here)?.name ?? "Distress: question in nebula";
     ctx.g.event = {
       title,
       body: SLUG_MOON_QUESTION,

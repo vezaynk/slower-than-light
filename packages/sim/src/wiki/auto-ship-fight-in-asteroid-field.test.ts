@@ -17,7 +17,7 @@ function open(g: Game) {
 }
 
 const BODY =
-  "You arrive in an asteroid belt to discover that a Rebel automated-scout has been stationed here. Prepare for a fight!";
+  "Hostile Auto-ship. Asteroid field.";
 
 describe("Hostile Auto-ship in asteroid field", () => {
   it("starts the fight inside an asteroid field", () => {

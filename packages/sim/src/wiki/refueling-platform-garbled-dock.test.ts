@@ -90,7 +90,7 @@ describe("Refueling platform garbled broadcast dock", () => {
   it("offers dock on the opening card and keeps the sensor and blast-door buttons off it", () => {
     const g = createGame(1);
     open(g);
-    assert.equal(g.event?.choices.find((c) => c.id === DOCK)?.label, "Dock with the platform");
+    assert.equal(g.event?.choices.find((c) => c.id === DOCK)?.label, "More options.");
     assert.equal(hasId(g, HAIL), true);
     for (const id of HIDDEN) assert.equal(hasId(g, id), false, id);
     choose(g, DOCK);

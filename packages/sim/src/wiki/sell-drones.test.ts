@@ -26,7 +26,7 @@ describe("Trade: drone parts for scrap", () => {
     const ev = citedEvent(g, beacon());
     assert.equal(
       ev?.body,
-      "You see a civilian space station with heavy damage. You receive a message, \"We've been hit hard by the war. We need more drone parts to speed up our repairs. We'll buy some from you if you have extra.\"",
+      "Station buying drone parts.",
     );
   });
 

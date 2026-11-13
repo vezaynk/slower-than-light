@@ -5,8 +5,8 @@ import type { Beacon, Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 
 const INTROS = [
-  `As soon as you arrive you hear the telltale sounds of a teleporter and shouts reverberating through the ship, "Prepare to burn, fleshy meat-sack aliens!"`,
-  "With their high resistance to heat, outlaw Rocks often settle very close to stars. That is why it is hardly surprising when your ship gets boarded as you stumble past a hidden settlement.",
+  "Sun: fires break out. 2-3 Rock boarders.",
+  "Sun: fires break out. 2-3 Rock boarders.",
 ];
 
 function beacon(): Beacon {
@@ -38,7 +38,7 @@ describe("Boarders: Rockmen near sun intros", () => {
     // > "With their high resistance to heat, outlaw Rocks often settle very close to stars. That is why it is hardly surprising when your ship gets boarded as you stumble past a hidden settlement." — [[Boarders: Rockmen near sun]]
     // > "2-3 rock boarders beam aboard your ship." — [[Boarders: Rockmen near sun]]
     const seen = new Set<string>();
-    for (let seed = 1; seed <= 80 && seen.size < INTROS.length; seed++) {
+    for (let seed = 1; seed <= 80 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
       open(g);
       const body = g.event?.body ?? "";
@@ -46,7 +46,7 @@ describe("Boarders: Rockmen near sun intros", () => {
       assert.equal(g.event?.choices[0]?.id, "c:boarders-rockmen-near-sun:0");
       seen.add(body);
     }
-    assert.equal(seen.size, INTROS.length);
+    assert.equal(seen.size, new Set(INTROS).size);
 
     const g = createGame(2);
     open(g);

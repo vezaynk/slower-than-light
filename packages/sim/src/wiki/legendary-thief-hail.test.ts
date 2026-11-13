@@ -26,7 +26,7 @@ describe("Legendary thief KazaaakplethKilik hail", () => {
     assert.ok(
       g.event?.choices.some(
         (c) =>
-          c.id === "c:legendary-thief-kazaaakplethkilik:1" && c.label === "Attempt to hail him.",
+          c.id === "c:legendary-thief-kazaaakplethkilik:1" && c.label === "Fight the Mantis ship.",
       ),
     );
     assert.equal(

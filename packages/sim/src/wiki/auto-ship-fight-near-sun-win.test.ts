@@ -78,7 +78,7 @@ describe("Hostile Auto-ship near sun", () => {
     g.event = null;
     commitJump(g, dest.id);
     const body =
-      "You arrive at the beacon to find yourself dangerously close to a star. An automated Rebel ship, impervious to the heat, moves in to engage.";
+      "Hostile Auto-ship. Sun: fires break out.";
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, body);
     assert.equal(g.log.includes(body), false);

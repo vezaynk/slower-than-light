@@ -74,7 +74,7 @@ describe("Lanius ship at jump beacon", () => {
     // > "You detect a damaged vessel docked with the jump beacon. It appears the Lanius are absorbing metal from the beacon, risking destroying it and becoming stranded." — [[Lanius ship absorbing jump beacon]]
     const g = createGame(1);
     open(g);
-    assert.match(g.event?.body ?? "", /damaged vessel docked with the jump beacon/);
+    assert.equal(g.event?.body, "Damaged Lanius ship docked with the beacon.");
     assert.deepEqual(
       g.event?.choices.map((c) => c.id),
       [

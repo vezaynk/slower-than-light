@@ -46,7 +46,7 @@ describe("Deactivated Auto-ship", () => {
       g.event?.choices.some((c) => c.id === "c:deactivated-auto-ship:2"),
       true,
     );
-    assert.match(g.event?.body ?? "", /de-activated/);
+    assert.equal(g.event?.body, "Inactive Auto-ship.");
   });
 
   it("stripping the ship pays low scrap only", () => {
@@ -135,7 +135,7 @@ describe("Deactivated Auto-ship", () => {
     choose(bare, "c:deactivated-auto-ship:2");
     assert.equal(bare.phase, "event");
     assert.equal(bare.scrap, 10);
-    assert.match(bare.event?.body ?? "", /de-activated/);
+    assert.equal(bare.event?.body, "Inactive Auto-ship.");
 
     let safe = false;
     let standby = false;

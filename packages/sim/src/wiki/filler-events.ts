@@ -2007,7 +2007,7 @@ Scrap: ${offer.scrap}.`,
     const cost = scrapStock("c:slocknog:0");
     if (cost == null || g.scrap < cost) return;
     // Crew: at full crew a hire relieves someone already aboard (make-room.ts keepNewHire).
-    joinCrew(g, "Slug", "Hire: Slug crew");
+    joinCrew(g, "Slug", "Slocknog");
     keepNewHire(g);
     g.scrap -= cost;
     show(g, "You receive a Slug crewmember named Slocknog.", undefined, [`Scrap: -${cost}.`]);
@@ -2030,7 +2030,7 @@ Scrap: ${offer.scrap}.`,
     // > "Rescue him." — [[Slocknog]]
     // > "When he sees the shuttle headed for his position the Slug thanks you with what looks like sincerity. He readily joins your crew." — [[Slocknog]]
     // > "You receive a Slug crewmember named Slocknog." — [[Slocknog]]
-    const note = joinCrew(g, "Slug", "Hire: Slug crew")
+    const note = joinCrew(g, "Slug", "Slocknog")
       ? "Slocknog joins you."
       : "There is no room aboard for Slocknog.";
     show(

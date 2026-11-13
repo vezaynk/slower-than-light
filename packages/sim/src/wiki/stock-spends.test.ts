@@ -268,14 +268,14 @@ describe("stock spends", () => {
       labelOf(fillerEvent(g, beacon)?.choices, "c:refueling-station:0"),
       "Buy 6 Fuel for 12 Scrap.",
     );
-    assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap");
+    assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Lose 12 scrap. Gain 6 fuel.");
 
     rewriteStock("c:refueling-station:0", [stock("scrap", 4)]);
     assert.equal(
       labelOf(fillerEvent(g, beacon)?.choices, "c:refueling-station:0"),
       "Buy 6 Fuel for 4 Scrap.",
     );
-    assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Buy 6 Fuel for 12 Scrap");
+    assert.equal(eventDef("REFUEL_STATION")?.choices[0]?.label, "Lose 12 scrap. Gain 6 fuel.");
     const had = g.fuel;
     g.scrap = 3;
     const short = g.seed;

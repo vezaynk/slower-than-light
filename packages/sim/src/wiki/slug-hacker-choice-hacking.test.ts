@@ -24,7 +24,7 @@ describe("Slug hacker (choice) hacking", () => {
     open(g);
     assert.ok(
       g.event?.choices.some(
-        (c) => c.id === "c:slug-hacker-choice:4" && c.label === "Counter any hack attempt.",
+        (c) => c.id === "c:slug-hacker-choice:4" && c.label === "Fight. Hacking offline; no system is hacked.",
       ),
     );
     assert.equal(choiceDisabled(g, "c:slug-hacker-choice:4"), "Needs a Hacking system");

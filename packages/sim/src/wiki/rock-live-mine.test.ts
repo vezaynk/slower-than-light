@@ -231,7 +231,7 @@ describe("Live mine", () => {
     assert.equal(choiceDisabled(low, "c:rock-live-mine:1"), "Needs Engines level 5");
     choose(low, "c:rock-live-mine:1");
     assert.equal(low.scrap, 10);
-    assert.match(low.event?.body ?? "", /live mine/);
+    assert.equal(low.event?.body, "Mine approaching.");
 
     const g = createGame(2);
     open(g);

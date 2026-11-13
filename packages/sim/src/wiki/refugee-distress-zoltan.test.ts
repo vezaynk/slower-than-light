@@ -5,7 +5,6 @@ import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent, citedPagesFor } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
-import { eventText } from "../event-text.ts";
 import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
@@ -38,7 +37,9 @@ describe("Refugee ship distress (Zoltan)", () => {
     );
     assert.equal(pages.length, 1);
     assert.deepEqual(pages[0]?.sectors, ["ZOLTAN_SECTOR", "ZOLTAN_HOME"]);
-    const home = citedPagesFor("ZOLTAN_HOME").some((p) => p.dest === "Refugee ship distress (Zoltan)");
+    const home = citedPagesFor("ZOLTAN_HOME").some(
+      (p) => p.dest === "Refugee ship distress (Zoltan)",
+    );
     assert.equal(home, true);
     const g = createGame(1);
     open(g);
@@ -57,17 +58,16 @@ describe("Refugee ship distress (Zoltan)", () => {
       open(g);
       choose(g, "c:refugee-distress-zoltan:0");
       const text = `${g.event?.body ?? ""}\n${g.log.join("\n")}`;
-      assert.equal(
-        /pirate ambush|Slug ship jumps|using the refugee ship as bait/i.test(text),
-        false,
-      );
+      for (const id of ["event_REFUGEE_HAIL_LIST_PIRATE_1_text", "event_REFUGEE_HAIL_LIST_4_text"])
+        assert.equal(text.includes(eventText(id)), false, id);
       const fighting =
         g.phase === "combat" ||
         (g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume"));
       if (fighting) {
         fight = true;
-        assert.match(g.event?.body ?? "", /Zoltan ship suddenly jumps/);
-        assert.equal(/Zoltan ship suddenly jumps/.test(g.log.join("\n")), false);
+        const lead = eventText("event_REFUGEE_HAIL_LIST_ZOLTAN_1_text");
+        assert.ok((g.event?.body ?? "").includes(lead));
+        assert.equal(g.log.includes(lead), false);
         assert.equal(g.enemyEscape?.mode, "never");
         if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
@@ -75,7 +75,7 @@ describe("Refugee ship distress (Zoltan)", () => {
       } else {
         trade = true;
         assert.ok((g.event?.body ?? "").includes(eventText("event_REFUGEE_TRADER_text")));
-        assert.equal(g.event?.choices[1]?.label, "Politely decline.");
+        assert.equal(g.event?.choices[1]?.label, eventText("event_REFUGEE_TRADER_c2_choice"));
         const scrap = g.scrap;
         const crew = g.crew.filter((c) => c.side === "player").length;
         choose(g, g.event?.choices[1]?.id ?? "");
@@ -116,7 +116,7 @@ describe("Refugee ship distress (Zoltan)", () => {
     const mid = destroyed.scrap;
     choose(destroyed, "s:refugee-distress-zoltan:contact");
     const thanks = destroyed.event?.body ?? "";
-    assert.ok((thanks).includes(eventText("ship_PIRATE_REFUGEE_destroyed_c1_text")));
+    assert.ok(thanks.includes(eventText("ship_PIRATE_REFUGEE_destroyed_c1_text")));
     const low = scraps(thanks);
     assert.equal(low.length, 1, thanks);
     assert.ok(low[0]! >= 7 && low[0]! <= 10, thanks);
@@ -128,7 +128,10 @@ describe("Refugee ship distress (Zoltan)", () => {
     const start = killed.scrap;
     assert.equal(pageWin(killed, "refugee-distress-zoltan", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(dead, textRe("ship_PIRATE_REFUGEE_deadCrew_text", "ship_ZOLTAN_REFUGEE_deadCrew_text"));
+    assert.match(
+      dead,
+      textRe("ship_PIRATE_REFUGEE_deadCrew_text", "ship_ZOLTAN_REFUGEE_deadCrew_text"),
+    );
     const high = scraps(dead);
     assert.equal(high.length, 1, dead);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);

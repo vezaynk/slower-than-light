@@ -5,6 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { eventText } from "../event-text.ts";
+import { textRe } from "./quest-text-re.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -34,8 +35,7 @@ describe("Optional fight: pirate ship and Crystal ship", () => {
     // > "Nothing happens." — [[Pirate ship attacking Crystal]]
     const g = createGame(1);
     open(g);
-    const lead =
-      eventText("event_CRYSTAL_PIRATE_CRYSTAL_c1_text");
+    const lead = eventText("event_CRYSTAL_PIRATE_CRYSTAL_c1_text");
     choose(g, "c:pirate-ship-attacking-crystal:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -67,7 +67,7 @@ describe("Optional fight: pirate ship and Crystal ship", () => {
     open(destroyed);
     assert.equal(pageWin(destroyed, "pirate-ship-attacking-crystal", false), true);
     const body = destroyed.event?.body ?? "";
-    assert.match(body, /ship explodes/);
+    assert.match(body, textRe("ship_PIRATE_CRYSTAL_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -81,7 +81,7 @@ describe("Optional fight: pirate ship and Crystal ship", () => {
     open(killed);
     assert.equal(pageWin(killed, "pirate-ship-attacking-crystal", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(dead, /crew dead/);
+    assert.match(dead, textRe("ship_PIRATE_CRYSTAL_deadCrew_text"));
     const high = scraps(dead);
     assert.equal(high.length, 1);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);
@@ -89,13 +89,15 @@ describe("Optional fight: pirate ship and Crystal ship", () => {
   });
 
   it("contacting them pays random resources, nothing, or no Crystal weapon", () => {
+    // Five printed results; duplicate results may share one archive line.
+    const LINES = new Set([1, 2, 3, 4, 5].map((n) => eventText(`event_CRYSTAL_SAVED_${n}_text`)));
     const seen = new Set<string>();
     const tiers = new Set<string>();
     let nothing = false;
     let weapon = false;
     for (
       let seed = 1;
-      seed <= 80 && (seen.size < 5 || tiers.size < 3 || !nothing || !weapon);
+      seed <= 80 && (seen.size < LINES.size || tiers.size < 3 || !nothing || !weapon);
       seed++
     ) {
       const g = createGame(seed);
@@ -111,7 +113,7 @@ describe("Optional fight: pirate ship and Crystal ship", () => {
       const text = body.split("\n\n")[0] ?? "";
       seen.add(text);
       assert.equal(g.player.weapons.length, guns, body);
-      if (body.includes("Crystal weapon")) {
+      if (textRe("event_CRYSTAL_SAVED_5_text").test(body)) {
         weapon = true;
         assert.equal(g.scrap, scrap);
         assert.equal(resources(body), 0);
@@ -131,7 +133,7 @@ describe("Optional fight: pirate ship and Crystal ship", () => {
         else if (paid[0]! >= 20 && paid[0]! <= 23) tiers.add("high");
       }
     }
-    assert.equal(seen.size, 5);
+    assert.equal(seen.size, LINES.size);
     assert.equal(nothing && weapon, true);
     assert.equal(tiers.has("low") && tiers.has("medium") && tiers.has("high"), true);
   });

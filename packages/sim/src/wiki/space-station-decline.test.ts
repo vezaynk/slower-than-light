@@ -23,16 +23,18 @@ describe("Space station under construction decline", () => {
     const g = createGame(1);
     open(g);
     choose(g, "c:space-station-under-construction:1");
-    assert.equal(g.event?.body, [eventText("event_QUEST_CONSTRUCTIONYARD_c2_text"), "Nothing happens."].join("\n\n"));
+    assert.equal(
+      g.event?.body,
+      [eventText("event_QUEST_CONSTRUCTIONYARD_c2_text"), "Nothing happens."].join("\n\n"),
+    );
     assert.equal(g.phase, "event");
     assert.equal(g.scrap, 10);
     assert.equal(g.enemy, null);
   });
 });
 
-const OFFER = [eventText("event_QUEST_CONSTRUCTIONYARD_c3_text"), eventText("event_QUEST_CONSTRUCTIONYARD_c3_text")].join("\n\n");
-const PITY =
-  eventText("event_QUEST_CONSTRUCTIONYARD_c3_c1_c2_text");
+const OFFER = eventText("event_QUEST_CONSTRUCTIONYARD_c3_text");
+const PITY = eventText("event_QUEST_CONSTRUCTIONYARD_c3_c1_c2_text");
 
 describe("Space station under construction Lanius help", () => {
   it("refusing the sale shows the printed pity sentence and pays medium scrap", () => {
@@ -67,7 +69,10 @@ describe("Space station under construction Lanius help", () => {
     assert.equal(g.event?.body, OFFER);
     assert.deepEqual(
       g.event?.choices.map((c) => c.label),
-      [eventText("event_QUEST_CONSTRUCTIONYARD_c3_c1_c1_choice"), eventText("event_QUEST_CONSTRUCTIONYARD_c3_c1_c2_choice")],
+      [
+        eventText("event_QUEST_CONSTRUCTIONYARD_c3_c1_c1_choice"),
+        eventText("event_QUEST_CONSTRUCTIONYARD_c3_c1_c2_choice"),
+      ],
     );
     const before = g.scrap;
     choose(g, "q:station:nosale");

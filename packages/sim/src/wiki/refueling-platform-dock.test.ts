@@ -7,16 +7,12 @@ import { eventText } from "../event-text.ts";
 
 const DOCK = "c:refueling-platform:0";
 const OFFER = eventText("event_FUELING_STATION_NORMAL_LIST_1_text");
-const STEAL =
-  eventText("event_FUELING_STATION_NORMAL_LIST_2_text");
+const STEAL = eventText("event_FUELING_STATION_NORMAL_LIST_2_text");
 const IGNITE = eventText("event_FUELING_STATION_NORMAL_LIST_3_text");
 const STAFF = eventText("event_FUELING_STATION_PIRATE_LIST_1_text");
-const AMBUSH =
-  eventText("event_FUELING_STATION_PIRATE_LIST_2_text");
-const BOOM =
-  eventText("event_FUELING_STATION_BLOW_2_text");
-const WAIT =
-  eventText("event_FUELING_STATION_PIRATE_LIST_1_c1_text");
+const AMBUSH = eventText("event_FUELING_STATION_PIRATE_LIST_2_text");
+const BOOM = eventText("event_FUELING_STATION_BLOW_2_text");
+const WAIT = eventText("event_FUELING_STATION_PIRATE_LIST_1_c1_text");
 
 type Kind = "offer" | "steal" | "ignite" | "staff" | "ambush";
 
@@ -68,7 +64,7 @@ describe("Refueling platform dock", () => {
     const paid = scrap - offer.scrap;
     assert.ok(paid >= 5 && paid <= 10, `scrap ${paid}`);
     assert.equal(offer.fuel, fuel + 5);
-    assert.equal(offer.event?.body.includes("You receive 5 fuel."), true);
+    assert.equal(offer.event?.body.includes("Fuel: 5."), true);
     assert.equal(offer.phase, "event");
     assert.equal(offer.enemy, null);
 
@@ -92,7 +88,9 @@ describe("Refueling platform dock", () => {
     choose(stolen, "s:refuel-dock:steal");
     const gained = stolen.fuel - before;
     assert.ok(gained >= 3 && gained <= 5, `fuel ${gained}`);
-    assert.ok(stolen.event?.body.includes("fuel reserves"));
+    assert.ok(
+      stolen.event?.body.includes(eventText("event_FUELING_STATION_NORMAL_LIST_2_c1_text")),
+    );
     const left = docked(found.steal);
     const leftFuel = left.fuel;
     choose(left, "s:refuel-dock:values");
@@ -108,7 +106,7 @@ describe("Refueling platform dock", () => {
     const flames = room?.fire ?? 0;
     const litFuel = lit.fuel;
     choose(lit, "s:refuel-dock:quick");
-    if (lit.event?.body.includes("safely refuel")) {
+    if (lit.event?.body.includes(eventText("event_FUELING_STATION_BLOW_1_text"))) {
       assert.equal(lit.fuel, litFuel + 5);
       assert.equal(lit.player.hull, hull);
       assert.equal(lit.enemy, null);
@@ -123,7 +121,7 @@ describe("Refueling platform dock", () => {
     }
     const wide = docked(found.ignite);
     choose(wide, "s:refuel-dock:berth");
-    assert.ok(wide.event?.body.includes("depressurized tanks"));
+    assert.ok(wide.event?.body.includes(eventText("event_FUELING_STATION_NORMAL_LIST_3_c2_text")));
     assert.ok(wide.event?.body.includes("Nothing happens."));
     assert.equal(wide.enemy, null);
 
@@ -158,7 +156,9 @@ describe("Refueling platform dock", () => {
     assert.equal(sealed.fuel, sealedFuel + 5);
     assert.equal(sealed.player.hull, sealedHull);
     assert.equal(sealed.enemy, null);
-    assert.ok(sealed.event?.body.includes("fish-in-a-barrel"));
+    assert.ok(
+      sealed.event?.body.includes(eventText("event_FUELING_STATION_PIRATE_LIST_1_c2_text")),
+    );
 
     const pirate = docked(found.ambush);
     assert.equal(pirate.phase, "event");

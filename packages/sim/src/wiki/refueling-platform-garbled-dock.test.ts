@@ -14,21 +14,14 @@ const S2 = "s:garbled-dock:sensors2";
 const S3 = "s:garbled-dock:sensors3";
 
 const BERTH = eventText("event_LANIUS_FUELING_STATION_c2_text");
-const ABANDONED =
-  eventText("button_store");
-const TRAP =
-  eventText("event_LANIUS_FUELING_STATION_LIST_2_text");
-const BREACH =
-  eventText("event_LANIUS_FUELING_STATION_LIST_1_text");
-const DOORS_TEXT =
-  eventText("event_LANIUS_FUELING_STATION_c2_c2_text");
-const SCAN_FUEL =
-  eventText("event_LANIUS_FUELING_STATION_LIST_3_c2_text");
-const SCAN_PARTS =
-  eventText("event_LANIUS_FUELING_STATION_LIST_3_c3_text");
+const ABANDONED = eventText("event_LANIUS_FUELING_STATION_LIST_3_text");
+const TRAP = eventText("event_LANIUS_FUELING_STATION_LIST_2_text");
+const BREACH = eventText("event_LANIUS_FUELING_STATION_LIST_1_text");
+const DOORS_TEXT = eventText("event_LANIUS_FUELING_STATION_c2_c2_text");
+const SCAN_FUEL = eventText("event_LANIUS_FUELING_STATION_LIST_3_c2_text");
+const SCAN_PARTS = eventText("event_LANIUS_FUELING_STATION_LIST_3_c3_text");
 const DESTROYED = eventText("ship_LANIUS_FUELING_STATION_SHIP_destroyed_text");
-const STATION_FUEL =
-  eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice");
+const STATION_FUEL = eventText("event_LANIUS_FUELING_STATION_END_text");
 
 const HIDDEN = [S2, S3, DOORS];
 
@@ -263,8 +256,7 @@ describe("Refueling platform garbled broadcast dock", () => {
     const g = createGame(1);
     open(g);
     const fuel = g.fuel;
-    const screech =
-      eventText("event_LANIUS_FUELING_STATION_c1_text");
+    const screech = eventText("event_LANIUS_FUELING_STATION_c1_text");
     choose(g, HAIL);
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");

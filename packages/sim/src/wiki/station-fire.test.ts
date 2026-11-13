@@ -101,14 +101,14 @@ describe("Distress: station fire", () => {
       open(g);
       fillerChoose(g, "c:fire-on-research-station:0");
       const body = g.event?.body ?? "";
-      if (/fuel cell/.test(body)) {
+      if (body.startsWith(eventText("event_DISTRESS_STATION_FIRE_CREW_1_text"))) {
         lost = true;
         assert.equal(g.crew.length, crew - 1);
         assert.match(body, /Crew lost: /);
         scrapOnly(body, 7, 10);
       } else {
         paid = true;
-        assert.ok((body).includes(eventText("event_DISTRESS_STATION_FIRE_CREW_2_text")));
+        assert.ok(body.includes(eventText("event_DISTRESS_STATION_FIRE_CREW_2_text")));
         assert.equal(g.crew.length, crew);
         scrapOnly(body, 19, 23);
       }
@@ -133,7 +133,8 @@ describe("Distress: station fire", () => {
       const crew = g.crew.length;
       open(g);
       fillerChoose(g, "c:fire-on-research-station:0");
-      if (!/fuel cell/.test(g.event?.body ?? "")) continue;
+      if (!(g.event?.body ?? "").startsWith(eventText("event_DISTRESS_STATION_FIRE_CREW_1_text")))
+        continue;
       seen = true;
       assert.match(g.event?.body ?? "", /revived/);
       assert.equal(g.crew.length, crew);
@@ -153,7 +154,7 @@ describe("Distress: station fire", () => {
       open(g);
       fillerChoose(g, "c:fire-on-research-station:1");
       const body = g.event?.body ?? "";
-      if ((body).includes(eventText("event_DISTRESS_STATION_FIRE_RESCUE_1_text"))) {
+      if (body.includes(eventText("event_DISTRESS_STATION_FIRE_RESCUE_1_text"))) {
         blast = true;
         assert.equal(g.player.hull, hull - 4);
         assert.equal(systemDamage(g) - broken, 1);
@@ -207,7 +208,7 @@ describe("Distress: station fire", () => {
     const weapons = g.player.weapons.length;
     open(g);
     fillerChoose(g, "c:fire-on-research-station:4");
-    assert.match(g.event?.body ?? "", /repair drone/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_DISTRESS_STATION_FIRE_c5_text")));
     scrapOnly(g.event?.body ?? "", 19, 23);
     assert.equal(g.player.kits.drones.target, "REPAIR");
     assert.equal(heldSchematics(g).length, held + 1);

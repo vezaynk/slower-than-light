@@ -122,8 +122,10 @@ describe("Mantis boarder: fight or hand over", () => {
         assert.equal(got.missiles, 0);
         assert.equal(got.parts, 0);
         assert.equal(players(g).length, crew);
-        if ((body).includes(eventText("event_ALISON_MANTIS_CREW_REJECT_1_text"))) {
+        // The scrap-only line's words also start the fire line, so the hull tells them apart.
+        if (g.player.hull === hull) {
           scrap = true;
+          assert.ok(body.startsWith(eventText("event_ALISON_MANTIS_CREW_REJECT_1_text")), body);
           assert.equal(g.player.hull, hull);
           assert.equal(
             g.player.rooms.some((r) => r.fire > 0),
@@ -131,7 +133,7 @@ describe("Mantis boarder: fight or hand over", () => {
           );
         } else {
           fire = true;
-          assert.ok((body).includes(eventText("event_ALISON_MANTIS_CREW_REJECT_2_text")));
+          assert.ok(body.includes(eventText("event_ALISON_MANTIS_CREW_REJECT_2_text")));
           assert.equal(g.player.hull, hull - 5);
           const flames = g.player.rooms.reduce((n, r) => n + r.fire, 0);
           assert.ok(flames === 1 || flames === 2, String(flames));

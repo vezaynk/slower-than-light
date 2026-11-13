@@ -166,7 +166,7 @@ describe("Cited events that add a marker", () => {
       choose(g, "c:escort-civilians:0");
       const gained = g.fuel - fuel;
       assert.ok(gained >= 1 && gained <= 3);
-      const prose = eventText("button_store");
+      const prose = eventText("event_QUEST_ESCORT_c1_text");
       assert.equal(g.event!.body, `${prose}\n\n${questAdded()}\n\nFuel: ${gained}.`);
       assert.equal(g.log.includes(questAdded()), true);
       assert.equal(g.log.includes(prose), false);
@@ -176,12 +176,13 @@ describe("Cited events that add a marker", () => {
       jumpTo(g, b);
       assert.equal(g.phase, "event");
       const body = g.event!.body;
-      if (body.includes("ambushed")) {
+      if (g.event!.choices.some((c) => c.id === "q:escort:fight")) {
+        assert.ok(body.includes(eventText("event_QUEST_ESCORT_ARRIVE_1_text")));
         seen.add("ambush");
         choose(g, "q:escort:fight");
         resumeFight(g);
         assert.equal(g.phase, "combat");
-      } else if (body.includes("offer you a reward")) seen.add("reward");
+      } else if (body.includes(eventText("event_QUEST_ESCORT_ARRIVE_2_text"))) seen.add("reward");
       else if (body.includes(eventText("event_QUEST_ESCORT_ARRIVE_3_text"))) {
         seen.add("store");
         assert.ok(body.includes("Hull repairs: 5."));
@@ -189,6 +190,7 @@ describe("Cited events that add a marker", () => {
         assert.equal(g.phase, "store");
       } else {
         seen.add("reactor");
+        assert.ok(body.includes(eventText("event_QUEST_ESCORT_ARRIVE_4_text")));
         assert.ok(/Reactor \d+\.|it's maxed/.test(body));
       }
     }
@@ -232,10 +234,10 @@ describe("Cited events that add a marker", () => {
               ];
       const prose =
         id === "c:mantis-war-camp:0"
-          ? eventText("button_store")
+          ? eventText("event_QUEST_MANTIS_INVASION_START_c1_text")
           : id === "c:space-station-under-construction:0"
-            ? eventText("button_store")
-            : eventText("button_store");
+            ? eventText("event_QUEST_CONSTRUCTIONYARD_c1_text")
+            : eventText("event_ESCORT_BEACON_c1_text");
       assert.equal(g.event!.body, [prose, questAdded(), ...pay].join("\n\n"));
       assert.equal(g.log.includes(prose), false);
       for (const line of pay) assert.equal(g.log.includes(line), false, line);
@@ -298,7 +300,11 @@ describe("Cited events that add a marker", () => {
     // > "You receive a Human crewmember and a quest marker is added to your map; you fight a Rebel ship (default rewards)." — [[Rebel defector]]
     let found = false;
     for (let seed = 1; seed < 120 && !found; seed++) {
-      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Hostile Rebel ship: defector");
+      const g = atCited(
+        createGame(seed),
+        "Rebel Controlled Sector",
+        "Hostile Rebel ship: defector",
+      );
       choose(g, "c:rebel-defector:1");
       const openedFight =
         g.phase === "combat" ||
@@ -331,7 +337,7 @@ describe("Cited events that add a marker", () => {
     assert.equal(g.phase, "combat");
     winByHull(g);
     assert.equal(g.phase, "event");
-    assert.ok(g.event!.body.startsWith(eventText("ship_ENGI_SEX_SHIP_destroyed_text")));
+    assert.ok(g.event!.body.startsWith(eventText("ship_REBEL_VS_FEDERATION_destroyed_text")));
     assert.deepEqual(choiceIds(g), ["q:loyalists:contact"]);
   });
 });
@@ -420,7 +426,7 @@ describe("Engi ships: Engi crew quest", () => {
         (g.questsNext ?? []).filter((q) => q === "engi-fake").length,
       1,
     );
-    assert.equal(g.event!.choices[0].label, "Agree.");
+    assert.equal(g.event!.choices[0].label, eventText("event_ENGI_UNLOCK_1_c3_c1_c1_c1_choice"));
     choose(g, "ack");
     assert.equal(g.phase, "map");
   });
@@ -665,7 +671,11 @@ describe("Rebel defector, Accept his proposal", () => {
     // > "You lose a crewmember; 1 human boarder beams aboard your ship and you fight a Rebel ship (default rewards)." — [[Rebel defector]]
     const seen = { join: 0, deceive: 0, trigger: 0, evisc: 0 };
     for (let seed = 1; seed <= 90; seed++) {
-      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Hostile Rebel ship: defector");
+      const g = atCited(
+        createGame(seed),
+        "Rebel Controlled Sector",
+        "Hostile Rebel ship: defector",
+      );
       g.player.hull = g.player.hullMax;
       g.fleet = 4;
       const hull = g.player.hull;
@@ -731,7 +741,11 @@ describe("Rebel defector, Accept his proposal", () => {
     // > "The eviscerated crewmember's clone launches out of the clone bay, eager to seek revenge." — [[Rebel defector]]
     let cloned = false;
     for (let seed = 1; seed <= 80 && !cloned; seed++) {
-      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Hostile Rebel ship: defector");
+      const g = atCited(
+        createGame(seed),
+        "Rebel Controlled Sector",
+        "Hostile Rebel ship: defector",
+      );
       g.player.kits.clonebay = {
         id: "clonebay",
         level: 1,
@@ -744,9 +758,10 @@ describe("Rebel defector, Accept his proposal", () => {
       };
       const crew = g.crew.filter((c) => c.side === "player").length;
       choose(g, "c:rebel-defector:0");
-      if (!(g.event?.body ?? "").includes("clone launches")) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_ALISON_DEFECTOR_HELP_6_c0_clone")))
+        continue;
       assert.equal(
-        g.log.some((line) => line.includes("clone launches")),
+        g.log.some((line) => line.includes(eventText("event_ALISON_DEFECTOR_HELP_6_c0_clone"))),
         false,
       );
       cloned = true;
@@ -760,7 +775,11 @@ describe("Rebel defector, Accept his proposal", () => {
 
     let spared = false;
     for (let seed = 1; seed <= 80 && !spared; seed++) {
-      const g = atCited(createGame(seed), "Rebel Controlled Sector", "Hostile Rebel ship: defector");
+      const g = atCited(
+        createGame(seed),
+        "Rebel Controlled Sector",
+        "Hostile Rebel ship: defector",
+      );
       g.player.hull = g.player.hullMax;
       const living = g.crew.filter((c) => c.side === "player" && c.hp > 0);
       for (const c of living.slice(1)) c.hp = 0;
@@ -875,7 +894,7 @@ describe("Hidden Federation Base scans", () => {
       setup(g);
       if (addQuest(g, "fed-base") !== questAdded()) continue;
       jumpTo(g, questBeacons(g, "fed-base")[0]!);
-      if (g.event?.body.includes(eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c1_choice"))) return g;
+      if (g.event?.body.includes(eventText("event_HIDDEN_FEDERATION_BASE_LIST_4_text"))) return g;
     }
     assert.fail("no empty search");
   }

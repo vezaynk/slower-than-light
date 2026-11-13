@@ -6,8 +6,7 @@ import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { eventText } from "../event-text.ts";
 
-const LEAD =
-  eventText("event_ZOLTAN_QUEST_PRIMITIVES_c1_c2_text");
+const LEAD = eventText("event_ZOLTAN_QUEST_PRIMITIVES_c1_c2_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -54,7 +53,7 @@ describe("Zoltan quest primitives protect", () => {
       assert.equal(pageWin(g, "zoltan-quest-primitives-protect", deadCrew), true);
       assert.ok(!g.pursuitDouble);
       const body = g.event?.body ?? "";
-      assert.ok(body.startsWith("The Zoltan hail once the smoke"));
+      assert.ok(body.startsWith(eventText("ship_ZOLTAN_PRIMITIVES_REBEL_destroyed_text")), body);
       assert.match(body, /mounted\.|stowed in cargo\./);
       assert.equal(/Fuel:|Missiles:|Drone parts:/.test(body), false, body);
       const paid = Number(body.match(/Scrap: (\d+)/)?.[1]);

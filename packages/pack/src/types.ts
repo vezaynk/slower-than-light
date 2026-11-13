@@ -1100,6 +1100,8 @@ export type EventChoice = {
   reward?: ArchiveReward;
   /** A ship that is not a fight. A hostile ship with a load is a fight effect. A hostile ship with no load stays here. */
   ship?: ArchiveShip;
+  /** One line drawn from this textList when the choice is taken. */
+  textLoad?: string;
   /** Named blueprints the result grants. */
   grants?: ArchiveGrant[];
   /** Boarders the result beams aboard. */

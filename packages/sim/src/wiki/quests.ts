@@ -1414,21 +1414,6 @@ ${laniusTraderOfferText(offer)}`,
   },
   // Pirate ship attacking Crystal. Template:Crystal Ship Saved. The Crystal weapon is not named.
   "q:crystal-pirate:contact": (g) => crystalContact(g),
-  // Rock atheists. Two texts, no odds. INFERRED: equal. The fight marker sits under the second sentence; both charge.
-  "c:rock-atheists:0": (g) => {
-    const text = pick(g, [
-      eventText("text_ROCK_ATHIEST_BAD_1"),
-      eventText("text_ROCK_ATHIEST_BAD_2"),
-    ]);
-    pageFight(g, text, "Rock ship", "rock-atheists");
-  },
-  // Promise. {{DuplicateEvent|2}} on nothing. The Rockman is one result.
-  "c:rock-atheists:1": (g) => rockAtheistPromise(g),
-  // Improved Sensors level 2+. A Rockman joins. No skill is printed.
-  "c:rock-atheists:2": (g) => {
-    if ((g.player.systems.sensors?.level ?? 0) < 2) return;
-    rockAtheistJoins(g, eventText("event_ROCK_ATHIEST_c3_text"));
-  },
   // Pirate ship selling drones. Hail opens the dock, the slug warning, and the hacking toll.
   "q:pirate-drones:hail": (g) => {
     card(g, eventText("event_CONTACT_PIRATE_SALESMAN_text"), [
@@ -4141,30 +4126,8 @@ function crystalContact(g: Game) {
 }
 
 /**
- * Rock atheists. {{DuplicateEvent|2}} on the refusal. The Rockman joins once.
- * INFERRED: the refusal is twice as likely as the join.
+ * Pirate ship selling drones. The unnamed schematic is not offered. Five parts for 25 scrap stay on the static choice.
  */
-function rockAtheistPromise(g: Game) {
-  const join = weighted(g, [
-    [false, 2],
-    [true, 1],
-  ] as [boolean, number][]);
-  if (!join) {
-    result(g, eventText("event_ROCK_ATHIEST_GOOD_2_text"), undefined, ["Nothing happens."]);
-    return;
-  }
-  rockAtheistJoins(g, eventText("event_ROCK_ATHIEST_GOOD_1_text"));
-}
-
-/** The page names a Rockman and prints no skill. */
-function rockAtheistJoins(g: Game, text: string) {
-  const joined = joinCrew(g, "Rock");
-  result(g, text, undefined, [
-    joined ? "A Rockman crewmember joins you." : "There is no room aboard for the new crewmember.",
-  ]);
-}
-
-/** Pirate ship selling drones. The unnamed schematic is not offered. Five parts for 25 scrap stay on the static choice. */
 function pirateDroneDock(g: Game) {
   card(g, eventText("event_DOCK_DRONE_SALESMAN_text"), [
     opt("c:pirate-ship-selling-drones:0", "event_DOCK_DRONE_SALESMAN_c1_choice"),

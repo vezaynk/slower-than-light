@@ -32,9 +32,9 @@ describe("Rock crew offer", () => {
       assert.equal(g.phase, "event");
       assert.equal(g.event?.choices[0]?.id, "ship-resume");
       const line = g.event?.body ?? "";
-      assert.ok(line.includes("lies") || line.includes("Traitors"), line);
+      assert.ok(line.includes("guns start to charge") || line.includes("turns hostile"), line);
       assert.equal(
-        g.log.some((l) => l.includes("lies") || l.includes("Traitors")),
+        g.log.some((l) => l.includes("guns start to charge") || l.includes("turns hostile")),
         false,
       );
       seen.add(line);
@@ -64,10 +64,11 @@ describe("Rock crew offer", () => {
       assert.equal(g.scrap, 10);
       if (rocks(g) === before + 1) {
         joined += 1;
-        assert.match(g.event?.body ?? "", textRe("event_ROCK_ATHIEST_GOOD_1_text"));
+        assert.match(g.event?.body ?? "", /take a bunk/);
+        assert.match(g.event?.body ?? "", /crewmember joins you/);
       } else {
         refused += 1;
-        assert.match(g.event?.body ?? "", /Nothing happens/);
+        assert.match(g.event?.body ?? "", /shut the channel/);
         assert.equal(rocks(g), before);
       }
     }
@@ -89,7 +90,8 @@ describe("Rock crew offer", () => {
     const before = rocks(g);
     choose(g, "c:rock-atheists:2");
     assert.equal(rocks(g), before + 1);
-    assert.match(g.event?.body ?? "", textRe("event_ROCK_ATHIEST_c3_text"));
+    assert.match(g.event?.body ?? "", /logs convince them/);
+    assert.match(g.event?.body ?? "", /crewmember joins you/);
     assert.equal(g.phase, "event");
   });
 });

@@ -1313,8 +1313,95 @@ function campaignEvents(): EventDef[] {
       event.aliases = [...event.aliases, "quest-rock-sun"];
     }
   }
+  shapeRockAtheist(named);
+  // The sensors button is on the page now. The req holder must not keep a second copy.
+  const placed = new Set<string>();
+  for (const event of named) {
+    if (event.id === "blue-button-reqs") continue;
+    for (const choice of event.choices) if (choice.reqs?.length) placed.add(choice.id);
+  }
+  const holder = named.find((event) => event.id === "blue-button-reqs");
+  if (holder) holder.choices = holder.choices.filter((choice) => !placed.has(choice.id));
   return named;
 }
+
+const ROCK_LIES =
+  "They shout that this is the same tale they left behind, and the skiff's guns start to charge.";
+const ROCK_TRAITORS =
+  "They call you another keeper of the official story. The skiff turns hostile.";
+const ROCK_JOIN = "They take a bunk for the time being.";
+const ROCK_REFUSE =
+  "They nearly accept, then shut the channel and jump. They will not be talked into another creed.";
+const ROCK_SENSORS = "The logs convince them. They come aboard until they can stand on their own.";
+
+/** ftl.dat's ROCK_ATHIEST: a quiet Rock ship, three hidden choices, and the promise list. */
+function shapeRockAtheist(events: EventDef[]): void {
+  const event = events.find((row) => row.id === "ROCK_ATHIEST");
+  if (!event) return;
+  event.body =
+    "A Rock skiff with a weak drive hails you. Its pilot says the homeworld rules by stories that do not survive a second look, and they will not go back.";
+  event.ship = { hostile: false, load: "ROCK_SHIP" };
+  event.choices = [
+    stampedChoice({
+      id: "c:rock-atheists:0",
+      label: "Claim their god sent them to sign on.",
+      hidden: true,
+      fx: [],
+      textLoad: "ROCK_ATHIEST_BAD",
+      ship: { hostile: true },
+    }),
+    stampedChoice({
+      id: "c:rock-atheists:1",
+      label: "Offer the account their teachers left out.",
+      hidden: true,
+      fx: [{ k: "goto", id: "ROCK_ATHIEST_GOOD" }],
+    }),
+    stampedChoice({
+      id: "c:rock-atheists:2",
+      label: "Let them read the sensor archive.",
+      hidden: true,
+      fx: [{ k: "note", text: ROCK_SENSORS }],
+      grants: [{ kind: "crew", id: "rock", amount: 1 }],
+    }),
+  ];
+}
+
+function rockListPage(id: string, body: string, grants?: EventDef["grants"]): EventDef {
+  const page: EventDef = {
+    id,
+    dest: id,
+    flag: id,
+    aliases: [],
+    sectors: [],
+    body,
+    choices: [],
+  };
+  if (grants?.length) page.grants = grants;
+  return page;
+}
+
+const ROCK_ATHIEST_GOOD = {
+  id: "ROCK_ATHIEST_GOOD",
+  entries: [
+    {
+      id: "ROCK_ATHIEST_GOOD_JOIN",
+      unique: false,
+      page: rockListPage("ROCK_ATHIEST_GOOD_JOIN", ROCK_JOIN, [
+        { kind: "crew" as const, id: "rock", amount: 1 },
+      ]),
+    },
+    {
+      id: "ROCK_ATHIEST_GOOD_AWAY",
+      unique: false,
+      page: rockListPage("ROCK_ATHIEST_GOOD_AWAY", ROCK_REFUSE),
+    },
+    {
+      id: "ROCK_ATHIEST_GOOD_AWAY",
+      unique: false,
+      page: rockListPage("ROCK_ATHIEST_GOOD_AWAY", ROCK_REFUSE),
+    },
+  ],
+};
 
 /**
  * Choice-attribute fixture. It is a catalog page so the emitter writes it.
@@ -1613,6 +1700,7 @@ export function loadCatalog(): void {
         EXIT_LIST,
         NO_FUEL_LIST,
         NO_FUEL_DISTRESS_LIST,
+        ROCK_ATHIEST_GOOD,
         { id: "STANDIN_EMPTY", entries: [] },
       ],
       beaconEvents: { ...BEACON_EVENTS },
@@ -1621,6 +1709,7 @@ export function loadCatalog(): void {
         ...textListOpenings(),
         { id: "NAME_SYLLABLES", lines: NAME_SYLLABLES.map((text) => ({ text })) },
         { id: "CREW_POOL", lines: CREW_POOL.map((text) => ({ text })) },
+        { id: "ROCK_ATHIEST_BAD", lines: [{ text: ROCK_LIES }, { text: ROCK_TRAITORS }] },
       ],
       blueprints: [...SHIP_LISTS, ...enemyGearLists(enemyHullIds())].map((row) => ({
         id: row.id,

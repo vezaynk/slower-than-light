@@ -3872,7 +3872,8 @@ type SmugglePay =
   | { k: "parts" };
 
 /** `textId` is the archive text id of the row's result. */
-type SmuggleRow = { textId: string; pay: SmugglePay; item?: "weapon" | "drone" };
+/** `crew` is ftl.dat's `<crewMember amount="1"/>` on the row: one crewmember of a random race. */
+type SmuggleRow = { textId: string; pay: SmugglePay; item?: "weapon" | "drone"; crew?: true };
 
 function smugglePay(g: Game, pay: SmugglePay): SurrenderOffer {
   if (pay.k === "random") return scrapOnly(g, pick(g, ["low", "medium", "high"]));
@@ -3915,6 +3916,7 @@ const SMUGGLE_HULL: [SmuggleRow, number][] = [
     {
       textId: "event_REBEL_TRANSPORT_DESTROYED_9_text",
       pay: { k: "standard", tier: "low" },
+      crew: true,
     },
     1,
   ],
@@ -3990,6 +3992,7 @@ const SMUGGLE_CREW: [SmuggleRow, number][] = [
     {
       textId: "event_REBEL_TRANSPORT_CAPTURED_2_text",
       pay: { k: "scrap", tier: "high" },
+      crew: true,
     },
     1,
   ],
@@ -4005,12 +4008,10 @@ const SMUGGLE_CREW: [SmuggleRow, number][] = [
 /** Pirate smuggler. Template:Pirate Smuggler / Rebel Transport, destroyed and a crew kill. */
 function smuggleCargoWin(g: Game, deadCrew: boolean) {
   const row = weighted(g, deadCrew ? SMUGGLE_CREW : SMUGGLE_HULL);
-  result(
-    g,
-    eventText(row.textId),
-    smugglePay(g, row.pay),
-    row.item ? [grantRandomItem(g, row.item)] : [],
-  );
+  result(g, eventText(row.textId), smugglePay(g, row.pay), [
+    ...(row.item ? [grantRandomItem(g, row.item)] : []),
+    ...(row.crew ? [crew(g, randomRace(g))] : []),
+  ]);
 }
 
 const CRYSTAL_CONTACT = (): Choice[] => [opt("q:crystal-pirate:contact", "continue")];

@@ -55,6 +55,14 @@ function resourceLines(body: string): string[] {
   );
 }
 
+/** The two cargo rows that also carry ftl.dat's `<crewMember amount="1"/>`. */
+function joins(text: string): number {
+  return text.startsWith(eventText("event_REBEL_TRANSPORT_DESTROYED_9_text")) ||
+    text.startsWith(eventText("event_REBEL_TRANSPORT_CAPTURED_2_text"))
+    ? 1
+    : 0;
+}
+
 describe("Pirate smuggler cargo", () => {
   it("a destroyed ship pays the printed cargo table and grants the unnamed weapon or schematic as a random one", () => {
     const seen = new Set<string>();
@@ -75,7 +83,7 @@ describe("Pirate smuggler cargo", () => {
       assert.equal(g.scrap, 10 + paid[0]!);
       assert.equal(held(g, "weapon"), guns + gives(text, "weapon"), body);
       assert.equal(held(g, "drone"), kits + gives(text, "drone"), body);
-      assert.equal(g.crew.length, crew, body);
+      assert.equal(g.crew.length, crew + joins(text), body);
       assert.equal(g.beacons.filter((b) => b.visited).length, visited);
       const lines = resourceLines(body);
       if (text.startsWith(eventText("event_REBEL_TRANSPORT_DESTROYED_6_text"))) {
@@ -132,7 +140,7 @@ describe("Pirate smuggler cargo", () => {
       assert.equal(g.scrap, 10 + paid[0]!);
       assert.equal(held(g, "weapon"), guns + gives(text, "weapon"), body);
       assert.equal(held(g, "drone"), kits + gives(text, "drone"), body);
-      assert.equal(g.crew.length, crew);
+      assert.equal(g.crew.length, crew + joins(text));
       assert.equal(g.beacons.filter((b) => b.visited).length, visited);
       assert.equal(resourceLines(body).length, 0, body);
       if (text.startsWith(eventText("event_REBEL_TRANSPORT_CAPTURED_2_text")))

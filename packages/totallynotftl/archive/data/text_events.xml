@@ -217,9 +217,12 @@
   <text name="event_FUEL_ON_SLUG_CHUCKLE_text">Trade offer: fuel for scrap.</text>
   <text name="event_FUEL_TRADER_c1_choice">Make the trade shown.</text>
   <text name="event_FUEL_TRADER_c2_choice">1 in 3: a cheaper offer. 1 in 3: another offer. 1 in 3: nothing happens.</text>
+  <text name="event_FUEL_TRADER_DISTRESS_c1_choice">Make the trade shown.</text>
+  <text name="event_FUEL_TRADER_DISTRESS_c2_choice">1 in 3: a cheaper offer. 1 in 3: another offer. 1 in 3: nothing happens.</text>
   <text name="event_FUEL_TRADER_PT2_1_c1_choice">Make the trade shown.</text>
   <text name="event_FUEL_TRADER_PT2_1_c2_choice">1 in 2: gain fuel. 1 in 2: nothing happens.</text>
   <text name="event_FUEL_TRADER_PT2_1_text">Cheaper trade offer.</text>
+  <text name="event_FUEL_TRADER_PT2_2_c2_choice">Nothing happens.</text>
   <text name="event_FUEL_TRADER_PT2_2_c2_text">Nothing happens.</text>
   <text name="event_FUEL_TRADER_PT2_2_text">Trade offer.</text>
   <text name="event_FUEL_TRADER_PT2_3_text">Nothing happens.</text>
@@ -276,6 +279,9 @@
   <text name="event_LANIUS_RESEARCHER_CRAFT_c1_c3_text">Gain a drone schematic.</text>
   <text name="event_LANIUS_RESEARCHER_CRAFT_c1_c4_choice">Nothing happens.</text>
   <text name="event_LANIUS_RESEARCHER_CRAFT_c1_c4_text">Nothing happens.</text>
+  <text name="event_LANIUS_RESEARCHER_CRAFT_c1_c5_c1_choice">Lose scrap. Gain an augmentation.</text>
+  <text name="event_LANIUS_RESEARCHER_CRAFT_c1_c5_c2_choice">Lose scrap. Gain a weapon.</text>
+  <text name="event_LANIUS_RESEARCHER_CRAFT_c1_c5_c3_choice">Lose scrap. Gain a drone schematic.</text>
   <text name="event_LANIUS_RESEARCHER_CRAFT_c1_c5_choice">The same items for 10 less scrap.</text>
   <text name="event_LANIUS_RESEARCHER_CRAFT_c1_c5_text">Each item costs 10 less scrap.</text>
   <text name="event_LANIUS_RESEARCHER_CRAFT_c1_text">Craft offer: scrap for an augmentation, a weapon, or a drone schematic.</text>
@@ -495,6 +501,10 @@
   <text name="event_WRECKAGE_INVESTIGATE_7_text">Fight a Rebel ship.</text>
   <text name="event_WRECKAGE_INVESTIGATE_8_text">Fight a Zoltan ship.</text>
   <text name="event_WRECKAGE_INVESTIGATE_9_text">Nothing happens.</text>
+  <text name="name_Charlie">Recruit</text>
+  <text name="name_DrJones">Rescued Recruit</text>
+  <text name="name_RobertSmith">Mantis Recruit</text>
+  <text name="name_Slocknog">Slug Hire</text>
   <text name="ship_JELLY_STATUS_ENGINES_deadCrew_text">Gain scrap and supplies.</text>
   <text name="ship_JELLY_STATUS_ENGINES_destroyed_text">Gain scrap and supplies.</text>
   <text name="ship_JELLY_STATUS_WEAPONS_deadCrew_text">Gain scrap and supplies.</text>

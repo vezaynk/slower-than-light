@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { afterEach, describe, it } from "node:test";
 import { eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import type { EventBand } from "@stl/pack";
@@ -10,9 +11,9 @@ import { printedBand, rollBand, upgradeRows } from "./event-bands.ts";
 import { pageWin } from "./quests.ts";
 
 const DULL = "nothing of much interest";
-const GULP = "cargo hold";
-const THANKS = "scrap in exchange";
-const WOW = "repair part of your hull";
+const GULP = eventText("event_REFUGEE_GHOST_LIST_2_text");
+const THANKS = eventText("event_HELP_MINERS_1_1_text");
+const WOW = eventText("event_HELP_MINERS_2_1_text");
 const ABANDONED = "No one answers your hails";
 const SCAN = "unclaimed fuel and drone parts";
 const S3 = "s:garbled-dock:sensors3";
@@ -333,10 +334,10 @@ describe("printed bands", () => {
     ]);
     const thankYou = miners(thanks, 5);
     const generous = miners(wow, 15);
-    assert.match(thankYou.event?.body ?? "", /scrap in exchange/);
+    assert.ok((thankYou.event?.body ?? "").includes(eventText("event_HELP_MINERS_1_1_text")));
     assert.equal(thankYou.scrap, 7);
     assert.equal(thankYou.player.hull, thankYou.player.hullMax - 20);
-    assert.match(generous.event?.body ?? "", /repair part of your hull/);
+    assert.ok((generous.event?.body ?? "").includes(eventText("event_HELP_MINERS_2_1_text")));
     assert.equal(generous.scrap, 9);
     assert.equal(generous.player.hull, generous.player.hullMax - 15);
     assert.match(generous.event?.body ?? "", /5 repairs/);
@@ -352,8 +353,8 @@ describe("printed bands", () => {
     assert.equal(quietWow.missiles, 0);
     assert.equal(quietThanks.player.hull, quietThanks.player.hullMax - 20);
     assert.equal(quietWow.player.hull, quietWow.player.hullMax - 20);
-    assert.match(quietThanks.event?.body ?? "", /scrap in exchange/);
-    assert.match(quietWow.event?.body ?? "", /repair part of your hull/);
+    assert.ok((quietThanks.event?.body ?? "").includes(eventText("event_HELP_MINERS_1_1_text")));
+    assert.ok((quietWow.event?.body ?? "").includes(eventText("event_HELP_MINERS_2_1_text")));
     assert.equal((quietWow.event?.body ?? "").includes("repairs"), false);
   });
 
@@ -410,8 +411,8 @@ describe("printed bands", () => {
     assert.equal(fixed.scrap, 96);
     assert.equal(gone.scrap, 100);
     assert.equal(fixed.seed, gone.seed);
-    assert.match(fixed.event?.body ?? "", /cargo hold/);
-    assert.match(gone.event?.body ?? "", /cargo hold/);
+    assert.ok((fixed.event?.body ?? "").includes(eventText("event_REFUGEE_GHOST_LIST_2_text")));
+    assert.ok((gone.event?.body ?? "").includes(eventText("event_REFUGEE_GHOST_LIST_2_text")));
     assert.match(fixed.event?.body ?? "", /Scrap: -4\./);
     assert.equal((gone.event?.body ?? "").includes("Scrap:"), false);
 
@@ -625,7 +626,7 @@ describe("printed bands", () => {
       opened = g.event?.choices.some((choice) => choice.id === theft) ?? false;
       if (!opened) continue;
       assert.equal(g.event?.choices[0]?.label, "Continue");
-      assert.match(g.event?.body ?? "", /complete the exchange/);
+      assert.ok((g.event?.body ?? "").includes(eventText("event_FUEL_ON_SLUG_CHUCKLE_LIST_1_text")));
     }
     assert.equal(opened, true);
   });
@@ -663,7 +664,7 @@ describe("printed bands", () => {
       g.event = citedEvent(g, beacon);
       g.phase = "event";
       choose(g, "c:refugee-zoltan:0");
-      if ((g.event?.body ?? "").includes("running low on supplies")) seed = n;
+      if ((g.event?.body ?? "").includes(eventText("event_REFUGEE_TRADER_text"))) seed = n;
     }
     assert.ok(seed > 0, "no refugee trade");
 

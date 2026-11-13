@@ -234,6 +234,10 @@ export const TEXT: Record<string, string> = {
   event_FUEL_TRADER_PT2_1_c1_choice: "Make the trade shown.",
   event_FUEL_TRADER_PT2_1_c2_choice: "1 in 2: gain fuel. 1 in 2: nothing happens.",
   event_FUEL_TRADER_PT2_1_text: "Cheaper trade offer.",
+  event_FUEL_TRADER_DISTRESS_c1_choice: "Make the trade shown.",
+  event_FUEL_TRADER_DISTRESS_c2_choice:
+    "1 in 3: a cheaper offer. 1 in 3: another offer. 1 in 3: nothing happens.",
+  event_FUEL_TRADER_PT2_2_c2_choice: "Nothing happens.",
   event_FUEL_TRADER_PT2_2_c2_text: "Nothing happens.",
   event_FUEL_TRADER_PT2_2_text: "Trade offer.",
   event_FUEL_TRADER_PT2_3_text: "Nothing happens.",
@@ -296,6 +300,9 @@ export const TEXT: Record<string, string> = {
   event_LANIUS_RESEARCHER_CRAFT_c1_c3_text: "Gain a drone schematic.",
   event_LANIUS_RESEARCHER_CRAFT_c1_c4_choice: "Nothing happens.",
   event_LANIUS_RESEARCHER_CRAFT_c1_c4_text: "Nothing happens.",
+  event_LANIUS_RESEARCHER_CRAFT_c1_c5_c1_choice: "Lose scrap. Gain an augmentation.",
+  event_LANIUS_RESEARCHER_CRAFT_c1_c5_c2_choice: "Lose scrap. Gain a weapon.",
+  event_LANIUS_RESEARCHER_CRAFT_c1_c5_c3_choice: "Lose scrap. Gain a drone schematic.",
   event_LANIUS_RESEARCHER_CRAFT_c1_c5_choice: "The same items for 10 less scrap.",
   event_LANIUS_RESEARCHER_CRAFT_c1_c5_text: "Each item costs 10 less scrap.",
   event_LANIUS_RESEARCHER_CRAFT_c1_text:
@@ -534,6 +541,10 @@ export const TEXT: Record<string, string> = {
   ship_JELLY_STATUS_ENGINES_destroyed_text: "Gain scrap and supplies.",
   ship_JELLY_STATUS_WEAPONS_deadCrew_text: "Gain scrap and supplies.",
   ship_JELLY_STATUS_WEAPONS_destroyed_text: "Gain scrap and supplies.",
+  name_Charlie: "Recruit",
+  name_DrJones: "Rescued Recruit",
+  name_RobertSmith: "Mantis Recruit",
+  name_Slocknog: "Slug Hire",
   ship_LANIUS_CIVILIAN_destroyed_c1_choice:
     "1 in 5 each: gain an item, repairs, scrap (medium), scrap (low), or nothing.",
   ship_PIRATE_REFUGEE_deadCrew_c1_text: "Gain scrap and supplies.",

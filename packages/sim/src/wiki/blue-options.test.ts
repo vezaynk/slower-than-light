@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { skillRank } from "../content.ts";
 import { xpNeedFor } from "../extras/lineage.ts";
@@ -59,6 +60,11 @@ function scrapOf(body: string): number {
   return m ? Number(m[1]) : 0;
 }
 
+/** The card's first paragraph is that result's archive line. */
+function lead(body: string, id: string): boolean {
+  return body.split("\n\n")[0] === eventText(id);
+}
+
 describe("Skipped blue options", () => {
   it("nebula lost ship beams a crewmember for medium scrap, or tracks them with scanners", () => {
     const plain = createGame(1);
@@ -81,7 +87,7 @@ describe("Skipped blue options", () => {
     const scrap = beam.scrap;
     openFiller(beam, "nebula-lost-ship", "Nebula lost ship");
     choose(beam, "c:nebula-lost-ship:2");
-    assert.match(beam.event?.body ?? "", /beam the Federation crew aboard/);
+    assert.ok((beam.event?.body ?? "").includes(eventText("event_NEBULA_LOST_SHIP_c3_text")));
     assert.equal(beam.crew.filter((c) => c.side === "player").length, crew + 1);
     const gained = beam.scrap - scrap;
     assert.ok(gained >= 12 && gained <= 19, String(gained));
@@ -93,11 +99,11 @@ describe("Skipped blue options", () => {
       const before = g.scrap;
       const n = g.crew.filter((c) => c.side === "player").length;
       choose(g, "c:nebula-lost-ship:3");
-      if ((g.event?.body ?? "").includes("faint signatures")) {
+      if ((g.event?.body ?? "").includes(eventText("event_NEBULA_LOST_SHIP_LIST2_2_text"))) {
         seen.add("crew");
         assert.equal(g.scrap, before);
         assert.equal(g.crew.filter((c) => c.side === "player").length, n + 1);
-      } else if ((g.event?.body ?? "").includes("empty hull")) {
+      } else if ((g.event?.body ?? "").includes(eventText("event_NEBULA_LOST_SHIP_LIST2_1_text"))) {
         seen.add("scrap");
         const got = g.scrap - before;
         assert.ok(got >= 12 && got <= 19, String(got));
@@ -125,23 +131,22 @@ describe("Skipped blue options", () => {
       const guns = g.player.weapons.length;
       choose(g, "c:plasma-storm-incapacitated-ships:2");
       const body = g.event?.body ?? "";
-      if (body.includes("unconscious passenger")) {
+      if (lead(body, "event_STORM_ITEMS_LIST_2_text")) {
         seen.add("passenger");
         assert.equal(g.crew.filter((c) => c.side === "player").length, crew + 1);
         assert.ok(g.scrap > scrap);
-      } else if (body.includes("salvageable drone schematic")) {
+      } else if (lead(body, "event_STORM_ITEMS_PILOTING_2_text")) {
         seen.add("schematic");
         const got = scrapOf(body);
         assert.ok(got >= 12 && got <= 19, String(got));
-      } else if (body.includes("intact weapon")) {
+      } else if (lead(body, "event_STORM_ITEMS_PILOTING_3_text")) {
         seen.add("weapon");
         const got = scrapOf(body);
         assert.ok(got >= 7 && got <= 10, String(got));
         assert.equal(g.player.weapons.length, guns + 1);
-      } else if (body.includes("carefully explores the wrecks")) {
+      } else if (lead(body, "event_STORM_ITEMS_PILOTING_4_text")) {
         seen.add("nothing");
         assert.equal(g.scrap, scrap);
-        assert.match(body, /Nothing happens/);
       }
     }
     assert.deepEqual([...seen].sort(), ["nothing", "passenger", "schematic", "weapon"]);
@@ -193,16 +198,20 @@ describe("Skipped blue options", () => {
       const crew = run.crew.filter((c) => c.side === "player").length;
       fillerChoose(run, "s:abandoned-station:dna");
       const body = run.event?.body ?? run.log.join("\n");
-      if (body.includes("seems to accept")) {
+      const rebuilt = eventText("event_EMPTY_STATION2_LIST_4_c1_text");
+      const accept = `${rebuilt} ${eventText("event_EMPTY_STATION2_CLONE_1_text")}`;
+      const calm = `${rebuilt} ${eventText("event_EMPTY_STATION2_CLONE_2_text")}`;
+      const crazed = `${rebuilt} ${eventText("event_EMPTY_STATION2_CLONE_3_text")}`;
+      if (body.startsWith(accept) && !seen.has("accept")) {
         seen.add("accept");
         assert.equal(run.crew.filter((c) => c.side === "player").length, crew + 1);
-      } else if (body.includes("calms down")) {
+      } else if (body.startsWith(calm)) {
         seen.add("calm");
         assert.equal(run.crew.filter((c) => c.side === "player").length, crew + 1);
-      } else if ((run.event?.body ?? "").includes("crazed frenzy")) {
+      } else if ((run.event?.body ?? "").startsWith(crazed)) {
         seen.add("crazed");
         assert.equal(
-          run.log.some((line) => line.includes("crazed frenzy")),
+          run.log.some((line) => line.includes(crazed)),
           false,
         );
         assert.ok(run.log.some((line) => line.includes("boarder beams aboard")));

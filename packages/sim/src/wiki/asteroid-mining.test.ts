@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon, WeaponInst } from "../types.ts";
@@ -22,6 +23,11 @@ function beacon(): Beacon {
     flag: "filler:asteroid-mining-colony",
     asteroid: false,
   };
+}
+
+/** The card's first paragraph is that result's archive line. */
+function lead(body: string, id: string): boolean {
+  return body.split("\n\n")[0] === eventText(id);
 }
 
 describe("Asteroid mining colony", () => {
@@ -57,7 +63,7 @@ describe("Asteroid mining colony", () => {
     assert.ok(ev?.choices.some((c) => c.id === "c:asteroid-mining-colony:0"));
     fillerChoose(g, "c:asteroid-mining-colony:0");
     assert.equal(g.missiles, 9);
-    assert.match(g.event?.body ?? "", /union-friendly/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_HELP_MINERS_c1_text")));
     assert.deepEqual(
       g.event?.choices.map((c) => c.id),
       ["c:asteroid-mining-colony:1", "c:asteroid-mining-colony:2", "c:asteroid-mining-colony:3"],
@@ -96,27 +102,27 @@ describe("Asteroid mining colony", () => {
         assert.equal(g.missiles, 0);
         const body = g.event?.body ?? "";
         // Rewards, "Augment": only the augment result installs one (a random augmentation).
-        assert.equal(g.augments.length, augments + (body.includes("ship Augment") ? 1 : 0), body);
-        if (n === 5 && body.includes("repair some of your ship's hull")) {
+        assert.equal(g.augments.length, augments + (lead(body, "event_HELP_MINERS_2_3_text") ? 1 : 0), body);
+        if (n === 5 && lead(body, "event_HELP_MINERS_1_2_text")) {
           bag.add("hull");
           assert.equal(g.player.hull, g.player.hullMax - 10);
-        } else if (n === 5 && body.includes("upgrade your reactor")) {
+        } else if (n === 5 && lead(body, "event_HELP_MINERS_1_3_text")) {
           bag.add("reactor");
           assert.equal(g.player.reactor, reactor + 1);
-        } else if (n === 5 && body.includes("scrap in exchange")) {
+        } else if (n === 5 && lead(body, "event_HELP_MINERS_1_1_text")) {
           bag.add("scrap");
           assert.ok(g.scrap >= 15 && g.scrap <= 25, String(g.scrap));
           assert.equal(g.scrapCollected, g.scrap);
-        } else if (n === 15 && body.includes("fix up your ship")) {
+        } else if (n === 15 && lead(body, "event_HELP_MINERS_2_2_text")) {
           bag.add("both");
           assert.equal(g.player.hull, g.player.hullMax - 5);
           assert.equal(g.player.reactor, reactor + 1);
-        } else if (n === 15 && body.includes("ship Augment")) {
+        } else if (n === 15 && lead(body, "event_HELP_MINERS_2_3_text")) {
           bag.add("augment");
           assert.match(body, / fitted\.$/);
           assert.equal(g.player.hull, g.player.hullMax - 20);
           assert.equal(g.player.reactor, reactor);
-        } else if (n === 15 && body.includes("repair part of your hull")) {
+        } else if (n === 15 && lead(body, "event_HELP_MINERS_2_1_text")) {
           bag.add("scrap");
           assert.ok(g.scrap >= 30 && g.scrap <= 40, String(g.scrap));
           assert.equal(g.player.hull, g.player.hullMax - 15);
@@ -136,7 +142,7 @@ describe("Asteroid mining colony", () => {
       g.missiles = 5;
       g.player.reactor = 25;
       fillerChoose(g, "c:asteroid-mining-colony:1");
-      if ((g.event?.body ?? "").includes("upgrade your reactor")) {
+      if (lead(g.event?.body ?? "", "event_HELP_MINERS_1_3_text")) {
         seen = true;
         assert.equal(g.player.reactor, 25);
         assert.equal(g.missiles, 0);
@@ -154,7 +160,7 @@ describe("Asteroid mining colony", () => {
     assert.equal(g.missiles, 8);
     assert.equal(g.scrap, 20);
     assert.equal(g.player.hull, hull);
-    assert.match(g.event?.body ?? "", /Good luck out there/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_HELP_MINERS_c1_c3_text")));
     choose(g, "ack");
     assert.equal(g.phase, "map");
     assert.equal(g.event, null);

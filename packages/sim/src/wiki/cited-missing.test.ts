@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import {
   choose,
@@ -182,7 +183,7 @@ describe("missing location pages", () => {
       const g = createGame(seed);
       g.fuel = 40;
       assert.equal(citedChoose(harness(g, [1, 2]), "c:crystalline-cache:weapons"), true);
-      assert.match(g.event?.body ?? "", /singularity/);
+      assert.ok((g.event?.body ?? "").includes(eventText("event_CRYSTAL_CACHE_LIST_3_text")));
       const before = g.player.weapons.length;
       assert.equal(citedChoose(harness(g, []), "c:crystalline-cache:detonate"), true);
       if (g.fuel < 40) dropped = true;
@@ -200,8 +201,9 @@ describe("missing location pages", () => {
     open(g, "Crystalline men buried", "CRYSTAL_HELP_DIG");
     choose(g, "c:crystalline-men-buried:send");
     choose(g, "c:crystalline-men-buried:leave");
-    assert.match(g.event?.body ?? "", /remain/);
-    assert.equal((g.event?.body ?? "").includes("no sign of activity"), false);
+    assert.ok((g.event?.body ?? "").startsWith(eventText("event_CRYSTAL_HELP_DIG_c1_c1_text")));
+    assert.match(g.event?.body ?? "", /Crew lost: /);
+    assert.equal(/Clone Bay/.test(g.event?.body ?? ""), false);
     assert.equal(g.crew.filter((c) => c.side === "player").length, crew - 1);
   });
 
@@ -213,8 +215,7 @@ describe("missing location pages", () => {
     const openEvade = evasionPercent(first, first.player, "player");
     open(first, "Slug repair station", "NEBULA_SLUG_HULLFIX");
     choose(first, "c:slug-repair-station:engines");
-    const dock =
-      "As you dock with the station your readings go haywire. An EMP blast resonates throughout the ship and your engines shut down. You're a sitting duck as a ship reveals itself and silently moves in to attack!";
+    const dock = eventText("event_NEBULA_SLUG_HULLFIX_RESULT1_3_text");
     assert.equal(first.phase, "event");
     assert.equal(first.event?.choices[0]?.id, "ship-resume");
     assert.equal(first.event?.body, dock);
@@ -243,15 +244,15 @@ describe("missing location pages", () => {
     const b = open(g, "Slug repair station", "NEBULA_SLUG_HULLFIX");
     choose(g, "c:slug-repair-station:engines");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
-    assert.match(g.event?.body ?? "", /sitting duck/);
-    assert.equal(g.log.join("\n").includes("sitting duck"), false);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_NEBULA_SLUG_HULLFIX_RESULT1_3_text")));
+    assert.equal(g.log.join("\n").includes(eventText("event_NEBULA_SLUG_HULLFIX_RESULT1_3_text")), false);
     choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.ok(g.enemy);
     g.enemy.hull = 0;
     step(g, 0.05);
     assert.equal(g.phase, "event");
-    assert.match(g.event?.body ?? "", /engines return to normal/);
+    assert.ok((g.event?.body ?? "").startsWith(eventText("ship_JELLY_STATUS_ENGINES_destroyed_text")));
     assert.ok(g.scrap > 0);
     assert.equal(b.resolved, true);
   });
@@ -260,8 +261,7 @@ describe("missing location pages", () => {
     const g = createGame(12);
     open(g, "Slug store ship", "NEBULA_SLUG_FAKE_STORE");
     choose(g, "c:slug-store-ship:weapons");
-    const sealed =
-      '"During our discussion, my man hass taken the liberty of disabling your weaponss to prevent any complications while completing our... transssaction..." You suddenly register multiple weapon locks, but your own weapons are not responding. Get out of there!';
+    const sealed = eventText("event_NEBULA_SLUG_FAKE_STORE_LIST_2_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
     assert.equal(g.event?.body, sealed);

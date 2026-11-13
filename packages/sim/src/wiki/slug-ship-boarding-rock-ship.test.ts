@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -41,19 +42,16 @@ describe("Slug ship boarding Rock ship", () => {
         fight = true;
         assert.equal(g.enemy?.faction, "slug");
         assert.equal(g.scrap, 10);
-        assert.match(
-          g.event?.body ?? "",
-          /You charge weapons and the Slugs quickly change course to meet your charge/,
-        );
+        assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_ROCK_FIGHT_2_text")));
         assert.equal(
-          g.log.some((line) => line.includes("change course")),
+          g.log.some((line) => line.includes(eventText("event_SLUG_DISTRESS_ROCK_FIGHT_2_text"))),
           false,
         );
         choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
       } else {
         down = true;
-        assert.match(g.event?.body ?? "", /back down/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_ROCK_FIGHT_1_text")));
         assert.match(g.event?.body ?? "", /Nothing happens/);
         assert.equal(g.scrap, 10);
       }
@@ -130,7 +128,7 @@ describe("Slug ship boarding Rock ship", () => {
           if (/ungrateful/.test(body)) left = true;
           else {
             thanks = true;
-            assert.match(body, /Thanks/);
+            assert.ok((body).includes(eventText("event_DISTRESS_SATELLITE_DEFENSE_c1_c2_text")));
           }
         }
       }

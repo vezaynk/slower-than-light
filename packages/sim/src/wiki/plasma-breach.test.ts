@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -39,7 +40,7 @@ describe("Plasma storm incapacitated ships", () => {
       const hull = g.player.hull;
       const scrap = g.scrap;
       fillerChoose(g, ID);
-      if (!g.event?.body.includes("damaging the hull")) {
+      if (!g.event?.body.includes(eventText("event_STORM_ITEMS_LIST_1_text"))) {
         assert.ok(g.player.rooms.every((r) => r.breach === 0));
         assert.equal(bars(g), 0);
         continue;
@@ -66,7 +67,7 @@ describe("Plasma storm incapacitated ships", () => {
       const g = createGame(seed);
       for (const r of g.player.rooms) r.system = null;
       fillerChoose(g, ID);
-      if (!g.event?.body.includes("damaging the hull")) continue;
+      if (!g.event?.body.includes(eventText("event_STORM_ITEMS_LIST_1_text"))) continue;
       hits++;
       assert.ok(g.player.rooms.every((r) => r.breach === 0));
       assert.equal(bars(g), 0);

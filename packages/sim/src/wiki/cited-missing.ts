@@ -153,12 +153,12 @@ function repairs(n: number): SurrenderOffer {
  */
 function loseCrew(ctx: Ctx, noClone: boolean, quiet = false): string {
   const g = ctx.g;
-  if (!noClone && g.player.kits.clonebay) return "The lost crewmember is revived.";
+  if (!noClone && g.player.kits.clonebay) return "Clone Bay: crew revived.";
   const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
   if (mine.length <= 1) return "";
   const lost = mine[ctx.irand(mine.length)]!;
   g.crew = g.crew.filter((c) => c.id !== lost.id);
-  const line = `${lost.name} is lost.`;
+  const line = `Crew lost: ${lost.name}.`;
   // Drifting debris prints the Clone Bay's silence. Buried leave prints no such line.
   // Wiki citations:
   // > "(Clone Bay) [no effect] Before preparing to jump you check the Clone Bay but there is no sign of activity." — [[No fuel: drifting debris]]
@@ -169,7 +169,7 @@ function loseCrew(ctx: Ctx, noClone: boolean, quiet = false): string {
 
 function fleetJump(ctx: Ctx) {
   ctx.g.fleet += 1;
-  ctx.note("Rebel Fleet pursuit is doubled for 1 jump.");
+  ctx.note("Rebel fleet speed x2 for 1 jump.");
 }
 
 function crystalGun(ctx: Ctx): string {
@@ -201,8 +201,10 @@ function payWord(kind: PayKind): string {
   return "scrap";
 }
 
+const PAY_LINE = { scrap: "Scrap", missiles: "Missiles", parts: "Drone parts" } as const;
+
 function offerLine(fuel: number, kind: PayKind, amt: number): string {
-  return `You receive ${fuel} fuel and lose ${amt} ${payWord(kind)}.`;
+  return `Fuel: ${fuel}. ${PAY_LINE[kind]}: -${amt}.`;
 }
 
 /** Fuel-trader rows of one band. The draw stays between: the row, then the fuel, then the payment. */
@@ -285,7 +287,7 @@ function hurtRandom(ctx: Ctx): string {
   const id = ids[ctx.irand(ids.length)]!;
   hurtSystem(g.player, id, 1);
   const room = g.player.rooms.find((r) => r.system === id);
-  return `${room?.title ?? id} takes 1 damage.`;
+  return `System damage: ${room?.title ?? id}.`;
 }
 
 function investigate(ctx: Ctx) {
@@ -623,7 +625,7 @@ function betterTrade(ctx: Ctx, id: string): boolean {
     ctx.g,
     id === "c:no-fuel-refugee-trading:trade"
       ? eventText("event_NO_FUEL_REFUGEE_DAMAGED_c1_text")
-      : "You receive 6 fuel and lose 10 scrap.",
+      : "Fuel: 6. Scrap: -10.",
   );
   return true;
 }
@@ -707,7 +709,7 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       offer.random = "weapon";
       const loss = cacheFuelLoss(g.fuel, offer.fuel);
       const text = loss
-        ? `${eventText("event_CRYSTAL_CACHE_LIST_3_c2_text")} You lose ${loss} fuel.`
+        ? `${eventText("event_CRYSTAL_CACHE_LIST_3_c2_text")} Fuel: -${loss}.`
         : eventText("event_CRYSTAL_CACHE_LIST_3_c2_text");
       done(g, text, offer);
       g.fuel = Math.max(0, g.fuel - loss);
@@ -758,7 +760,7 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       fleetJump(ctx);
       done(
         g,
-        `${eventText("event_CRYSTAL_HELP_DIG_c1_c3_c3_text")}\n\n${line}\n\nRebel Fleet pursuit is doubled for 1 jump.`,
+        `${eventText("event_CRYSTAL_HELP_DIG_c1_c3_c3_text")}\n\n${line}\n\nRebel fleet speed x2 for 1 jump.`,
       );
       return true;
     }
@@ -1185,7 +1187,7 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       g.scrap -= scrap;
       done(
         g,
-        `${eventText("event_FUEL_ON_SLUG_CHUCKLE_LIST_1_c1_text")} You lose ${missiles} missiles and ${scrap} scrap.`,
+        `${eventText("event_FUEL_ON_SLUG_CHUCKLE_LIST_1_c1_text")} Missiles: -${missiles}. Scrap: -${scrap}.`,
       );
       return true;
     }
@@ -1210,7 +1212,7 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       if (branch === 0) {
         done(
           g,
-          `${eventText("event_FUEL_OFF_ROCK_WRECK_LIST_2_text")} The current sector map is revealed.`,
+          `${eventText("event_FUEL_OFF_ROCK_WRECK_LIST_2_text")} Sector map revealed.`,
           fuelOnly(g, "medium"),
         );
         return true;
@@ -1247,7 +1249,7 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       if (!priced("no-fuel-drifting-debris", "ransom", cost, "scrap") || g.scrap < cost)
         return false;
       g.scrap -= cost;
-      done(g, `${eventText("event_FUEL_OFF_ROCK_WRECK_LIST_4_c1_text")} You lose ${cost} scrap.`);
+      done(g, `${eventText("event_FUEL_OFF_ROCK_WRECK_LIST_4_c1_text")} Scrap: -${cost}.`);
       return true;
     }
     if (name === "refuse") {
@@ -1470,12 +1472,12 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
       if (ctx.irand(2) === 0) {
         done(
           g,
-          `${eventText("event_NO_FUEL_REFUGEE_PIRATE_ACCEPT_1_text")} You lose ${n} missile and receive ${fuel} fuel.`,
+          `${eventText("event_NO_FUEL_REFUGEE_PIRATE_ACCEPT_1_text")} Missiles: -${n}. Fuel: ${fuel}.`,
         );
         return true;
       }
       ctx.note(
-        `${eventText("event_NO_FUEL_REFUGEE_PIRATE_ACCEPT_2_text")} You lose ${n} missile and receive ${fuel} fuel.`,
+        `${eventText("event_NO_FUEL_REFUGEE_PIRATE_ACCEPT_2_text")} Missiles: -${n}. Fuel: ${fuel}.`,
       );
       ctx.fight("PIRATE_REFUGEE", undefined, "no-fuel-refugee-trading");
       return true;
@@ -1504,11 +1506,6 @@ export function missingChoose(ctx: Ctx, id: string): boolean | null {
   return null;
 }
 
-const ENGINE_WIN_DESTROYED = eventText("ship_JELLY_STATUS_ENGINES_destroyed_text");
-const ENGINE_WIN_CREW = eventText("ship_JELLY_STATUS_ENGINES_deadCrew_text");
-const HALF_WIN_DESTROYED = eventText("ship_JELLY_STATUS_WEAPONS_destroyed_text");
-const HALF_WIN_CREW = eventText("ship_JELLY_STATUS_WEAPONS_deadCrew_text");
-
 /** Slug repair station wins that replace default salvage. */
 export function missingPageWin(
   g: Game,
@@ -1516,14 +1513,15 @@ export function missingPageWin(
   deadCrew: boolean,
 ): boolean {
   if (slug !== "slug-repair-engines" && slug !== "slug-repair-half") return false;
-  const text =
+  const text = eventText(
     slug === "slug-repair-engines"
       ? deadCrew
-        ? ENGINE_WIN_CREW
-        : ENGINE_WIN_DESTROYED
+        ? "ship_JELLY_STATUS_ENGINES_deadCrew_text"
+        : "ship_JELLY_STATUS_ENGINES_destroyed_text"
       : deadCrew
-        ? HALF_WIN_CREW
-        : HALF_WIN_DESTROYED;
+        ? "ship_JELLY_STATUS_WEAPONS_deadCrew_text"
+        : "ship_JELLY_STATUS_WEAPONS_destroyed_text",
+  );
   const tier: SurrenderTier = slug === "slug-repair-half" || deadCrew ? "high" : "medium";
   done(g, text, rollStandard(g, tier));
   g.sfx.push("win");

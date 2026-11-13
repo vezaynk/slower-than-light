@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { afterEach, describe, it } from "node:test";
 import { eventDef, loadPack, resetPackForTests } from "@stl/pack";
 import type { ChoiceReq, EventDef } from "@stl/pack";
@@ -45,8 +46,9 @@ function open(g: Game) {
   g.phase = "event";
 }
 
+/** The hire is the only Slug aboard. A reset pack drops the archive's names, so the name is not the test. */
 function hired(g: Game) {
-  return g.crew.some((crew) => crew.side === "player" && crew.hp > 0 && crew.name === "Slocknog");
+  return g.crew.some((crew) => crew.side === "player" && crew.hp > 0 && crew.kin === "slug");
 }
 
 describe("slocknog stock", () => {
@@ -78,7 +80,7 @@ describe("slocknog stock", () => {
     assert.equal(g.scrap, 0);
     assert.equal(hired(g), true);
     assert.match(g.event?.body ?? "", /Scrap: -7\./);
-    assert.match(g.event?.body ?? "", /named Slocknog/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_RESCUE_c1_text")));
   });
 
   it("hires nobody when the scrap row is gone", () => {

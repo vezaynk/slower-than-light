@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -7,7 +8,7 @@ import { citedEvent } from "./cited-events.ts";
 const ID = "c:slaver-hostile:2";
 const LABEL = "Draw straws and send a crew-member over to the slavers.";
 const CLONE =
-  "You briefly consider cloning a replacement, but decide to respect the Federation laws regarding simultaneous duplicates.";
+  eventText("event_PIRATE_SLAVER_c1_c0_clone");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

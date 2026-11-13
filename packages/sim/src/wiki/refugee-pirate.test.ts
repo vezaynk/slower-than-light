@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -62,7 +63,7 @@ describe("Refugee (Pirate)", () => {
         assert.equal(/using the refugee ship as bait/.test(g.log.join("\n")), false);
       } else {
         trade = true;
-        assert.match(g.event?.body ?? "", /running low on supplies/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_REFUGEE_TRADER_text")));
         assert.equal(g.event?.choices[1]?.label, "Politely decline.");
         const scrap = g.scrap;
         const crew = g.crew.filter((c) => c.side === "player").length;
@@ -104,8 +105,8 @@ describe("Refugee (Pirate)", () => {
     const mid = destroyed.scrap;
     choose(destroyed, "s:refugee-pirate:contact");
     const thanks = destroyed.event?.body ?? "";
-    assert.match(thanks, /thanks you for your assistance/);
-    assert.equal(/following their trail/.test(thanks), false);
+    assert.ok((thanks).includes(eventText("ship_PIRATE_REFUGEE_destroyed_c1_text")));
+    assert.equal((thanks).includes(eventText("ship_PIRATE_REFUGEE_deadCrew_c1_text")), false);
     const low = scraps(thanks);
     assert.equal(low.length, 1, thanks);
     assert.ok(low[0]! >= 7 && low[0]! <= 10, thanks);
@@ -126,7 +127,7 @@ describe("Refugee (Pirate)", () => {
     const after = killed.scrap;
     choose(killed, "s:refugee-pirate:contact-dead");
     const followed = killed.event?.body ?? "";
-    assert.match(followed, /pirates have been following their trail/);
+    assert.ok((followed).includes(eventText("ship_PIRATE_REFUGEE_deadCrew_c1_text")));
     const spare = scraps(followed);
     assert.equal(spare.length, 1, followed);
     assert.ok(spare[0]! >= 7 && spare[0]! <= 10, followed);

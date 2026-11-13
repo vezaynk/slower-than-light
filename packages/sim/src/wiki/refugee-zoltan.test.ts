@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -68,7 +69,7 @@ describe("Refugee (Zoltan)", () => {
         assert.equal(g.fightEvent, "refugee-zoltan");
       } else {
         trade = true;
-        assert.match(g.event?.body ?? "", /running low on supplies/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_REFUGEE_TRADER_text")));
         assert.equal(g.event?.choices[1]?.label, "Politely decline.");
         const scrap = g.scrap;
         const crew = g.crew.filter((c) => c.side === "player").length;
@@ -110,7 +111,7 @@ describe("Refugee (Zoltan)", () => {
     const mid = destroyed.scrap;
     choose(destroyed, "s:refugee-zoltan:contact");
     const thanks = destroyed.event?.body ?? "";
-    assert.match(thanks, /thanks you for your assistance/);
+    assert.ok((thanks).includes(eventText("ship_PIRATE_REFUGEE_destroyed_c1_text")));
     const low = scraps(thanks);
     assert.equal(low.length, 1, thanks);
     assert.ok(low[0]! >= 7 && low[0]! <= 10, thanks);

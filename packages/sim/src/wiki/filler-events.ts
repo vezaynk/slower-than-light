@@ -471,7 +471,7 @@ function show(g: Game, text: string, offer?: SurrenderOffer, extras: string[] = 
   const tail = [...got, ...extras].filter(Boolean).join(" ");
   g.event = {
     title: here(g)?.name ?? "Event",
-    body: tail ? `${text}\n\n${tail}` : text,
+    body: [text, tail].filter(Boolean).join("\n\n"),
     choices: [{ id: "ack", label: "Continue" }],
   };
   g.phase = "event";
@@ -584,7 +584,7 @@ function roomBreach(g: Game): string {
     bar = `1 damage to ${r.system}.`;
   }
   r.breach += 1;
-  return [bar, `A breach opens in ${r.title}.`].filter(Boolean).join(" ");
+  return [bar, `Breach: ${r.title}.`].filter(Boolean).join(" ");
 }
 
 /** Beam Drone, not an Anti-Ship Fire Drone and not Beam Drone II. The fitted schematic is kit.target. */
@@ -619,7 +619,7 @@ function mantisControlled(g: Game) {
   }
 }
 
-/** "Rebel Fleet is delayed for 1 turn." The Engi cache moves the column back by its printed count. */
+/** "Rebel fleet delayed 1 jump." The Engi cache moves the column back by its printed count. */
 function delayFleetOne(g: Game) {
   // INFERRED: a fleet already at column 0 stays there.
   g.fleet = Math.max(0, g.fleet - 1);
@@ -676,7 +676,7 @@ function rockFires(g: Game): string {
   const n = 1 + (rand(g) < 0.5 ? 1 : 0);
   // Fires, "Fires and enemy AI": a room stacks to four flames. This event still adds only its 1-2.
   r.fire = Math.min(4, r.fire + n);
-  return [bar, `${n === 1 ? "1 fire" : "2 fires"} in ${r.title}.`].filter(Boolean).join(" ");
+  return [bar, `Fires: ${n} in ${r.title}.`].filter(Boolean).join(" ");
 }
 
 /**
@@ -694,23 +694,31 @@ function breachRandomSystem(g: Game): string {
   const room = g.player.rooms.find((r) => r.system === id);
   if (!room) return "";
   room.breach += 1;
-  return `A breach opens in ${room.title}.`;
+  return `Breach: ${room.title}.`;
 }
 
-/** "You lose a crewmember." Clone Bay: "The lost crewmember is revived" unless `noClone`. INFERRED: never the last one. */
+/** Loses a crewmember. Clone Bay revives them unless `noClone`. INFERRED: never the last one. */
 function loseCrew(g: Game, noClone = false): string {
-  if (!noClone && g.player.kits.clonebay) return "The lost crewmember is revived.";
+  if (!noClone && g.player.kits.clonebay) return "Clone Bay: crew revived.";
   const mine = g.crew.filter((c) => c.side === "player" && c.aboard === "player" && c.hp > 0);
   if (mine.length <= 1) return "";
   const lost = mine[Math.min(mine.length - 1, Math.floor(rand(g) * mine.length))];
   g.crew = g.crew.filter((c) => c.id !== lost.id);
-  return `${lost.name} is lost.`;
+  return `Crew lost: ${lost.name}.`;
 }
 
 function gainCrew(g: Game, race = randomRace(g)): string {
-  return joinCrew(g, race)
-    ? `A ${race} crewmember joins you.`
-    : "There is no room aboard for the new crewmember.";
+  return joinedLine(joinCrew(g, race), race);
+}
+
+/** The crew result line. A full ship takes no one. */
+function joinedLine(joined: boolean, who: string): string {
+  return joined ? `Crew gained: ${who}.` : "Crew full: no one joins.";
+}
+
+/** A named crewmember's name, read from the archive (ftl.dat `name_*`). Missing: the race's own name pool. */
+function crewName(id: string): string | undefined {
+  return eventText(id) || undefined;
 }
 
 /** Equal odds over the listed results, a {{DuplicateEvent|N}} result counted N times. */
@@ -796,7 +804,7 @@ function miningCard(g: Game, page: Page): GameEvent {
 }
 
 /**
- * "Your ship reactor is upgraded." No step is printed. INFERRED: one bar.
+ * Reactor upgrade. No step is printed. INFERRED: one bar.
  * Template:Reactor power cost caps the reactor at 25. Past that, the missiles stay spent and the bar does not move.
  */
 function bumpReactor(g: Game): string {
@@ -804,7 +812,7 @@ function bumpReactor(g: Game): string {
   g.player.reactor += 1;
   // Manpower: an event offer to upgrade the reactor does not count against the achievement.
   noteReactorEvent(g);
-  return "Your ship reactor is upgraded.";
+  return "Reactor +1.";
 }
 
 function payMiners(g: Game, base: number, hull: number): string[] {
@@ -812,8 +820,8 @@ function payMiners(g: Game, base: number, hull: number): string[] {
   if (got > 0) g.scrap += got;
   if (base > 0) g.scrapCollected = (g.scrapCollected ?? 0) + base;
   g.player.hull = Math.min(g.player.hullMax, g.player.hull + hull);
-  const lines = [`You receive ${got} scrap.`];
-  if (hull > 0) lines.push(`Your ship receives ${hull} repairs.`);
+  const lines = [`Scrap: ${got}.`];
+  if (hull > 0) lines.push(`Hull repairs: ${hull}.`);
   return lines;
 }
 
@@ -832,7 +840,7 @@ function giveMiners(g: Game, id: "c:asteroid-mining-colony:1" | "c:asteroid-mini
     if (r === "hull") {
       g.player.hull = Math.min(g.player.hullMax, g.player.hull + 10);
       show(g, eventText("event_HELP_MINERS_1_2_text"), undefined, [
-        "Your ship receives 10 repairs.",
+        "Hull repairs: 10.",
       ]);
     } else if (r === "reactor") {
       const note = bumpReactor(g);
@@ -864,7 +872,7 @@ function giveMiners(g: Game, id: "c:asteroid-mining-colony:1" | "c:asteroid-mini
       g,
       eventText("event_HELP_MINERS_2_2_text"),
       undefined,
-      ["Your ship receives 15 repairs.", note].filter(Boolean),
+      ["Hull repairs: 15.", note].filter(Boolean),
     );
   } else if (r === "augment") {
     show(g, eventText("event_HELP_MINERS_2_3_text"), undefined, [grantRandomItem(g, "augment")]);
@@ -1062,9 +1070,8 @@ function moonRanks(): Crew["skills"] {
 
 function charlieJoins(g: Game, skills?: Crew["skills"]): string {
   // The page names Charlie and not a race. An unnamed race is that sector's crew list.
-  return joinCrew(g, randomRace(g), "Charlie", skills)
-    ? "Charlie joins you."
-    : "There is no room aboard for Charlie.";
+  const name = crewName("name_Charlie");
+  return joinedLine(joinCrew(g, randomRace(g), name, skills), name ?? "1 crew");
 }
 
 function clonebayLevel(g: Game): number {
@@ -1157,22 +1164,21 @@ function buyFuel(g: Game, id: string, fuel: number) {
   if (cost == null) return;
   takeStock(g, "scrap", cost);
   g.fuel += fuel;
-  show(g, eventText("event_REFUEL_STATION_c1_text"), undefined, [`You receive ${fuel} fuel.`]);
+  show(g, eventText("event_REFUEL_STATION_c1_text"), undefined, [`Fuel: ${fuel}.`]);
 }
 
 /** The page says the engines are upgraded and prints no step. INFERRED: one level. A maxed system stays put. */
 function bumpEngines(g: Game): string {
   const sys = g.player.systems.engines;
   if (!sys || sys.level <= 0 || upgradeCost("engines", sys.level) == null)
-    return "The engines cannot take the upgrade.";
+    return "Engines: no upgrade.";
   sys.level += 1;
-  return "Engines upgraded.";
+  return "Engines +1 level.";
 }
 
 function robertJoins(g: Game): string {
-  return joinCrew(g, "Mantis", "Robert Smith")
-    ? "Robert Smith joins you."
-    : "There is no room aboard for Robert Smith.";
+  const name = crewName("name_RobertSmith");
+  return joinedLine(joinCrew(g, "Mantis", name), name ?? "Mantis");
 }
 
 function ownsMindControl(g: Game): boolean {
@@ -1215,9 +1221,9 @@ function mantisColony(g: Game) {
 function upgradeOxygen(g: Game): string {
   const sys = g.player.systems.oxygen;
   if (!sys || sys.level <= 0 || upgradeCost("oxygen", sys.level) == null)
-    return "The oxygen system cannot take the upgrade.";
+    return "Oxygen: no upgrade.";
   sys.level += 1;
-  return "Oxygen system upgraded.";
+  return "Oxygen +1 level.";
 }
 
 /** Terraforming scan, Improved Sensors level=2+. The page does not say whether damage drops it. INFERRED: the installed level. */
@@ -1268,6 +1274,7 @@ function successfulScan(g: Game, lead?: string) {
 }
 
 const WORD = { fuel: "fuel", missiles: "missiles", parts: "drone parts" } as const;
+const PAY_LINE = { fuel: "Fuel", missiles: "Missiles", parts: "Drone parts" } as const;
 
 function stock(g: Game, id: "fuel" | "missiles" | "parts"): number {
   return id === "fuel" ? g.fuel : id === "missiles" ? g.missiles : g.player.parts;
@@ -1428,9 +1435,11 @@ function craftsmenMenu(g: Game, discount: boolean) {
     if (n == null) return;
     choices.push({ id, label: label(n) });
   };
-  offer("aug", (n) => `${eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c1_choice")} [${n} scrap]`);
-  offer("weapon", (n) => `${eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c2_choice")} [${n} scrap]`);
-  offer("drone", (n) => `${eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c3_choice")} [${n} scrap]`);
+  // ftl.dat words the discounted buttons under their own ids (c1_c5_cN).
+  const craft = discount ? "event_LANIUS_RESEARCHER_CRAFT_c1_c5_c" : "event_LANIUS_RESEARCHER_CRAFT_c1_c";
+  offer("aug", (n) => `${eventText(`${craft}1_choice`)} [${n} scrap]`);
+  offer("weapon", (n) => `${eventText(`${craft}2_choice`)} [${n} scrap]`);
+  offer("drone", (n) => `${eventText(`${craft}3_choice`)} [${n} scrap]`);
   choices.push({
     id: "s:lanius-craftsmen:decline",
     label: eventText("event_LANIUS_RESEARCHER_CRAFT_c1_c4_choice"),
@@ -1622,7 +1631,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
       // "Rebel Fleet pursuit is doubled for 1 jump" (citedChoose `faster`: one extra step).
       g.fleet += 1;
       fight(g, eventText("event_ROGUE_REBEL_SEARCH_4_text"), "Rebel ship", "rebel-fight-chance");
-      showEventLines(g, ["Rebel Fleet pursuit is doubled for 1 jump."]);
+      showEventLines(g, ["Rebel fleet speed x2 for 1 jump."]);
     } else show(g, eventText("event_ROGUE_REBEL_SEARCH_1_text"));
   },
   "c:rebel-fight-chance:1": done,
@@ -1676,7 +1685,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
       // > "Rebel Fleet pursuit is doubled." — [[Rebel fight chance in nebula]]
       g.fleet *= 2;
       show(g, eventText("event_NEBULA_REBEL_CHASE_LIST_3_text"), undefined, [
-        "Rebel Fleet pursuit is doubled.",
+        "Rebel fleet speed x2.",
       ]);
       return;
     }
@@ -1785,7 +1794,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     const cost = scrapStock("c:slocknog:0");
     if (cost == null || g.scrap < cost) return;
     // Crew: at full crew a hire relieves someone already aboard (make-room.ts keepNewHire).
-    joinCrew(g, "Slug", "Slocknog");
+    joinCrew(g, "Slug", crewName("name_Slocknog"));
     keepNewHire(g);
     g.scrap -= cost;
     show(g, eventText("event_SLUG_DISTRESS_RESCUE_c1_text"), undefined, [`Scrap: -${cost}.`]);
@@ -1801,9 +1810,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   "s:slocknog:rescue": (g) => {
     // Wiki citations:
     // > "You receive a Slug crewmember named Slocknog." — [[Slocknog]]
-    const note = joinCrew(g, "Slug", "Slocknog")
-      ? "Slocknog joins you."
-      : "There is no room aboard for Slocknog.";
+    const name = crewName("name_Slocknog");
+    const note = joinedLine(joinCrew(g, "Slug", name), name ?? "Slug");
     show(g, eventText("event_SLUG_DISTRESS_RESCUE_LIST_1_c1_text"), undefined, [note]);
   },
   "s:slocknog:leave": (g) => {
@@ -2074,7 +2082,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     if (r === "delay") {
       delayFleetOne(g);
       show(g, eventText("event_LANIUS_GROUP_AUTO_LIST_3_text"), rollStandard(g, "medium"), [
-        "Rebel Fleet is delayed for 1 turn.",
+        "Rebel fleet delayed 1 jump.",
       ]);
       return;
     }
@@ -2255,7 +2263,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     if (!livingKin(g, "anaerobic")) return;
     delayFleetOne(g);
     show(g, eventText("event_LANIUS_GROUP_AUTO_c3_text"), rollStandard(g, "medium"), [
-      "Rebel Fleet is delayed for 1 turn.",
+      "Rebel fleet delayed 1 jump.",
     ]);
   },
   // Lanius ship absorbing jump beacon. Two ask results and no odds. INFERRED: equal.
@@ -2416,8 +2424,8 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     const joined = joinCrew(g, "Lanius");
     show(g, eventText("event_LANIUS_BEACON_EATER_c5_text"), undefined, [
       joined
-        ? "You receive a Lanius crewmember."
-        : "There is no room aboard for the new crewmember.",
+        ? "Crew gained: Lanius."
+        : "Crew full: no one joins.",
     ]);
   },
   // Lanius ship attacking civilian distress. Two results and no odds. INFERRED: equal.
@@ -3053,9 +3061,9 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     }
     // The page names Dr. Jones and not a race. An unnamed race is that sector's crew list.
     const race = randomRace(g);
-    const joined = joinCrew(g, race, "Dr. Jones");
+    const name = crewName("name_DrJones");
     show(g, eventText("event_DISTRESS_STATION_FIRE_RESCUE_2_text"), scrapOnly(g, "low"), [
-      joined ? "Dr. Jones joins you." : "There is no room aboard for Dr. Jones.",
+      joinedLine(joinCrew(g, race, name), name ?? race),
     ]);
   },
   "c:fire-on-research-station:2": (g) => {
@@ -3278,7 +3286,7 @@ function chooseRolled(g: Game, id: string): boolean {
       parts: 0,
     };
     offer[trade.get] = trade.m;
-    show(g, `You trade ${trade.n} ${WORD[trade.pay]}.`, offer);
+    show(g, "", offer, [`${PAY_LINE[trade.pay]}: -${trade.n}.`]);
     return true;
   }
   let m = id.match(/^s:friendly-ship-out-of-fuel:give:(\d+)$/);
@@ -3305,7 +3313,7 @@ function chooseRolled(g: Game, id: string): boolean {
       show(g, eventText("event_RANDOM_GIFT_1_text"), undefined, [spent]);
     } else {
       // "If your ship reactor was already fully upgraded ... "Could not upgrade the Reactor, it's maxed""
-      let note = "Could not upgrade the Reactor, it's maxed";
+      let note = "Reactor: no upgrade.";
       if (upgradeCost("reactor", g.player.reactor) != null) {
         g.player.reactor += 1;
         // Manpower: an event offer to upgrade the reactor does not count against the achievement.
@@ -3328,7 +3336,8 @@ function chooseRolled(g: Game, id: string): boolean {
       // Manpower: an event offer to upgrade the reactor does not count against the achievement.
       noteReactorEvent(g);
       show(g, eventText("event_TRADER_UPGRADES_LIST_1_c1_text"), undefined, [
-        `You lose ${cost} scrap and your ship reactor is upgraded.`,
+        `Scrap: -${cost}.`,
+        "Reactor +1.",
       ]);
       return true;
     }
@@ -3337,11 +3346,11 @@ function chooseRolled(g: Game, id: string): boolean {
     // Store upgrade powers a subsystem to its new level. The page does not say the new bar starts powered.
     // INFERRED: piloting, doors, and sensors take that same step.
     if (idSys !== "oxygen") sys.power = sys.level;
-    const line =
-      idSys === "sensors"
-        ? `You lose ${cost} scrap and your Sensors are upgraded to level ${sys.level}.`
-        : `You lose ${cost} scrap and your ${idSys === "oxygen" ? "Oxygen system" : idSys === "pilot" ? "Piloting" : "Door System"} is upgraded to level ${sys.level}.`;
-    show(g, eventText("event_TRADER_UPGRADES_LIST_1_c1_text"), undefined, [line]);
+    const name = { oxygen: "Oxygen", pilot: "Piloting", doors: "Doors", sensors: "Sensors" }[idSys];
+    show(g, eventText("event_TRADER_UPGRADES_LIST_1_c1_text"), undefined, [
+      `Scrap: -${cost}.`,
+      `${name}: level ${sys.level}.`,
+    ]);
     return true;
   }
   if (id === "s:trade-scrap-for-upgrades:decline") {
@@ -3605,7 +3614,7 @@ function moonChoice(g: Game, id: string): boolean {
     g.player.hull = Math.min(g.player.hullMax, g.player.hull + 10);
     const got = g.player.hull - before;
     show(g, eventText("event_FAMILY_RETURN_3_text"), undefined, [
-      `Your ship receives ${got} repairs.`,
+      `Hull repairs: ${got}.`,
     ]);
     return true;
   }

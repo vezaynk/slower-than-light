@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { XP_NEED, skillRank } from "../content.ts";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
@@ -108,7 +109,7 @@ describe("Single life form on moon", () => {
         );
       } else {
         cave = true;
-        assert.match(body, /living alone in a cave/);
+        assert.ok((body).includes(eventText("event_STRANDED_2_text")));
         assert.deepEqual(
           g.event?.choices.map((c) => c.id),
           ["s:moon:bring", "s:moon:leave"],
@@ -126,9 +127,9 @@ describe("Single life form on moon", () => {
       if (!/lone survivor/.test(g.event?.body ?? "")) continue;
       const crew = g.crew.length;
       fillerChoose(g, "s:moon:invite");
-      assert.match(g.event?.body ?? "", /Charlie joins you/);
+      assert.match(g.event?.body ?? "", /Crew gained: /);
       assert.equal(g.crew.length, crew + 1);
-      const got = ranks(g, "Charlie");
+      const got = ranks(g, eventText("name_Charlie"));
       const hot = SKILLS.filter((skill) => got[skill] === 1);
       assert.equal(hot.length, 1);
       assert.ok(SKILLS.every((skill) => got[skill] === 0 || skill === hot[0]));
@@ -177,11 +178,11 @@ describe("Single life form on moon", () => {
       fillerChoose(g, "s:moon:home");
       const body = g.event?.body ?? "";
       assert.equal(g.crew.length, crew);
-      if (/mining enterprises/.test(body)) {
+      if ((body).includes(eventText("event_FAMILY_RETURN_1_text"))) {
         high = true;
         scrapOnly(body, 19, 23);
         assert.equal(g.player.hull, before);
-      } else if (/modest means/.test(body)) {
+      } else if ((body).includes(eventText("event_FAMILY_RETURN_2_text"))) {
         medium = true;
         scrapOnly(body, 12, 19);
         assert.equal(g.player.hull, before);
@@ -203,23 +204,23 @@ describe("Single life form on moon", () => {
     for (let seed = 1; seed <= 80 && (!lost || !joined || !blast || !collapsed); seed++) {
       const g = scene(seed);
       assert.ok(g);
-      if (!/living alone in a cave/.test(g.event?.body ?? "")) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_STRANDED_2_text"))) continue;
       const crew = g.crew.length;
       const hull = g.player.hull;
       const broken = systemDamage(g);
       fillerChoose(g, "s:moon:bring");
       const body = g.event?.body ?? "";
-      if (/increasingly violent/.test(body)) {
+      if ((body).includes(eventText("event_MADMAN_1_text"))) {
         lost = true;
         assert.equal(g.crew.length, crew - 1);
-        assert.match(body, /is lost/);
+        assert.match(body, /Crew lost: /);
         assert.equal(g.player.hull, hull);
         assert.equal(g.scrap, 10);
-      } else if (/improve immensely/.test(body)) {
+      } else if ((body).includes(eventText("event_MADMAN_2_text"))) {
         joined = true;
-        assert.match(body, /Charlie joins you/);
+        assert.match(body, /Crew gained: /);
         assert.equal(g.crew.length, crew + 1);
-        assert.deepEqual(ranks(g, "Charlie"), {
+        assert.deepEqual(ranks(g, eventText("name_Charlie")), {
           pilot: 0,
           engines: 0,
           weapons: 0,
@@ -228,7 +229,7 @@ describe("Single life form on moon", () => {
           combat: 0,
         });
         assert.equal(g.player.hull, hull);
-      } else if (/makeshift explosive/.test(body)) {
+      } else if ((body).includes(eventText("event_MADMAN_3_text"))) {
         blast = true;
         assert.equal(g.player.hull, hull - 5);
         assert.equal(systemDamage(g) - broken, 1);
@@ -237,7 +238,7 @@ describe("Single life form on moon", () => {
         assert.equal(g.scrap, 10);
       } else {
         collapsed = true;
-        assert.match(body, /collapses on the trip/);
+        assert.ok((body).includes(eventText("event_MADMAN_4_text")));
         assert.deepEqual(
           g.event?.choices.map((c) => c.id),
           ["s:moon:collapse-continue"],
@@ -264,10 +265,10 @@ describe("Single life form on moon", () => {
         };
       });
       assert.ok(g);
-      if (!/living alone in a cave/.test(g.event?.body ?? "")) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_STRANDED_2_text"))) continue;
       const crew = g.crew.length;
       fillerChoose(g, "s:moon:bring");
-      if (!/increasingly violent/.test(g.event?.body ?? "")) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_MADMAN_1_text"))) continue;
       seen = true;
       assert.match(g.event?.body ?? "", /revived/);
       assert.equal(g.crew.length, crew);
@@ -287,7 +288,7 @@ describe("Single life form on moon", () => {
         game.player.systems.medbay.level = 2;
       });
       assert.ok(low);
-      if (/living alone in a cave/.test(low.event?.body ?? "") && !improved) {
+      if ((low.event?.body ?? "").includes(eventText("event_STRANDED_2_text")) && !improved) {
         improved = true;
         assert.ok(low.event?.choices.some((c) => c.id === "s:moon:medbay2"));
         assert.equal(
@@ -296,9 +297,9 @@ describe("Single life form on moon", () => {
         );
         const crew = low.crew.length;
         fillerChoose(low, "s:moon:medbay2");
-        assert.match(low.event?.body ?? "", /Charlie joins you/);
+        assert.match(low.event?.body ?? "", /Crew gained: /);
         assert.equal(low.crew.length, crew + 1);
-        assert.deepEqual(ranks(low, "Charlie"), {
+        assert.deepEqual(ranks(low, eventText("name_Charlie")), {
           pilot: 0,
           engines: 0,
           weapons: 0,
@@ -311,15 +312,15 @@ describe("Single life form on moon", () => {
         game.player.systems.medbay.level = 3;
       });
       assert.ok(high);
-      if (/living alone in a cave/.test(high.event?.body ?? "") && !advanced) {
+      if ((high.event?.body ?? "").includes(eventText("event_STRANDED_2_text")) && !advanced) {
         advanced = true;
         assert.ok(high.event?.choices.some((c) => c.id === "s:moon:medbay2"));
         assert.ok(high.event?.choices.some((c) => c.id === "s:moon:medbay3"));
         const crew = high.crew.length;
         fillerChoose(high, "s:moon:medbay3");
-        assert.match(high.event?.body ?? "", /Charlie joins you/);
+        assert.match(high.event?.body ?? "", /Crew gained: /);
         assert.equal(high.crew.length, crew + 1);
-        assert.deepEqual(ranks(high, "Charlie"), {
+        assert.deepEqual(ranks(high, eventText("name_Charlie")), {
           pilot: 1,
           engines: 1,
           weapons: 1,
@@ -341,9 +342,9 @@ describe("Single life form on moon", () => {
     for (let seed = 1; seed <= 80 && (!plain || !med || !bay); seed++) {
       const g = scene(seed);
       assert.ok(g);
-      if (!/living alone in a cave/.test(g.event?.body ?? "")) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_STRANDED_2_text"))) continue;
       fillerChoose(g, "s:moon:bring");
-      if (!/collapses on the trip/.test(g.event?.body ?? "")) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_MADMAN_4_text"))) continue;
       if (!plain) {
         plain = true;
         const crew = g.crew.length;
@@ -360,11 +361,11 @@ describe("Single life form on moon", () => {
         });
         assert.ok(again);
         fillerChoose(again, "s:moon:bring");
-        assert.match(again.event?.body ?? "", /collapses on the trip/);
+        assert.ok((again.event?.body ?? "").includes(eventText("event_MADMAN_4_text")));
         assert.ok(again.event?.choices.some((c) => c.id === "s:moon:collapse-medbay"));
         const crew = again.crew.length;
         fillerChoose(again, "s:moon:collapse-medbay");
-        assert.match(again.event?.body ?? "", /Charlie joins you/);
+        assert.match(again.event?.body ?? "", /Crew gained: /);
         assert.equal(again.crew.length, crew + 1);
         continue;
       }
@@ -383,11 +384,11 @@ describe("Single life form on moon", () => {
       });
       assert.ok(cloned);
       fillerChoose(cloned, "s:moon:bring");
-      assert.match(cloned.event?.body ?? "", /collapses on the trip/);
+      assert.ok((cloned.event?.body ?? "").includes(eventText("event_MADMAN_4_text")));
       assert.ok(cloned.event?.choices.some((c) => c.id === "s:moon:collapse-clone"));
       const crew = cloned.crew.length;
       fillerChoose(cloned, "s:moon:collapse-clone");
-      assert.match(cloned.event?.body ?? "", /Charlie joins you/);
+      assert.match(cloned.event?.body ?? "", /Crew gained: /);
       assert.equal(cloned.crew.length, crew + 1);
     }
     assert.equal(plain && med && bay, true);
@@ -405,7 +406,7 @@ describe("Single life form on moon", () => {
         game.crew[0].kin = "slug";
       });
       assert.ok(g);
-      if (!/living alone in a cave/.test(g.event?.body ?? "")) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_STRANDED_2_text"))) continue;
       assert.ok(g.event?.choices.some((c) => c.id === "s:moon:slug"));
       const crew = g.crew.length;
       const names = g.crew.map((c) => c.name);
@@ -417,10 +418,10 @@ describe("Single life form on moon", () => {
         names,
       );
       assert.equal(g.scrap, 10);
-      if (/good intentions/.test(body)) stay = true;
+      if ((body).includes(eventText("event_MADMAN_SLUG_2_text"))) stay = true;
       else {
         leave = true;
-        assert.match(body, /clearly unstable/);
+        assert.ok((body).includes(eventText("event_MADMAN_SLUG_1_text")));
       }
     }
     assert.equal(stay && leave, true);

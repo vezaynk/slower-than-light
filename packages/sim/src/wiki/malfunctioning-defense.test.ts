@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon, Game, Kit } from "../types.ts";
@@ -107,14 +108,14 @@ describe("Malfunctioning defense system", () => {
       const bars = g.player.rooms.map((r) => r.breach);
       open(g);
       fillerChoose(g, "c:malfunctioning-defense-system:0");
-      assert.match(g.event?.body ?? "", /consider your options/);
+      assert.ok((g.event?.body ?? "").includes(eventText("event_DISTRESS_SATELLITE_DEFENSE_c1_text")));
       assert.deepEqual(
         g.event?.choices.map((c) => c.id),
         ["c:malfunctioning-defense-system:2"],
       );
       fillerChoose(g, "c:malfunctioning-defense-system:2");
       const body = g.event?.body ?? "";
-      assert.match(body, /no match for your weapons/);
+      assert.ok((body).includes(eventText("event_SATELLITE_DEFENSE_BORING_1_text")));
       assert.equal(/aren't able to penetrate/.test(body), false);
       assert.equal(g.player.hull, hull);
       assert.deepEqual(
@@ -152,7 +153,7 @@ describe("Malfunctioning defense system", () => {
     );
     fillerChoose(plain, "c:malfunctioning-defense-system:4");
     const low = plain.event?.body ?? "";
-    assert.match(low, /cloaking gives out/);
+    assert.ok((low).includes(eventText("event_DISTRESS_SATELLITE_DEFENSE_c1_c3_text")));
     standard(low, [7, 10]);
 
     const improved = createGame(5);
@@ -169,7 +170,7 @@ describe("Malfunctioning defense system", () => {
     );
     fillerChoose(improved, "c:malfunctioning-defense-system:5");
     const mid = improved.event?.body ?? "";
-    assert.match(mid, /sloppy job/);
+    assert.ok((mid).includes(eventText("event_DISTRESS_SATELLITE_DEFENSE_c1_c4_text")));
     standard(mid, [12, 19]);
 
     const advanced = createGame(6);
@@ -199,7 +200,7 @@ describe("Malfunctioning defense system", () => {
     assert.ok(g.event?.choices.some((c) => c.id === "c:malfunctioning-defense-system:7"));
     fillerChoose(g, "c:malfunctioning-defense-system:7");
     const body = g.event?.body ?? "";
-    assert.match(body, /remotely fix the glitch/);
+    assert.ok((body).includes(eventText("event_DISTRESS_SATELLITE_DEFENSE_c1_c6_text")));
     standard(body, [19, 23]);
   });
 });

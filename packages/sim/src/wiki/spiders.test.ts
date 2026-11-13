@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Beacon, Game, Kit } from "../types.ts";
@@ -89,7 +90,7 @@ describe("Giant alien spiders", () => {
     const crew = g.crew.length;
     open(g);
     fillerChoose(g, "c:giant-alien-spiders:1");
-    assert.match(g.event?.body ?? "", /unknown alien/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_DISTRESS_INFESTATION_c2_text")));
     assert.equal(g.scrap, scrap);
     assert.equal(g.crew.length, crew);
     assert.equal(g.player.hull, g.player.hullMax);
@@ -108,14 +109,14 @@ describe("Giant alien spiders", () => {
       open(g);
       fillerChoose(g, "c:giant-alien-spiders:0");
       const body = g.event?.body ?? "";
-      if (/Not everybody made it back/.test(body)) {
+      if ((body).includes(eventText("event_DISTRESS_INFESTATION_LIST_1_text"))) {
         lost = true;
         assert.equal(g.crew.length, crew - 1);
         assert.equal(g.scrap, 10);
-        assert.match(body, /is lost/);
+        assert.match(body, /Crew lost: /);
       } else {
         paid = true;
-        assert.match(body, /thrilled with your success/);
+        assert.ok((body).includes(eventText("event_DISTRESS_INFESTATION_LIST_2_text")));
         assert.equal(g.crew.length, crew);
         assert.equal(g.player.weapons.length, weapons);
         const got = reward(body);
@@ -147,7 +148,7 @@ describe("Giant alien spiders", () => {
       const crew = g.crew.length;
       open(g);
       fillerChoose(g, "c:giant-alien-spiders:0");
-      if (!/Not everybody made it back/.test(g.event?.body ?? "")) continue;
+      if (!(g.event?.body ?? "").includes(eventText("event_DISTRESS_INFESTATION_LIST_1_text"))) continue;
       seen = true;
       assert.match(g.event?.body ?? "", /revived/);
       assert.equal(g.crew.length, crew);
@@ -222,7 +223,7 @@ describe("Giant alien spiders", () => {
       open(g);
       fillerChoose(g, "c:giant-alien-spiders:3");
       const body = g.event?.body ?? "";
-      assert.match(body, /meager payment/);
+      assert.ok((body).includes(eventText("event_DISTRESS_INFESTATION_c4_text")));
       assert.equal(g.player.hull, hull);
       const got = reward(body);
       assert.ok(got.scrap >= 7 && got.scrap <= 10);
@@ -258,7 +259,7 @@ describe("Giant alien spiders", () => {
     open(g);
     fillerChoose(g, "c:giant-alien-spiders:4");
     const body = g.event?.body ?? "";
-    assert.match(body, /terrifying weapon/);
+    assert.ok((body).includes(eventText("event_DISTRESS_INFESTATION_c5_text")));
     assert.equal(g.player.weapons.length, weapons);
     const got = reward(body);
     assert.ok(got.scrap >= 7 && got.scrap <= 10);

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -7,9 +8,9 @@ import { fillerChoiceDisabled, fillerChoose, fillerEvent } from "./filler-events
 import { joinCrew } from "./surrender.ts";
 
 const CURE =
-  "Your advanced medical suite is able to isolate the cause of the problem and administer an antidote. That was a close one.";
+  eventText("event_DONOR_PLAGUE_LIST_3_c2_text");
 const CLONE =
-  "You stop your crew's clone from forming, knowing that the disease would follow into his next life.";
+  eventText("event_DONOR_PLAGUE_LIST_3_c1_c0_clone");
 const SICK = /not going to make it/;
 
 function open(g: Game) {

@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game } from "../types.ts";
@@ -56,7 +57,7 @@ describe("Rock and Slug standoff", () => {
     g.scrap = 0;
     choose(g, debt.id);
     assert.equal(g.scrap, 0);
-    assert.match(g.event?.body ?? "", /thick boulder heads/);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_ROCK_SLUG_ARGUMENT_c1_text")));
   });
 
   it("paying the debt spends that scrap and the Slug captain answers", () => {
@@ -134,7 +135,7 @@ describe("Rock and Slug standoff", () => {
         );
         if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
-      } else if (/massive explosion/.test(g.event?.body ?? "")) {
+      } else if ((g.event?.body ?? "").includes(eventText("event_ROCK_SLUG_COMMAND_3_text"))) {
         boom = true;
         assert.equal(g.player.hull, hull - 5);
         assert.equal(g.scrap, 10);
@@ -144,7 +145,7 @@ describe("Rock and Slug standoff", () => {
         assert.equal(hit.length, 2);
       } else {
         pay = true;
-        assert.match(g.event?.body ?? "", /agrees to pay the price/);
+        assert.ok((g.event?.body ?? "").includes(eventText("event_ROCK_SLUG_COMMAND_2_text")));
         assert.equal(g.scrap, 10);
         assert.equal(g.player.hull, hull);
       }

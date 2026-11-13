@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { eventText } from "../event-text.ts";
 import { describe, it } from "node:test";
 import { choiceDisabled, choose, createGame } from "../sim.ts";
 import type { Game, Kit } from "../types.ts";
@@ -51,14 +52,14 @@ describe("Mantis ships battle for Rock freighter", () => {
       assert.equal(/blown a fuse|one mind/.test(g.log.join(" ")), false);
       const guns = g.enemy?.systems.weapons;
       assert.ok(guns);
-      if (/blown a fuse/.test(text)) {
+      if ((text).includes(eventText("event_ROCK_MANTIS_FREIGHTER_LIST_1_text"))) {
         weak = true;
         assert.equal(guns.damage, Math.min(2, guns.level));
         assert.equal(guns.power, guns.level - guns.damage);
         if (guns.damage === 2) dropped = true;
       } else {
         full = true;
-        assert.match(text, /one mind/);
+        assert.ok((text).includes(eventText("event_ROCK_MANTIS_FREIGHTER_LIST_2_text")));
         assert.equal(guns.damage, 0);
       }
       choose(g, "ship-resume");
@@ -110,7 +111,7 @@ describe("Mantis ships battle for Rock freighter", () => {
       assert.equal(choiceDisabled(g, "c:mantis-ships-battle-for-rock-freighter:2"), null);
       choose(g, "c:mantis-ships-battle-for-rock-freighter:2");
       const body = g.event?.body ?? "";
-      assert.match(body, /kamikaze/);
+      assert.ok((body).includes(eventText("event_ROCK_MANTIS_FREIGHTER_c3_text")));
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.ok(paid[0]! >= 19 && paid[0]! <= 23, body);
@@ -166,13 +167,13 @@ describe("Mantis ships battle for Rock freighter", () => {
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
     assert.equal(g.player.parts, 1);
-    assert.match(g.event?.body ?? "", /second Mantis/);
-    assert.equal(/second Mantis/.test(g.log.join(" ")), false);
+    assert.ok((g.event?.body ?? "").includes(eventText("event_ROCK_MANTIS_FREIGHTER_c4_text")));
+    assert.equal((g.log.join(" ")).includes(eventText("event_ROCK_MANTIS_FREIGHTER_c4_text")), false);
     choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "mantis-ships-battle-for-rock-freighter");
     assert.equal(g.enemy?.systems.weapons.damage, 0);
-    assert.equal(/second Mantis/.test(g.log.join(" ")), false);
+    assert.equal((g.log.join(" ")).includes(eventText("event_ROCK_MANTIS_FREIGHTER_c4_text")), false);
   });
 
   it("winning either ending pays medium scrap", () => {

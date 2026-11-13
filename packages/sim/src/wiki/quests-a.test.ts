@@ -164,8 +164,7 @@ describe("quest openers (quests-a)", () => {
     goToQuest(g, "rock-sun");
     assert.deepEqual(ids(g), ["qa:rock-sun:fight"]);
     choose(g, "qa:rock-sun:fight");
-    const sun =
-      eventText("ship_ROCK_UNLOCK2_escape_text");
+    const sun = eventText("ship_ROCK_UNLOCK2_escape_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, sun);
     assert.equal(g.log.includes(sun), false);
@@ -198,8 +197,7 @@ describe("quest openers (quests-a)", () => {
     addQuest(g, "rock-sun");
     goToQuest(g, "rock-sun");
     choose(g, "qa:rock-sun:fight");
-    const sun =
-      eventText("ship_ROCK_UNLOCK2_escape_text");
+    const sun = eventText("ship_ROCK_UNLOCK2_escape_text");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.body, sun);
     assert.equal(g.log.includes(sun), false);
@@ -441,7 +439,9 @@ describe("quest openers (quests-a)", () => {
     choose(g, "qa:uzt:go");
     assert.equal(g.enemy, null);
     assert.equal(g.scrap, scrap);
-    assert.ok(g.event!.body.startsWith(eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_c2_text")));
+    assert.ok(
+      g.event!.body.startsWith(eventText("ship_ZOLTAN_PEACE_QUEST_ATTACK1_surrender_c2_text")),
+    );
   });
 
   it("Unarmed Zoltan transport: hear them out -> marker; the bloodless answer unlocks the Zoltan Cruiser", () => {
@@ -536,8 +536,7 @@ describe("quest openers (quests-a)", () => {
       choose(x, "c:zoltan-research-facility:0");
       return x.phase === "event" && x.enemy != null && x.event?.choices[0]?.id === "ship-resume";
     });
-    const lead =
-      eventText("event_ZOLTAN_CREW_STUDY_LIST_3_text");
+    const lead = eventText("event_ZOLTAN_CREW_STUDY_LIST_3_text");
     assert.equal(g.event?.body, lead);
     assert.equal(g.log.includes(lead), false);
     choose(g, "ship-resume");
@@ -550,7 +549,9 @@ describe("quest openers (quests-a)", () => {
     assert.deepEqual(ids(g), ["qa:zrf:thanks"]);
     const scrap = g.scrap;
     choose(g, "qa:zrf:thanks");
-    assert.ok(g.event!.body.startsWith('"Thank you for rescuing us!'));
+    assert.ok(
+      g.event!.body.startsWith(eventText("ship_PIRATE_ZOLTAN_CREW_STUDY_destroyed_c1_text")),
+    );
     assert.ok(g.scrap > scrap);
     // "You receive a drone schematic with low ... resources and scrap." Rewards, "Drone": a random drone schematic.
     assert.match(
@@ -626,8 +627,7 @@ describe("quest openers (quests-a)", () => {
     );
     g.crew = g.crew.filter((c) => c.side === "player").slice(0, 3);
     choose(g, "qa:bride:refuse");
-    const lead =
-      eventText("event_ROCK_QUEST_MARRIAGE_c1_c2_text");
+    const lead = eventText("event_ROCK_QUEST_MARRIAGE_c1_c2_text");
     assert.equal(g.phase, "event");
     assert.ok(g.event?.body.includes(lead), g.event?.body);
     assert.equal(g.log.includes(lead), false);

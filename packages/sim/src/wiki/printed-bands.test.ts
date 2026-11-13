@@ -9,14 +9,13 @@ import "../pack/base.ts";
 import { citedEvent } from "./cited-events.ts";
 import { printedBand, rollBand, upgradeRows } from "./event-bands.ts";
 import { pageWin } from "./quests.ts";
-import { eventText } from "../event-text.ts";
 import { textRe } from "./quest-text-re.ts";
 
 const DULL = () => eventText("event_FLOATING_CARGO_SCAN_LIST_1_text");
-const GULP = eventText("event_REFUGEE_GHOST_LIST_2_text");
+const GULP = eventText("event_SLUG_DRINK_DRINK_2_text");
 const THANKS = eventText("event_HELP_MINERS_1_1_text");
 const WOW = eventText("event_HELP_MINERS_2_1_text");
-const ABANDONED = eventText("button_store");
+const ABANDONED = eventText("event_LANIUS_FUELING_STATION_LIST_3_text");
 const SCAN = eventText("event_LANIUS_FUELING_STATION_LIST_3_c3_text");
 const S3 = "s:garbled-dock:sensors3";
 
@@ -320,7 +319,9 @@ describe("printed bands", () => {
     assert.equal(tipped.seed, quiet.seed);
     assert.ok(tipped.fuel - createGame(5).fuel >= 2 && tipped.fuel - createGame(5).fuel <= 5);
     assert.equal(tipped.fuel, quiet.fuel);
-    assert.match(quiet.event?.body ?? "", /good point/);
+    assert.ok(
+      (quiet.event?.body ?? "").startsWith(eventText("event_MERCHANT_DELIVER_LIST_2_c4_text")),
+    );
   });
 
   it("pays the miner who was thanked, and skips the hull when that scrap band is missing", () => {
@@ -344,7 +345,7 @@ describe("printed bands", () => {
     assert.ok((generous.event?.body ?? "").includes(eventText("event_HELP_MINERS_2_1_text")));
     assert.equal(generous.scrap, 9);
     assert.equal(generous.player.hull, generous.player.hullMax - 15);
-    assert.match(generous.event?.body ?? "", /5 repairs/);
+    assert.match(generous.event?.body ?? "", /Hull repairs: 5\./);
 
     rewrite("asteroid-mining-colony", undefined);
     const quietThanks = miners(thanks, 5);
@@ -359,7 +360,7 @@ describe("printed bands", () => {
     assert.equal(quietWow.player.hull, quietWow.player.hullMax - 20);
     assert.ok((quietThanks.event?.body ?? "").includes(eventText("event_HELP_MINERS_1_1_text")));
     assert.ok((quietWow.event?.body ?? "").includes(eventText("event_HELP_MINERS_2_1_text")));
-    assert.equal((quietWow.event?.body ?? "").includes("repairs"), false);
+    assert.equal((quietWow.event?.body ?? "").includes("Hull repairs"), false);
   });
 
   it("pays the dull cargo scan from its band, and grants nothing when that band is missing", () => {
@@ -415,8 +416,8 @@ describe("printed bands", () => {
     assert.equal(fixed.scrap, 96);
     assert.equal(gone.scrap, 100);
     assert.equal(fixed.seed, gone.seed);
-    assert.ok((fixed.event?.body ?? "").includes(eventText("event_REFUGEE_GHOST_LIST_2_text")));
-    assert.ok((gone.event?.body ?? "").includes(eventText("event_REFUGEE_GHOST_LIST_2_text")));
+    assert.ok((fixed.event?.body ?? "").includes(GULP));
+    assert.ok((gone.event?.body ?? "").includes(GULP));
     assert.match(fixed.event?.body ?? "", /Scrap: -4\./);
     assert.equal((gone.event?.body ?? "").includes("Scrap:"), false);
 
@@ -534,30 +535,19 @@ describe("printed bands", () => {
       assert.equal(fuelMarks(campaign.event?.body ?? ""), fuelMarks(gone.event?.body ?? "") + 1);
       assert.ok((campaign.event?.body ?? "").includes(`Fuel: ${extra}.`));
       assert.equal(campaign.log.includes(`Fuel: ${extra}.`), false);
-      assert.match(
-        campaign.event?.body ?? "",
-        textRe("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"),
-      );
-      assert.match(gone.event?.body ?? "", textRe("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"));
+      assert.match(campaign.event?.body ?? "", textRe("event_LANIUS_FUELING_STATION_END_text"));
+      assert.match(gone.event?.body ?? "", textRe("event_LANIUS_FUELING_STATION_END_text"));
       assert.match(
         campaign.event?.body ?? "",
         dead
           ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text")
-          : textRe(
-              "event_DESTROYED_DEFAULT_1_text",
-              "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text",
-              "ship_PIRATE_BRIBER_destroyed_text",
-            ),
+          : textRe("ship_LANIUS_FUELING_STATION_SHIP_destroyed_text"),
       );
       assert.match(
         gone.event?.body ?? "",
         dead
           ? textRe("ship_LANIUS_FUELING_STATION_SHIP_deadCrew_text")
-          : textRe(
-              "event_DESTROYED_DEFAULT_1_text",
-              "ship_LANIUS_FUELING_STATION_SHIP_destroyed_text",
-              "ship_PIRATE_BRIBER_destroyed_text",
-            ),
+          : textRe("ship_LANIUS_FUELING_STATION_SHIP_destroyed_text"),
       );
 
       rewrite(eventId, [
@@ -574,7 +564,7 @@ describe("printed bands", () => {
       assert.ok((fixed.event?.body ?? "").includes("Fuel: 7."));
       assert.equal(fixed.log.includes("Fuel: 7."), false);
       assert.equal(quiet.log.includes("Fuel: 7."), false);
-      assert.match(quiet.event?.body ?? "", textRe("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice"));
+      assert.match(quiet.event?.body ?? "", textRe("event_LANIUS_FUELING_STATION_END_text"));
       assert.equal((quiet.event?.body ?? "").includes("Fuel: 7."), false);
     }
   });
@@ -590,7 +580,7 @@ describe("printed bands", () => {
       return g;
     }
     const rich = steal(1, 40, 100);
-    const took = /You lose (\d+) missiles and (\d+) scrap/.exec(rich.event?.body ?? "");
+    const took = /Missiles: -(\d+)\. Scrap: -(\d+)\./.exec(rich.event?.body ?? "");
     assert.ok(took);
     const missiles = Number(took[1]);
     const scrap = Number(took[2]);
@@ -598,12 +588,14 @@ describe("printed bands", () => {
     assert.ok(scrap >= 20 && scrap <= 35, rich.event?.body);
     assert.equal(rich.missiles, 40 - missiles);
     assert.equal(rich.scrap, 100 - scrap);
-    assert.match(rich.event?.body ?? "", /supplies disappear/);
+    assert.ok(
+      (rich.event?.body ?? "").startsWith(eventText("event_FUEL_ON_SLUG_CHUCKLE_LIST_1_c1_text")),
+    );
     const poor = steal(1, 0, 0);
     assert.equal(rich.seed, poor.seed);
     assert.equal(poor.missiles, 0);
     assert.equal(poor.scrap, 0);
-    assert.match(poor.event?.body ?? "", /You lose 0 missiles and 0 scrap/);
+    assert.match(poor.event?.body ?? "", /Missiles: -0\. Scrap: -0\./);
 
     rewrite(eventId, [
       { id: "theft", k: "missiles", lo: 2, hi: 6 },
@@ -626,15 +618,15 @@ describe("printed bands", () => {
     assert.equal(quiet.seed, both.seed);
     assert.equal(both.missiles, 27);
     assert.equal(both.scrap, 78);
-    assert.match(quiet.event?.body ?? "", /You lose 0 missiles and 22 scrap/);
-    assert.match(both.event?.body ?? "", /You lose 3 missiles and 22 scrap/);
+    assert.match(quiet.event?.body ?? "", /Missiles: -0\. Scrap: -22\./);
+    assert.match(both.event?.body ?? "", /Missiles: -3\. Scrap: -22\./);
 
     rewrite(eventId, [{ id: "theft", k: "missiles", lo: 3, hi: 3 }]);
     const noScrap = steal(3, 30, 100);
     assert.equal(noScrap.seed, both.seed);
     assert.equal(noScrap.missiles, 27);
     assert.equal(noScrap.scrap, 100);
-    assert.match(noScrap.event?.body ?? "", /You lose 3 missiles and 0 scrap/);
+    assert.match(noScrap.event?.body ?? "", /Missiles: -3\. Scrap: -0\./);
 
     resetPackForTests();
     let opened = false;
@@ -741,7 +733,10 @@ describe("printed bands", () => {
     );
     const one = open(seed);
     choose(one, "c:refugee-zoltan:0");
-    assert.equal(one.event?.choices[0]?.label, "Trade with them. [2 drone parts for 9 fuel]");
+    assert.equal(
+      one.event?.choices[0]?.label,
+      `${eventText("event_REFUGEE_TRADER_c1_choice")} [2 drone parts for 9 fuel]`,
+    );
     assert.equal(one.event?.choices[0]?.id, "s:refugee-zoltan:trade:parts:2:fuel:9");
     assert.equal(one.event?.choices[1]?.id, "s:refugee-zoltan:decline");
     const four = open(seed);

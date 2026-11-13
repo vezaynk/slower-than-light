@@ -24,7 +24,7 @@ describe("Wrecks in plasma storm", () => {
       const g = createGame(seed);
       const held = heldSchematics(g).length;
       fillerChoose(g, ID);
-      if (!g.event?.body.includes("salvageable drone schematic")) continue;
+      if (!g.event?.body.startsWith(eventText("event_STORM_ITEMS_LIST_4_text"))) continue;
       hits++;
       assert.equal(heldSchematics(g).length, held + 1);
       assert.match(g.event.body, /schematic (fitted|stowed in cargo)\./);
@@ -55,7 +55,7 @@ describe("Wrecks in plasma storm", () => {
       assert.equal(g.player.hull, hull - 4);
       assert.ok(g.scrap > scrap);
       assert.equal(g.phase, "event");
-      assert.match(g.event.body, /A breach opens in /);
+      assert.match(g.event.body, /Breach: /);
     }
     assert.ok(hits >= 12, String(hits));
     assert.ok(titles.size >= 2, [...titles].join(","));
@@ -72,7 +72,7 @@ describe("Wrecks in plasma storm", () => {
       assert.ok(g.player.rooms.every((r) => r.breach === 0));
       assert.equal(bars(g), 0);
       assert.equal(g.player.hull, 26);
-      assert.doesNotMatch(g.event.body, /A breach opens/);
+      assert.doesNotMatch(g.event.body, /Breach: /);
     }
     assert.ok(hits >= 3, String(hits));
   });

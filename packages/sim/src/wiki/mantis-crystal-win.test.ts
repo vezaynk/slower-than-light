@@ -5,6 +5,7 @@ import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
 import { pageWin } from "./quests.ts";
 import { textRe } from "./quest-text-re.ts";
+import { eventText } from "../event-text.ts";
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
@@ -61,11 +62,17 @@ describe("Mantis ship attacking Crystal reward", () => {
   });
 
   it("contacting the Crystal ship pays random resources, nothing, or no Crystal weapon", () => {
+    // Five printed results; the stand-in may share one functional line between results with the same outcome.
+    const lines = new Set([1, 2, 3, 4, 5].map((n) => eventText(`event_CRYSTAL_SAVED_${n}_text`)));
     const seen = new Set<string>();
     let nothing = false;
     let weapon = false;
     let paid = false;
-    for (let seed = 1; seed <= 80 && (seen.size < 5 || !nothing || !weapon || !paid); seed++) {
+    for (
+      let seed = 1;
+      seed <= 80 && (seen.size < lines.size || !nothing || !weapon || !paid);
+      seed++
+    ) {
       const g = createGame(seed);
       open(g);
       pageWin(g, "mantis-ship-attacking-crystal", false);
@@ -90,7 +97,7 @@ describe("Mantis ship attacking Crystal reward", () => {
         assert.equal(g.scrap, scrap + got[0]!);
       }
     }
-    assert.equal(seen.size, 5);
+    assert.deepEqual([...seen].sort(), [...lines].sort());
     assert.equal(nothing && weapon && paid, true);
   });
 });

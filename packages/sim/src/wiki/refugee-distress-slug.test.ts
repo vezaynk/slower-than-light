@@ -32,7 +32,9 @@ describe("Refugee ship distress (Slug)", () => {
   it("is a slug sector card with the distress intro", () => {
     // Wiki citations:
     // > "This random event occurs in Slug Controlled Nebula, Slug Home Nebula." — [[Refugee distress (Slug)]]
-    const pages = citedPagesFor("SLUG_SECTOR").filter((p) => p.dest === "Refugee ship distress (Slug)");
+    const pages = citedPagesFor("SLUG_SECTOR").filter(
+      (p) => p.dest === "Refugee ship distress (Slug)",
+    );
     assert.equal(pages.length, 1);
     assert.deepEqual(pages[0]?.sectors, ["SLUG_SECTOR", "SLUG_HOME"]);
     const home = citedPagesFor("SLUG_HOME").some((p) => p.dest === "Refugee ship distress (Slug)");
@@ -55,8 +57,7 @@ describe("Refugee ship distress (Slug)", () => {
       choose(g, "c:refugee-distress-slug:0");
       const text = `${g.event?.body ?? ""}\n${g.log.join("\n")}`;
       assert.equal(/Zoltan ship suddenly jumps|Slug ship jumps|pirate ambush/i.test(text), false);
-      const bait =
-        "As you hail the refugee ship, a pirate ship jumps into the system... it was using the refugee ship as bait!";
+      const bait = eventText("event_REFUGEE_HAIL_LIST_SLUG_1_text");
       const fightCard =
         g.phase === "combat" ||
         (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
@@ -104,7 +105,7 @@ describe("Refugee ship distress (Slug)", () => {
     assert.equal(destroyed.scrap, before + paid[0]!);
     choose(destroyed, "s:refugee-distress-slug:contact");
     const thanks = destroyed.event?.body ?? "";
-    assert.ok((thanks).includes(eventText("ship_PIRATE_REFUGEE_destroyed_c1_text")));
+    assert.ok(thanks.includes(eventText("ship_PIRATE_REFUGEE_destroyed_c1_text")));
     const low = scraps(thanks);
     assert.equal(low.length, 1, thanks);
     assert.ok(low[0]! >= 7 && low[0]! <= 10, thanks);
@@ -114,11 +115,16 @@ describe("Refugee ship distress (Slug)", () => {
     open(killed);
     assert.equal(pageWin(killed, "refugee-distress-slug", true), true);
     const dead = killed.event?.body ?? "";
-    assert.match(dead, textRe("ship_PIRATE_REFUGEE_deadCrew_text", "ship_ZOLTAN_REFUGEE_deadCrew_text"));
+    assert.match(
+      dead,
+      textRe("ship_PIRATE_REFUGEE_deadCrew_text", "ship_ZOLTAN_REFUGEE_deadCrew_text"),
+    );
     const high = scraps(dead);
     assert.equal(high.length, 1, dead);
     assert.ok(high[0]! >= 19 && high[0]! <= 23, dead);
     choose(killed, "s:refugee-distress-slug:contact-dead");
-    assert.ok((killed.event?.body ?? "").includes(eventText("ship_PIRATE_REFUGEE_deadCrew_c1_text")));
+    assert.ok(
+      (killed.event?.body ?? "").includes(eventText("ship_PIRATE_REFUGEE_deadCrew_c1_text")),
+    );
   });
 });

@@ -4,9 +4,9 @@ import { armSpike, launchSpike } from "../extras/spike.ts";
 import { choiceDisabled, choose, createGame, playerHackingOff, step } from "../sim.ts";
 import type { Game } from "../types.ts";
 import { citedEvent } from "./cited-events.ts";
+import { eventText } from "../event-text.ts";
 
-const LEAD =
-  "Your hacking system automatically counters the digital assault and you move in to fight the ship.";
+const LEAD = eventText("event_NEBULA_SLUG_OXYGEN_c3_text");
 
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");

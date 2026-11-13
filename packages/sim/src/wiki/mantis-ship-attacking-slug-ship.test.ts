@@ -107,7 +107,7 @@ describe("Optional fight: Mantis ship or Slug ship", () => {
     const augs = saved.augments.length;
     assert.equal(pageWin(saved, "mantis-ship-attacking-slug-ship", false), true);
     const body = saved.event?.body ?? "";
-    assert.match(body, /liquid asssets/);
+    assert.match(body, textRe("ship_SLUG_DISTRESS_MANTIS_destroyed_text"));
     const paid = scraps(body);
     assert.equal(paid.length, 1, body);
     assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
@@ -160,7 +160,7 @@ describe("Optional fight: Mantis ship or Slug ship", () => {
         assert.equal(g.missiles, beforeMissiles);
         assert.equal(g.player.parts, beforeParts);
       } else {
-        assert.match(text, /breaks apart/);
+        assert.match(text, textRe("event_SLUG_DISTRESS_MANTIS_SURRENDER_1_text"));
         assert.equal(resources(text), 2, text);
         assert.equal(g.scrap, before + n);
         if (n >= 7 && n <= 10) tiers.add("low");
@@ -185,7 +185,7 @@ describe("Optional fight: Mantis ship or Slug ship", () => {
       const guns = g.player.weapons.length;
       assert.equal(pageWin(g, "mantis-ship-attacking-slug-ship-slug", dead), true);
       const body = g.event?.body ?? "";
-      assert.match(body, /prized possessions/);
+      assert.match(body, textRe("ship_SLUG_DISTRESS_MANTIS_SLUG_destroyed_text"));
       const paid = scraps(body);
       assert.equal(paid.length, 1, body);
       assert.ok(paid[0]! >= 19 && paid[0]! <= 23, body);

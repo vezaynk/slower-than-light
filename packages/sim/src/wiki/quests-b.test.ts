@@ -124,7 +124,7 @@ describe("Distress: ship in asteroid belt", () => {
       const fuel = g.fuel;
       choose(g, "q:asteroid:shield");
       const body = g.event!.body;
-      if (body.startsWith(eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c6_text"))) {
+      if (body.startsWith(eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST1_1_text"))) {
         assert.equal(g.player.hull, hull - 1);
         assert.ok(g.fuel >= fuel + 3 && g.fuel <= fuel + 6);
         assert.ok(g.player.rooms.some((r) => r.fire > 0));
@@ -161,7 +161,9 @@ describe("Distress: ship in asteroid belt", () => {
       choose(g, "q:asteroid:defense");
       assert.equal(g.player.parts, 1);
       if (questBeacons(g, "fed-base").length) return "marker";
-      assert.ok(g.event!.body.startsWith(eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST2_1_text")));
+      assert.ok(
+        g.event!.body.startsWith(eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST2_1_text")),
+      );
       return "damage";
     });
     const g = atCited(createGame(3), "Civilian Sector", "Distress: ship in asteroid belt");
@@ -193,7 +195,8 @@ describe("Distress: ship in asteroid belt", () => {
       const g = atCited(createGame(seed), "Civilian Sector", "Distress: ship in asteroid belt");
       choose(g, "c:asteroid-belt-distress:0");
       choose(g, "q:asteroid:shield");
-      if (!g.event!.body.startsWith(eventText("event_CIVILIAN_ASTEROIDS_BEACON_2_c6_text"))) continue;
+      if (!g.event!.body.startsWith(eventText("event_CIVILIAN_ASTEROIDS_BEACON_LIST1_1_text")))
+        continue;
       const n = Math.max(...g.player.rooms.map((r) => r.fire));
       assert.ok(n === 1 || n === 2, String(n));
       fires.add(n);
@@ -229,12 +232,8 @@ describe("Quest: capture a ship", () => {
       g.event!.choices.find((c) => c.id === "q:capture:fight")?.label,
       "Fight the pirate ship.",
     );
+    // The marker fight has no archive lead-in, so it starts at once.
     choose(g, "q:capture:fight");
-    assert.equal(g.phase, "event");
-    assert.equal(g.event?.choices[0]?.id, "ship-resume");
-    assert.equal(g.event?.body, "The pirate ship moves to engage.");
-    assert.equal(g.log.includes("The pirate ship moves to engage."), false);
-    choose(g, "ship-resume");
     assert.equal(g.phase, "combat");
     assert.equal(g.fightEvent, "quest-capture-ship");
     assert.equal(g.enemy!.pirate, true);
@@ -291,8 +290,7 @@ describe("Planet signal", () => {
       choose(g, "c:encrypted-federation-signal:0");
       const trap = g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
       if (trap) {
-        const lead =
-          eventText("event_FEDERATION_PLANET_SIGNAL_LIST_5_text");
+        const lead = eventText("event_FEDERATION_PLANET_SIGNAL_LIST_5_text");
         assert.equal(g.event?.body, lead);
         assert.equal(g.log.includes(lead), false);
         choose(g, "ship-resume");
@@ -313,33 +311,31 @@ describe("Planet signal", () => {
         choose(g, "ack");
         const body = arrive(g, "fed-assist");
         const id = g.event!.choices[0]!.id;
-        let fightEvent: string;
-        let asb: boolean;
-        let lead: string;
-        if (body.includes(eventText("event_FEDERATION_BASE_ASSIST_1_text"))) {
-          assert.ok(id === "q:fed-base:assist" || id === "q:fed-base:assist-repair");
-          fightEvent =
-            id === "q:fed-base:assist-repair" ? "quest-fed-assist-repair" : "quest-fed-assist";
-          asb = false;
-          lead = eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice");
-        } else if (body.includes(eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text"))) {
-          assert.equal(id, "q:fed-base:assist-asb");
-          fightEvent = "quest-fed-assist-asb";
-          asb = true;
-          lead = eventText("event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text");
-        } else {
-          assert.ok(body.includes(eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice")));
-          assert.equal(id, "q:fed-base:assist-wing");
-          fightEvent = "quest-fed-assist-wing";
-          asb = true;
-          lead = eventText("event_BROKEN_REBEL_DRONE_SENSORS_2_c2_choice");
-        }
+        // The arrival card is classified by its fight id: two arrivals share one line.
+        const fights: Record<string, [string, boolean, string]> = {
+          "q:fed-base:assist": ["quest-fed-assist", false, "event_FEDERATION_BASE_ASSIST_1_text"],
+          "q:fed-base:assist-repair": [
+            "quest-fed-assist-repair",
+            false,
+            "event_FEDERATION_BASE_ASSIST_1_text",
+          ],
+          "q:fed-base:assist-asb": [
+            "quest-fed-assist-asb",
+            true,
+            "event_OVERRIDE_FEDERATION_BASE_ASSIST_4_text",
+          ],
+          "q:fed-base:assist-wing": [
+            "quest-fed-assist-wing",
+            true,
+            "event_OVERRIDE_FEDERATION_BASE_ASSIST_3_text",
+          ],
+        };
+        const row = fights[id];
+        assert.ok(row, id);
+        const [fightEvent, asb, text] = row;
+        assert.ok(body.startsWith(eventText(text)), body);
+        // The contact fight has no archive lead-in, so it starts at once.
         choose(g, id);
-        assert.equal(g.phase, "event");
-        assert.equal(g.event?.choices[0]?.id, "ship-resume");
-        assert.equal(g.event?.body, lead);
-        assert.equal(g.log.includes(lead), false);
-        choose(g, "ship-resume");
         assert.equal(g.fightEvent, fightEvent);
         assert.equal(g.asb, asb);
         assert.equal(g.phase, "combat");
@@ -366,10 +362,8 @@ describe("Optional fight: Mantis ship (Engi distress)", () => {
         "Optional fight: Mantis ship (Engi distress)",
       );
       choose(g, "c:engi-ship-attacked-by-mantis-ship:0");
-      const mantisLead =
-        eventText("event_ENGI_STATION_DISTRESS_LIST_2_text");
-      const engiLead =
-        eventText("event_ENGI_STATION_DISTRESS_LIST_1_text");
+      const mantisLead = eventText("event_ENGI_STATION_DISTRESS_LIST_2_text");
+      const engiLead = eventText("event_ENGI_STATION_DISTRESS_LIST_1_text");
       const lead = g.enemy!.faction === "engi" ? engiLead : mantisLead;
       assert.equal(g.phase, "event");
       assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -414,11 +408,15 @@ describe("Optional fight: Mantis ship (Engi distress)", () => {
       }
       return body.includes(eventText("event_SAVE_ENGI_STATION_4_text"))
         ? "crew"
-        : body.includes(eventText("event_FUEL_OFF_ENGI_DUBIOUS_c3_text"))
+        : body.includes(eventText("event_SAVE_ENGI_STATION_2_text"))
           ? "fuel"
           : "empty";
     });
-    const g = atCited(createGame(2), "Engi Controlled Sector", "Optional fight: Mantis ship (Engi distress)");
+    const g = atCited(
+      createGame(2),
+      "Engi Controlled Sector",
+      "Optional fight: Mantis ship (Engi distress)",
+    );
     g.player.hull = 5;
     choose(g, "q:engi-station:protocol");
     assert.equal(g.player.hull, 15);
@@ -431,14 +429,22 @@ describe("Optional fight: Mantis ship (Engi distress)", () => {
     // Wiki citations:
     // > "You receive a weapon with low scrap." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
     // > "You receive a drone schematic with low scrap." — [[Engi ship attacked by Mantis ship#Contact the Engi]]
-    const w = atCited(createGame(3), "Engi Controlled Sector", "Optional fight: Mantis ship (Engi distress)");
+    const w = atCited(
+      createGame(3),
+      "Engi Controlled Sector",
+      "Optional fight: Mantis ship (Engi distress)",
+    );
     const guns = w.player.weapons.length + (w.cargo ?? []).length;
     const scrap = w.scrap;
     choose(w, "q:engi-station:weapon");
     assert.ok(w.scrap > scrap);
     assert.equal(w.player.weapons.length + (w.cargo ?? []).length, guns + 1);
     assert.match(w.event!.body, /mounted\.|stowed in cargo\./);
-    const d = atCited(createGame(4), "Engi Controlled Sector", "Optional fight: Mantis ship (Engi distress)");
+    const d = atCited(
+      createGame(4),
+      "Engi Controlled Sector",
+      "Optional fight: Mantis ship (Engi distress)",
+    );
     choose(d, "q:engi-station:drone");
     assert.match(d.event!.body, /schematic (fitted|stowed in cargo)\./);
   });
@@ -497,12 +503,8 @@ describe("Quest offer: merchant", () => {
           g.event!.choices.find((c) => c.id === "q:merchant:pirate")?.label,
           "Fight a Pirate ship.",
         );
+        // The investigation fight has no archive lead-in, so it starts at once.
         choose(g, "q:merchant:pirate");
-        assert.equal(g.phase, "event");
-        assert.equal(g.event?.choices[0]?.id, "ship-resume");
-        assert.equal(g.event?.body, "The pirate turns on you.");
-        assert.equal(g.log.includes("The pirate turns on you."), false);
-        choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
         assert.equal(g.enemySurrender!.chance, 0);
         assert.equal(g.fightEvent, "quest-merchant-pirate");
@@ -570,9 +572,12 @@ describe("Wreckage in nebula", () => {
       choose(g, "c:nebula-wreckage:0");
       choose(g, "q:nebula:assist");
       choose(g, "q:nebula:comfort");
-      assert.ok(g.event!.body.includes(eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c2_choice")));
+      assert.ok(
+        questBeacons(g, "abadoth").length === 1 || (g.questsNext ?? []).includes("abadoth"),
+        g.event!.body,
+      );
       choose(g, "ack");
-      assert.ok(arrive(g, "abadoth").includes(eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c1_choice")));
+      assert.ok(arrive(g, "abadoth").includes(eventText("event_SECRET_WORD_ABADOTH_text")));
       assert.deepEqual(ids(g), ["q:abadoth:slug", "q:abadoth:scan"]);
       return g;
     };
@@ -586,8 +591,7 @@ describe("Wreckage in nebula", () => {
     const b = setup(4);
     choose(b, "q:abadoth:slug");
     choose(b, "q:abadoth:anodyne");
-    const zoltanLead =
-      eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c1_text");
+    const zoltanLead = eventText("event_SECRET_WORD_ABADOTH_CONCLUSION_c1_text");
     assert.equal(b.phase, "event");
     assert.equal(b.event?.choices[0]?.id, "ship-resume");
     assert.equal(b.event?.body, zoltanLead);

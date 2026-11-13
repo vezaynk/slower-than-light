@@ -28,12 +28,8 @@ describe("Optional fight: unarmed Lanius ship", () => {
     // > "Fight a Lanius ship (default Lanius rewards)." — [[Lanius lone ship]]
     const g = createGame(1);
     open(g);
-    assert.equal(
-      g.event?.body,
-      "Unarmed Lanius ship chasing a civilian ship.",
-    );
-    const lead =
-      eventText("event_LANIUS_SCARED_CIVILIAN_c1_text");
+    assert.equal(g.event?.body, "Unarmed Lanius ship chasing a civilian ship.");
+    const lead = eventText("event_LANIUS_SCARED_CIVILIAN_c1_text");
     choose(g, "c:lanius-lone-ship:0");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "ship-resume");
@@ -80,16 +76,16 @@ describe("Optional fight: unarmed Lanius ship", () => {
       const fight =
         g.enemy != null && g.event?.choices.some((c) => c.id === "ship-resume") === true;
       if (store) {
-        assert.match(body, /trade potential/);
-        assert.equal(/trade potential/.test(g.log.join("\n")), false);
+        assert.match(body, textRe("event_LANIUS_SCARED_CIVILIAN_LIST_1_text"));
+        assert.equal(g.log.includes(eventText("event_LANIUS_SCARED_CIVILIAN_LIST_1_text")), false);
         choose(g, "q:open-store");
         assert.equal(g.phase, "store");
         assert.ok(g.stock && g.stock.length > 0);
         assert.equal(g.scrap, 10);
         seen.add("store");
       } else if (fight) {
-        assert.match(body, /enraged/);
-        assert.equal(/enraged/.test(g.log.join("\n")), false);
+        assert.match(body, textRe("event_LANIUS_SCARED_CIVILIAN_LIST_3_text"));
+        assert.equal(g.log.includes(eventText("event_LANIUS_SCARED_CIVILIAN_LIST_3_text")), false);
         choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
         assert.equal(g.fightEvent, "lanius-lone-ship");
@@ -97,7 +93,7 @@ describe("Optional fight: unarmed Lanius ship", () => {
         assert.equal(g.scrap, 10);
         seen.add("fight");
       } else {
-        assert.match(g.event?.body ?? "", /Expunge/);
+        assert.match(g.event?.body ?? "", textRe("event_LANIUS_SCARED_CIVILIAN_LIST_2_text"));
         assert.match(g.event?.body ?? "", /Nothing happens/);
         assert.equal(g.scrap, 10);
         seen.add("nothing");
@@ -132,8 +128,8 @@ describe("Optional fight: unarmed Lanius ship", () => {
     choose(g, "c:lanius-lone-ship:3");
     assert.equal(g.phase, "event");
     assert.equal(g.event?.choices[0]?.id, "q:open-store");
-    assert.match(g.event?.body ?? "", /merchant's guild/);
-    assert.equal(/merchant's guild/.test(g.log.join("\n")), false);
+    assert.match(g.event?.body ?? "", textRe("event_LANIUS_SCARED_CIVILIAN_c4_text"));
+    assert.equal(g.log.includes(eventText("event_LANIUS_SCARED_CIVILIAN_c4_text")), false);
     choose(g, "q:open-store");
     assert.equal(g.phase, "store");
     assert.ok(g.stock && g.stock.length > 0);

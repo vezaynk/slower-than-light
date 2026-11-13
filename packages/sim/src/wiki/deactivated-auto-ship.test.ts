@@ -93,8 +93,7 @@ describe("Deactivated Auto-ship", () => {
       const parts = g.player.parts;
       const seen = visited(g);
       choose(g, "c:deactivated-auto-ship:1");
-      const reactivate =
-        eventText("event_DOWNLOAD_DRONE_DATA_2_text");
+      const reactivate = eventText("event_DOWNLOAD_DRONE_DATA_2_text");
       const armed =
         g.phase === "combat" ||
         (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
@@ -112,7 +111,7 @@ describe("Deactivated Auto-ship", () => {
       } else {
         data = true;
         const body = g.event?.body ?? "";
-        assert.match(body, /map has been updated/);
+        assert.match(body, textRe("event_DOWNLOAD_DRONE_DATA_1_text"));
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
         assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
@@ -162,7 +161,7 @@ describe("Deactivated Auto-ship", () => {
         assert.deepEqual(visited(g), seen);
       } else {
         standby = true;
-        assert.match(body, /on standby/);
+        assert.match(body, textRe("event_BROKEN_REBEL_DRONE_SENSORS_2_text"));
         assert.equal(g.scrap, 10);
         assert.equal(
           g.event?.choices.some((c) => c.id === "q:deactivated-auto:yes"),
@@ -183,8 +182,7 @@ describe("Deactivated Auto-ship", () => {
         assert.equal(no.fleet, 5);
         assert.equal(no.phase, "event");
         choose(g, "q:deactivated-auto:yes");
-        const reactivate =
-          eventText("event_DOWNLOAD_DRONE_DATA_2_text");
+        const reactivate = eventText("event_DOWNLOAD_DRONE_DATA_2_text");
         const armed =
           g.phase === "combat" ||
           (g.phase === "event" && g.enemy != null && g.event?.choices[0]?.id === "ship-resume");
@@ -202,7 +200,7 @@ describe("Deactivated Auto-ship", () => {
         } else {
           yesData = true;
           const next = g.event?.body ?? "";
-          assert.match(next, /map has been updated/);
+          assert.match(next, textRe("event_DOWNLOAD_DRONE_DATA_1_text"));
           const paid = scraps(next);
           assert.equal(paid.length, 1, next);
           assert.ok(paid[0]! >= 7 && paid[0]! <= 10, next);

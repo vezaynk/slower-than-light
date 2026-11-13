@@ -43,7 +43,9 @@ describe("Optional fight: Slug ship and Rock ship", () => {
         fight = true;
         assert.equal(g.enemy?.faction, "slug");
         assert.equal(g.scrap, 10);
-        assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_ROCK_FIGHT_2_text")));
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_ROCK_FIGHT_2_text")),
+        );
         assert.equal(
           g.log.some((line) => line.includes(eventText("event_SLUG_DISTRESS_ROCK_FIGHT_2_text"))),
           false,
@@ -52,7 +54,9 @@ describe("Optional fight: Slug ship and Rock ship", () => {
         assert.equal(g.phase, "combat");
       } else {
         down = true;
-        assert.ok((g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_ROCK_FIGHT_1_text")));
+        assert.ok(
+          (g.event?.body ?? "").includes(eventText("event_SLUG_DISTRESS_ROCK_FIGHT_1_text")),
+        );
         assert.match(g.event?.body ?? "", /Nothing happens/);
         assert.equal(g.scrap, 10);
       }
@@ -79,17 +83,14 @@ describe("Optional fight: Slug ship and Rock ship", () => {
         fight += 1;
         assert.equal(g.enemy?.faction, "rock");
         assert.equal(g.scrap, 10);
-        assert.match(g.event?.body ?? "", /don't deserve to live/);
-        assert.equal(
-          g.log.some((line) => line.includes("don't deserve to live")),
-          false,
-        );
+        const lead = eventText("event_SLUG_DISTRESS_ROCK_AVOID_3_text");
+        assert.equal(g.event?.body, lead);
+        assert.equal(g.log.includes(lead), false);
         choose(g, "ship-resume");
         assert.equal(g.phase, "combat");
       } else {
         nothing += 1;
-        assert.match(g.event?.body ?? "", /leave them alone/);
-        assert.match(g.event?.body ?? "", /Nothing happens/);
+        assert.equal(g.event?.body, eventText("event_SLUG_DISTRESS_ROCK_AVOID_1_text"));
         assert.equal(g.scrap, 10);
       }
     }
@@ -119,17 +120,18 @@ describe("Optional fight: Slug ship and Rock ship", () => {
         assert.ok(paid[0]! >= 12 && paid[0]! <= 19, body);
         if (dead) assert.match(body, textRe("ship_JELLY_DISTRESS_ROCK_deadCrew_text"));
         else assert.match(body, textRe("ship_JELLY_DISTRESS_ROCK_destroyed_text"));
-        if (textRe("event_SLUG_DISTRESS_ROCK_RESULT_3_text").test(body)) {
+        // The abandoned freighter's line can match the win line, so it is told apart by its second payment.
+        if (paid.length === 2) {
           abandoned = true;
-          assert.equal(paid.length, 2, body);
+          assert.match(body, textRe("event_SLUG_DISTRESS_ROCK_RESULT_3_text"));
           assert.ok(paid[1]! >= 12 && paid[1]! <= 19, body);
         } else {
           assert.match(body, /Nothing happens/);
           assert.equal(paid.length, 1, body);
-          if (/ungrateful/.test(body)) left = true;
+          if (body.includes(eventText("event_SLUG_DISTRESS_ROCK_RESULT_1_text"))) left = true;
           else {
             thanks = true;
-            assert.ok((body).includes(eventText("event_DISTRESS_SATELLITE_DEFENSE_c1_c2_text")));
+            assert.ok(body.includes(eventText("event_SLUG_DISTRESS_ROCK_RESULT_2_text")));
           }
         }
       }

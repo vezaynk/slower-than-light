@@ -28,7 +28,7 @@ describe("Trade: scrap for fuel", () => {
       assert.equal(g.scrap, 40 - cost);
       assert.equal(g.fuel, had + fuel);
       assert.ok((g.event?.body ?? "").includes(eventText("event_REFUEL_STATION_c1_text")));
-      assert.match(g.event?.body ?? "", new RegExp(`You receive ${fuel} fuel`));
+      assert.match(g.event?.body ?? "", new RegExp(`Fuel: ${fuel}\\.`));
     }
   });
 

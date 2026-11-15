@@ -226,13 +226,65 @@ describe("Lanius ship absorbing jump beacon", () => {
     assert.ok((g.event?.body ?? "").includes(eventText("event_LANIUS_BEACON_EATER_c4_text")));
     assert.deepEqual(
       g.event?.choices.map((c) => c.id),
-      ["s:lanius-beacon-eater:decline"],
+      [
+        "s:lanius-beacon-eater:scrap",
+        "s:lanius-beacon-eater:missiles",
+        "s:lanius-beacon-eater:parts",
+        "s:lanius-beacon-eater:decline",
+      ],
     );
     choose(g, "s:lanius-beacon-eater:decline");
     assert.equal(g.event?.body, "Nothing happens.");
     sameStock(g, held);
     assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
     assert.equal(g.phase, "event");
+  });
+
+  it("a Lanius crewmember can buy an augmentation for scrap, missiles, or drone parts", () => {
+    const trades = [
+      ["s:lanius-beacon-eater:scrap", "scrap"],
+      ["s:lanius-beacon-eater:missiles", "missiles"],
+      ["s:lanius-beacon-eater:parts", "parts"],
+    ] as const;
+    for (const [id, kind] of trades) {
+      const g = createGame(3);
+      open(g);
+      assert.equal(joinCrew(g, "Lanius"), true);
+      g.scrap = 30;
+      g.missiles = 6;
+      g.player.parts = 6;
+      choose(g, "c:lanius-ship-absorbing-jump-beacon:2");
+      assert.equal(choiceDisabled(g, id), null);
+      const augs = g.augments.length;
+      choose(g, id);
+      const body = g.event?.body ?? "";
+      assert.ok(body.includes(eventText("event_LANIUS_BEACON_EATER_c4_c1_text")), body);
+      assert.match(body, /fitted\.|already fitted|leave behind|No augmentation/);
+      if (kind === "scrap") {
+        assert.equal(g.scrap, 0);
+        assert.equal(g.missiles, 6);
+        assert.equal(g.player.parts, 6);
+      } else if (kind === "missiles") {
+        assert.equal(g.scrap, 30);
+        assert.equal(g.missiles, 0);
+        assert.equal(g.player.parts, 6);
+      } else {
+        assert.equal(g.scrap, 30);
+        assert.equal(g.missiles, 6);
+        assert.equal(g.player.parts, 0);
+      }
+      assert.ok(g.augments.length === augs + 1 || /already fitted|leave behind/.test(body), body);
+    }
+    const short = createGame(4);
+    open(short);
+    assert.equal(joinCrew(short, "Lanius"), true);
+    short.scrap = 29;
+    short.missiles = 5;
+    short.player.parts = 5;
+    choose(short, "c:lanius-ship-absorbing-jump-beacon:2");
+    assert.equal(choiceDisabled(short, "s:lanius-beacon-eater:scrap"), "Need 30 scrap");
+    assert.equal(choiceDisabled(short, "s:lanius-beacon-eater:missiles"), "Need 6 missiles");
+    assert.equal(choiceDisabled(short, "s:lanius-beacon-eater:parts"), "Need 6 drone parts");
   });
 
   it("a Hull Repair Drone adds a Lanius and spends no drone part", () => {

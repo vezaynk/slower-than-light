@@ -38,6 +38,16 @@ function gives(text: string, kind: "weapon" | "drone"): number {
     : 0;
 }
 
+/** The rows whose sentence hands over an unnamed crewmember. */
+function joins(text: string): number {
+  return textRe(
+    "event_REBEL_TRANSPORT_DESTROYED_9_text",
+    "event_REBEL_TRANSPORT_CAPTURED_2_text",
+  ).test(text)
+    ? 1
+    : 0;
+}
+
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
@@ -112,7 +122,7 @@ describe("Rebel transport ship", () => {
         assert.equal(g.scrap, 10 + paid[0]!);
         assert.equal(held(g, "weapon"), guns + gives(text, "weapon"), body);
         assert.equal(held(g, "drone"), kits + gives(text, "drone"), body);
-        assert.equal(g.crew.length, people);
+        assert.equal(g.crew.length, people + joins(text));
         const resources = ["Fuel", "Missiles", "Drone parts"].filter((label) =>
           new RegExp(`${label}: \\d+`).test(body),
         ).length;

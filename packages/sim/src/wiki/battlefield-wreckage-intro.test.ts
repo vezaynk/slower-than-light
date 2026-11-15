@@ -27,7 +27,7 @@ function open(g: Game) {
 }
 
 describe("Battlefield wreckage intros", () => {
-  it("shows one of the two printed opening intros and keeps the three choices", () => {
+  it("shows one of the two printed opening intros and keeps the sensor choices", () => {
     const seen = new Set<string>();
     for (let seed = 1; seed <= 40 && seen.size < new Set(INTROS).size; seed++) {
       const g = createGame(seed);
@@ -39,6 +39,7 @@ describe("Battlefield wreckage intros", () => {
         "c:battlefield-wreckage:0",
         "c:battlefield-wreckage:1",
         "c:battlefield-wreckage:2",
+        "c:battlefield-wreckage:3",
       ]);
       seen.add(body);
     }

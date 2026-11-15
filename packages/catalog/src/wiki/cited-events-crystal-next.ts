@@ -1,7 +1,7 @@
 /**
  * Crystal pages whose opening choice states one scrap amount, scrap tier,
  * hull number, fleet delay, or named fight.
- * Redirects have no Locations. A branched crew or weapon reward is not granted.
+ * Redirects have no Locations. The opening choice records the scrap. The follow-up grants the crew or the weapon.
  */
 
 export type CitedFx =
@@ -43,7 +43,7 @@ export const EXTRA_EVENTS: CitedEventDef[] = [
         label: "Lose 35 scrap. Then choose: 1 Crystal crew or a weapon.",
         // "Offer 35 scrap."
         // sign -1
-        // Crystal crewmember, Crystal Lockdown Bomb, or Crystal Burst Mark II. Branched reward is not granted.
+        // The follow-up card grants 1 Crystal crew, or an equal Crystal Lockdown Bomb / Crystal Burst Mark II.
         fx: [
           { k: "res", id: "scrap", sign: -1, lo: 35, hi: 35 },
           { k: "note", text: "Lose 35 scrap." },

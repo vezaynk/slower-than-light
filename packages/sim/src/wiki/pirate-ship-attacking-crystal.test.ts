@@ -88,7 +88,7 @@ describe("Pirate ship attacking Crystal", () => {
     assert.equal(resources(dead), 2, dead);
   });
 
-  it("contacting them pays random resources, nothing, or no Crystal weapon", () => {
+  it("contacting them pays random resources, nothing, or a Crystal weapon", () => {
     // Five printed results; duplicate results may share one archive line.
     const LINES = new Set([1, 2, 3, 4, 5].map((n) => eventText(`event_CRYSTAL_SAVED_${n}_text`)));
     const seen = new Set<string>();
@@ -112,20 +112,23 @@ describe("Pirate ship attacking Crystal", () => {
       const body = g.event?.body ?? "";
       const text = body.split("\n\n")[0] ?? "";
       seen.add(text);
-      assert.equal(g.player.weapons.length, guns, body);
       if (textRe("event_CRYSTAL_SAVED_5_text").test(body)) {
         weapon = true;
         assert.equal(g.scrap, scrap);
         assert.equal(resources(body), 0);
+        assert.match(body, /mounted\.|stowed in cargo\.|choose what to leave behind/);
+        assert.equal(g.player.weapons.length, guns + (/mounted\./.test(body) ? 1 : 0));
       } else if (body.includes("Nothing happens")) {
         nothing = true;
         assert.equal(g.scrap, scrap);
         assert.equal(g.fuel, fuel);
+        assert.equal(g.player.weapons.length, guns);
       } else {
         const paid = scraps(body);
         assert.equal(paid.length, 1, body);
         assert.equal(resources(body), 2, body);
         assert.equal(g.scrap, scrap + paid[0]!);
+        assert.equal(g.player.weapons.length, guns);
         const gained = g.fuel - fuel + (g.missiles - missiles) + (g.player.parts - parts);
         assert.ok(gained >= 2 && gained <= 6, body);
         if (paid[0]! >= 7 && paid[0]! <= 10) tiers.add("low");

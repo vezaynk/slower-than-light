@@ -49,7 +49,7 @@ import { rollBand } from "./event-bands.ts";
 import { priced, rollPrice } from "./event-prices.ts";
 import { rockSlugPay, slugCaptainGrateful } from "./quests.ts";
 import { keepNewHire, receiveAugment } from "../rules/make-room.ts";
-import { grantRandomItem } from "../rules/bonus-item.ts";
+import { grantRandomItem, weaponLine } from "../rules/bonus-item.ts";
 import {
   archiveAuthoredChoices,
   eventMissileWeapon,
@@ -368,10 +368,24 @@ function tradeIntro(g: Game, page: Page): GameEvent {
 
 function hireCard(g: Game, page: Page): GameEvent {
   const text = randOpening(g, page.slug);
+  // Crew hiring station. Two offers, shown with race and price. Skills are named on the page and not numbered.
+  // INFERRED: the first price is 25–45 and the second is 25–55, both inclusive. The race is the sector's random crew.
+  const low = between(g, [25, 45]);
+  const high = between(g, [25, 55]);
+  const first = randomRace(g);
+  const second = randomRace(g);
+  const decline = page.choices.find((c) => c.id === "c:crew-hiring-station:0");
   return {
     title: page.dest,
     body: text,
-    choices: page.choices.map((c) => ({ id: c.id, label: c.label })),
+    choices: [
+      { id: `s:hire:${low}:${first}`, label: `${first} crew. [${low} scrap]` },
+      { id: `s:hire:${high}:${second}`, label: `${second} crew. [${high} scrap]` },
+      {
+        id: decline?.id ?? "c:crew-hiring-station:0",
+        label: decline?.label ?? "Nothing happens.",
+      },
+    ],
   };
 }
 
@@ -1123,10 +1137,18 @@ function rebelChanceCard(g: Game, page: Page): GameEvent {
 }
 
 function wreckageCard(g: Game, page: Page): GameEvent {
+  const choices = page.choices.map((c) => ({ id: c.id, label: c.label }));
+  // Advanced Sensors. Two results and no odds. The button stays on the card.
+  if (!choices.some((c) => c.id === "c:battlefield-wreckage:3")) {
+    choices.push({
+      id: "c:battlefield-wreckage:3",
+      label: eventText("event_WRECKAGE_EVENT_c3_choice"),
+    });
+  }
   return {
     title: page.dest,
     body: betweenOpening(g, page.slug),
-    choices: page.choices.map((c) => ({ id: c.id, label: c.label })),
+    choices,
   };
 }
 
@@ -1227,6 +1249,26 @@ function upgradeOxygen(g: Game): string {
 /** Terraforming scan, Improved Sensors level=2+. The page does not say whether damage drops it. INFERRED: the installed level. */
 function sensorsLevel(g: Game): number {
   return g.player.systems.sensors?.level ?? 0;
+}
+
+/** Lanius jump beacon. Each Lanius-crew trade pays its printed cost and grants an unnamed augmentation. */
+function beaconEaterTrade(g: Game, kind: "scrap" | "missiles" | "parts") {
+  const text = eventText("event_LANIUS_BEACON_EATER_c4_c1_text");
+  if (kind === "scrap") {
+    if (g.scrap < 30) return;
+    g.scrap -= 30;
+    show(g, text, undefined, ["Scrap: -30.", grantRandomItem(g, "augment")]);
+    return;
+  }
+  if (kind === "missiles") {
+    if (g.missiles < 6) return;
+    g.missiles -= 6;
+    show(g, text, undefined, ["Missiles: -6.", grantRandomItem(g, "augment")]);
+    return;
+  }
+  if (g.player.parts < 6) return;
+  g.player.parts -= 6;
+  show(g, text, undefined, ["Drone parts: -6.", grantRandomItem(g, "augment")]);
 }
 
 /** Terraforming scan, Zoltan Crew. A dead Zoltan does not count. */
@@ -1581,10 +1623,21 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
   "c:battlefield-wreckage:1": done,
   // Battlefield wreckage. {{Blue Option|Improved Sensors|Use your Sensors to scan the wreckage.|level=2|shortreq=Sensors}}.
   // The only printed result. level=2 means at least that installed level. Not a fight, and no "Nothing happens."
-  // Advanced Sensors (level=3) can grant an unnamed weapon and prints no odds. Left unwired.
   "c:battlefield-wreckage:2": (g) => {
     if (sensorsLevel(g) < 2) return;
     show(g, eventText("event_WRECKAGE_EVENT_c1_text"), rollSurrenderOffer(g, "medium", true));
+  },
+  // Battlefield wreckage. {{Blue Option|Advanced Sensors|...|level=3}}. Two results and no odds. INFERRED: equal.
+  // High resources, or an unnamed weapon with low scrap.
+  "c:battlefield-wreckage:3": (g) => {
+    if (sensorsLevel(g) < 3) return;
+    if (rand(g) < 0.5) {
+      show(g, eventText("event_WRECKAGE_EVENT_c3_high_text"), rollSurrenderOffer(g, "high", true));
+      return;
+    }
+    show(g, eventText("event_WRECKAGE_EVENT_c3_weapon_text"), scrapOnly(g, "low"), [
+      grantRandomItem(g, "weapon"),
+    ]);
   },
 
   // ---- Plagued station ----
@@ -2310,18 +2363,33 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     // > "Nothing happens." — [[Lanius ship absorbing jump beacon]]
     beaconEaterLeave(g);
   },
-  // Lanius crew. Decline does nothing. The 30 scrap, 6 missile, and 6 drone-part trades grant an unnamed augmentation and stay unwired.
+  // Lanius crew. Decline does nothing. The three trades each grant an unnamed augmentation.
   "c:lanius-ship-absorbing-jump-beacon:2": (g) => {
     // Wiki citations:
     // > "(Lanius Crew) Ask if they require assistance." — [[Lanius ship absorbing jump beacon]]
     if (!livingKin(g, "anaerobic")) return;
     card(g, eventText("event_LANIUS_BEACON_EATER_c4_text"), [
       {
+        id: "s:lanius-beacon-eater:scrap",
+        label: eventText("event_LANIUS_BEACON_EATER_c4_c1_choice"),
+      },
+      {
+        id: "s:lanius-beacon-eater:missiles",
+        label: eventText("event_LANIUS_BEACON_EATER_c4_c2_choice"),
+      },
+      {
+        id: "s:lanius-beacon-eater:parts",
+        label: eventText("event_LANIUS_BEACON_EATER_c4_c3_choice"),
+      },
+      {
         id: "s:lanius-beacon-eater:decline",
         label: eventText("event_LANIUS_BEACON_EATER_c4_c4_choice"),
       },
     ]);
   },
+  "s:lanius-beacon-eater:scrap": (g) => beaconEaterTrade(g, "scrap"),
+  "s:lanius-beacon-eater:missiles": (g) => beaconEaterTrade(g, "missiles"),
+  "s:lanius-beacon-eater:parts": (g) => beaconEaterTrade(g, "parts"),
   "s:lanius-beacon-eater:decline": (g) => {
     // Wiki citations:
     // > "Nothing happens." — [[Lanius ship absorbing jump beacon]]
@@ -2418,7 +2486,7 @@ export const FILLER_CHOICES: Record<string, (g: Game) => void> = {
     show(g, eventText("event_LANIUS_RESEARCHER_CRAFT_c2_text"));
   },
   // Crew hiring station. "Don't hire anyone." Nothing happens.
-  // The 25-45 and 25-55 scrap hires grant an unnamed crewmember and stay unwired.
+  // The two rolled hires are on the opening card (hireCard).
   "c:crew-hiring-station:0": (g) => {
     show(g, "Nothing happens.");
   },
@@ -3471,7 +3539,7 @@ function chooseRolled(g: Game, id: string): boolean {
     return true;
   }
   // Mind Control. Two results and no odds. INFERRED: equal.
-  // Both buys grant an unnamed weapon, so neither spends the printed 45 scrap.
+  // The deal shows the weapon, then still charges 45: the discount is taken back. The lie is the fight.
   if (id === "c:pirate-ship-selling-weapon:2") {
     if (!ownsMindControl(g)) return true;
     if (
@@ -3480,12 +3548,20 @@ function chooseRolled(g: Game, id: string): boolean {
         ["lie", 1],
       ] as const) === "deal"
     ) {
-      card(g, eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_text"), [
-        {
-          id: "s:pirate-weapon:decline",
-          label: eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_c2_choice"),
-        },
-      ]);
+      const pool = allWeapons().filter((w) => w.rarity !== 0);
+      const offered = pool[Math.min(pool.length - 1, Math.floor(rand(g) * pool.length))];
+      const choices = [];
+      if (offered) {
+        choices.push({
+          id: `s:pirate-weapon:take:${offered.id}`,
+          label: `${eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_c1_choice")} [${offered.name}, 45 scrap]`,
+        });
+      }
+      choices.push({
+        id: "s:pirate-weapon:decline",
+        label: eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_c2_choice"),
+      });
+      card(g, eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_text"), choices);
       return true;
     }
     fight(
@@ -3498,6 +3574,54 @@ function chooseRolled(g: Game, id: string): boolean {
   }
   if (id === "s:pirate-weapon:decline") {
     show(g, eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_c2_text"));
+    return true;
+  }
+  // 45 scrap for an unnamed weapon. INFERRED: equal, the weapon or the cheat. Scrap is not refunded.
+  if (id === "c:pirate-ship-selling-weapon:3") {
+    if (g.scrap < 45) return true;
+    g.scrap -= 45;
+    if (rand(g) < 0.5) {
+      show(g, eventText("event_NEBULA_WEAPONS_TRADER_BUY_text"), undefined, [
+        "Scrap: -45.",
+        grantRandomItem(g, "weapon"),
+      ]);
+      return true;
+    }
+    card(g, `${eventText("event_NEBULA_WEAPONS_TRADER_CHEAT_text")}\n\nScrap: -45.`, [
+      {
+        id: "c:pirate-ship-selling-weapon:0",
+        label: eventText("event_NEBULA_WEAPONS_TRADER_LIST2_2_text"),
+      },
+      {
+        id: "s:pirate-weapon:decline",
+        label: eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_c2_choice"),
+      },
+    ]);
+    return true;
+  }
+  const offered = id.match(/^s:pirate-weapon:take:(.+)$/);
+  if (offered) {
+    if (g.scrap < 45) return true;
+    g.scrap -= 45;
+    show(g, eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_c1_choice"), undefined, [
+      "Scrap: -45.",
+      weaponLine(g, offered[1]!),
+    ]);
+    return true;
+  }
+  const hire = id.match(/^s:hire:(\d+):([A-Za-z]+)$/);
+  if (hire) {
+    const n = Number(hire[1]);
+    const race = hire[2]!;
+    if (!race || g.scrap < n) return true;
+    // A full ship relieves someone already aboard. The new hire stays.
+    joinCrew(g, race);
+    keepNewHire(g);
+    g.scrap -= n;
+    show(g, eventText("event_BATTLEFIELD_SURVIVOR_c2_text"), undefined, [
+      `Scrap: -${n}.`,
+      `Crew gained: ${race}.`,
+    ]);
     return true;
   }
   return false;
@@ -3699,7 +3823,9 @@ export function fillerOwns(id: string): boolean {
     id in FILLER_CHOICES ||
     id === "c:pirate-ship-selling-weapon:1" ||
     id === "c:pirate-ship-selling-weapon:2" ||
+    id === "c:pirate-ship-selling-weapon:3" ||
     id.startsWith("s:pirate-weapon:") ||
+    /^s:hire:\d+:[A-Za-z]+$/.test(id) ||
     /^s:(refugee|refugee-distress|refugee-zoltan|refugee-distress-zoltan|refugee-pirate|refugee-distress-pirate|refugee-slug|refugee-distress-slug|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease|moon|confused-mantis|rock-slug):/.test(
       id,
     )
@@ -3819,6 +3945,14 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   // Wiki citations:
   // > "(Hacking System) Counter the remote hacking." — [[Boarders: Humans jammed sensors]]
   // Slaver (hostile). Engines level=6+. INFERRED: the refusal line. The page names the system and prints no sentence.
+  if (id === "c:battlefield-wreckage:3" && sensorsLevel(g) < 3) return "Needs Sensors level 3";
+  if (id === "c:pirate-ship-selling-weapon:3" && g.scrap < 45) return "Need 45 scrap";
+  const hire = id.match(/^s:hire:(\d+):[A-Za-z]+$/);
+  if (hire && g.scrap < Number(hire[1])) return `Need ${hire[1]} scrap`;
+  if (id === "s:lanius-beacon-eater:scrap" && g.scrap < 30) return "Need 30 scrap";
+  if (id === "s:lanius-beacon-eater:missiles" && g.missiles < 6) return "Need 6 missiles";
+  if (id === "s:lanius-beacon-eater:parts" && g.player.parts < 6) return "Need 6 drone parts";
+  if (/^s:pirate-weapon:take:/.test(id) && g.scrap < 45) return "Need 45 scrap";
   return ownedLock(g, id, locksOwned("filler"));
 }
 

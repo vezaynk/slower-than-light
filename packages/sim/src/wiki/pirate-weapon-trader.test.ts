@@ -82,9 +82,11 @@ describe("Pirate ship selling weapon", () => {
         assert.ok(body.includes(eventText("event_NEBULA_WEAPONS_TRADER_LIST2_1_text")));
         assert.equal(g.scrap, scrap);
         assert.equal(g.player.weapons.length, guns);
-        assert.deepEqual(
-          g.event?.choices.map((c) => c.id),
-          ["s:pirate-weapon:decline"],
+        const ids = g.event?.choices.map((c) => c.id) ?? [];
+        assert.equal(ids.includes("s:pirate-weapon:decline"), true);
+        assert.equal(
+          ids.some((choice) => choice.startsWith("s:pirate-weapon:take:")),
+          true,
         );
         choose(g, "s:pirate-weapon:decline");
         assert.ok(
@@ -98,5 +100,69 @@ describe("Pirate ship selling weapon", () => {
     }
     assert.equal(deal, true);
     assert.equal(lie, true);
+  });
+
+  it("45 scrap buys a weapon or is kept after a cheat", () => {
+    const BUY = "c:pirate-ship-selling-weapon:3";
+    let bought = false;
+    let cheated = false;
+    for (let seed = 1; seed <= 40 && (!bought || !cheated); seed++) {
+      const g = createGame(seed);
+      open(g);
+      g.scrap = 45;
+      const guns = g.player.weapons.length;
+      assert.equal(choiceDisabled(g, BUY), null);
+      choose(g, BUY);
+      assert.equal(g.scrap, 0);
+      const body = g.event?.body ?? "";
+      if (g.event?.choices.some((c) => c.id === "c:pirate-ship-selling-weapon:0")) {
+        cheated = true;
+        assert.ok(body.includes(eventText("event_NEBULA_WEAPONS_TRADER_CHEAT_text")));
+        assert.equal(g.player.weapons.length, guns);
+        choose(g, "c:pirate-ship-selling-weapon:0");
+        if (g.event?.choices[0]?.id === "ship-resume") choose(g, "ship-resume");
+        assert.equal(g.phase, "combat");
+        assert.equal(g.fightEvent, "pirate-ship-selling-weapon");
+        assert.equal(g.scrap, 0);
+      } else {
+        bought = true;
+        assert.ok(body.includes(eventText("event_NEBULA_WEAPONS_TRADER_BUY_text")));
+        assert.match(body, /mounted\.|stowed in cargo\.|choose what to leave behind/);
+        assert.equal(g.player.weapons.length, guns + (/mounted\./.test(body) ? 1 : 0));
+      }
+    }
+    assert.equal(bought && cheated, true);
+    const poor = createGame(2);
+    open(poor);
+    poor.scrap = 44;
+    assert.equal(choiceDisabled(poor, BUY), "Need 45 scrap");
+    const guns = poor.player.weapons.length;
+    choose(poor, BUY);
+    assert.equal(poor.scrap, 44);
+    assert.equal(poor.player.weapons.length, guns);
+    assert.equal(poor.event?.title, "Pirate ship selling weapon");
+  });
+
+  it("Mind Control shows the weapon, then the buy still costs 45 scrap", () => {
+    let seen = false;
+    for (let seed = 1; seed <= 40 && !seen; seed++) {
+      const g = createGame(seed);
+      open(g);
+      g.player.kits.mind = mind();
+      g.scrap = 45;
+      choose(g, MIND);
+      const take = g.event?.choices.find((c) => c.id.startsWith("s:pirate-weapon:take:"));
+      if (!take) continue;
+      seen = true;
+      assert.equal(g.scrap, 45);
+      assert.match(take.label, /45 scrap/);
+      const guns = g.player.weapons.length;
+      choose(g, take.id);
+      const body = g.event?.body ?? "";
+      assert.equal(g.scrap, 0);
+      assert.match(body, /mounted\.|stowed in cargo\.|choose what to leave behind/);
+      assert.equal(g.player.weapons.length, guns + (/mounted\./.test(body) ? 1 : 0));
+    }
+    assert.equal(seen, true);
   });
 });

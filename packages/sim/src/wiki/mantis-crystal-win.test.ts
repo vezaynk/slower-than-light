@@ -61,7 +61,7 @@ describe("Mantis ship attacking Crystal reward", () => {
     assert.equal(killed.scrap, 10 + high[0]!);
   });
 
-  it("contacting the Crystal ship pays random resources, nothing, or no Crystal weapon", () => {
+  it("contacting the Crystal ship pays random resources, nothing, or a Crystal weapon", () => {
     // Five printed results; the stand-in may share one functional line between results with the same outcome.
     const lines = new Set([1, 2, 3, 4, 5].map((n) => eventText(`event_CRYSTAL_SAVED_${n}_text`)));
     const seen = new Set<string>();
@@ -81,20 +81,23 @@ describe("Mantis ship attacking Crystal reward", () => {
       choose(g, "q:crystal-pirate:contact");
       const body = g.event?.body ?? "";
       seen.add(body.split("\n\n")[0] ?? "");
-      assert.equal(g.player.weapons.length, guns, body);
       if (body.includes("Crystal weapon")) {
         weapon = true;
         assert.equal(g.scrap, scrap);
         assert.equal(resources(body), 0);
+        assert.match(body, /mounted\.|stowed in cargo\.|choose what to leave behind/);
+        assert.equal(g.player.weapons.length, guns + (/mounted\./.test(body) ? 1 : 0));
       } else if (body.includes("Nothing happens")) {
         nothing = true;
         assert.equal(g.scrap, scrap);
+        assert.equal(g.player.weapons.length, guns);
       } else {
         paid = true;
         const got = scraps(body);
         assert.equal(got.length, 1, body);
         assert.equal(resources(body), 2, body);
         assert.equal(g.scrap, scrap + got[0]!);
+        assert.equal(g.player.weapons.length, guns);
       }
     }
     assert.deepEqual([...seen].sort(), [...lines].sort());

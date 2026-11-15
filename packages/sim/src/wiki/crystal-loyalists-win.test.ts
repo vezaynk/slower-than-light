@@ -82,7 +82,7 @@ describe("Crystal ship attacking Federation loyalists reward", () => {
     assert.equal(killed.crew.filter((c) => c.side === "player").length, killedCrew);
   });
 
-  it("contacting the Federation ship pays low scrap or resources, and does not add a crewmember", () => {
+  it("contacting the Federation ship pays low scrap or resources, and the survivor joins", () => {
     let survivor = false;
     let materials = false;
     for (let seed = 1; seed <= 40 && (!survivor || !materials); seed++) {
@@ -100,10 +100,15 @@ describe("Crystal ship attacking Federation loyalists reward", () => {
       assert.ok(paid[0]! >= 7 && paid[0]! <= 10, body);
       assert.equal(resources(body), 2, body);
       assert.equal(g.scrap, before + paid[0]!);
-      assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
       assert.equal(g.player.weapons.length, guns);
       assert.equal(g.augments.length, augments);
-      if (body.includes(eventText("event_CRYSTAL_FED_LIST_2_text"))) survivor = true;
+      if (body.includes(eventText("event_CRYSTAL_FED_LIST_2_text"))) {
+        survivor = true;
+        assert.equal(g.crew.filter((c) => c.side === "player").length, crew + 1);
+        assert.match(body, /joins you/);
+      } else {
+        assert.equal(g.crew.filter((c) => c.side === "player").length, crew);
+      }
       if (body.includes(eventText("event_CRYSTAL_FED_LIST_1_text"))) materials = true;
     }
     assert.equal(survivor && materials, true);

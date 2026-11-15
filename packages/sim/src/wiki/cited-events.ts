@@ -1280,6 +1280,26 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
   const ev = citedEventRaw(g, b);
   if (!ev) return null;
   ev.choices = presetGotos(g, stampStockLabels(ev.choices));
+  // Pirate ship selling weapon. 45 scrap for an unnamed weapon: the weapon, or cheated with the scrap kept.
+  if (
+    ev.choices.some((c) => c.id === "c:pirate-ship-selling-weapon:1") &&
+    !ev.choices.some((c) => c.id === "c:pirate-ship-selling-weapon:3")
+  ) {
+    ev.choices.push({
+      id: "c:pirate-ship-selling-weapon:3",
+      label: eventText("event_NEBULA_WEAPONS_TRADER_c3_choice"),
+    });
+  }
+  // Battlefield wreckage. Advanced Sensors stays on the card. The filler card adds the same button.
+  if (
+    ev.title === "Battlefield wreckage" &&
+    !ev.choices.some((c) => c.id === "c:battlefield-wreckage:3")
+  ) {
+    ev.choices.push({
+      id: "c:battlefield-wreckage:3",
+      label: eventText("event_WRECKAGE_EVENT_c3_choice"),
+    });
+  }
   return ev;
 }
 
@@ -1305,6 +1325,7 @@ export function citedChoiceDisabled(g: Game, id: string): string | null {
   }
   const missing = missingDisabled(g, id);
   if (missing) return missing;
+  if (id === "c:crystal-scrap-collector:0" && g.scrap < 35) return "Need 35 scrap";
   const locked = ownedLock(g, id, locksOwned("cited"));
   if (locked) return locked;
   // Zoltan odd moon. Boarding Drone. INFERRED: the refusal lines. The page names the drone and the part.
@@ -1580,6 +1601,30 @@ export function citedChoose(ctx: CitedChoice, id: string): boolean {
   // Before the generic fleet/tier loops, so the old :0 rows are not applied twice.
   const crystalPlans = crystallineRebelPlans(ctx, id);
   if (crystalPlans !== null) return crystalPlans;
+  // Crystal scrap collector. The packed fx records the 35 scrap. The follow-up grants the crew or the weapon,
+  // so this returns before payRes and does not spend the scrap twice.
+  if (id === "c:crystal-scrap-collector:0") {
+    if (g.scrap < 35) return false;
+    g.scrap -= 35;
+    const title = g.beacons.find((b) => b.id === g.here)?.name ?? g.event?.title ?? "Event";
+    g.event = {
+      title,
+      body: `${eventText("event_CRYSTAL_SCRAP_EXCITED_c1_text")}\n\nScrap: -35.`,
+      choices: [
+        {
+          id: "q:crystal-collector:join",
+          label: eventText("event_CRYSTAL_SCRAP_EXCITED_c1_c1_choice"),
+        },
+        {
+          id: "q:crystal-collector:kind",
+          label: eventText("event_CRYSTAL_SCRAP_EXCITED_c1_c2_choice"),
+        },
+      ],
+    };
+    g.phase = "event";
+    g.paused = true;
+    return true;
+  }
   if (!payRes(ctx, choice.fx, id, ctx.note)) return false;
   for (const fx of choice.fx) {
     if (fx.k !== "tier") continue;

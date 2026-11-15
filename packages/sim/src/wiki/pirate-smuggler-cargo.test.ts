@@ -37,6 +37,16 @@ function gives(text: string, kind: "weapon" | "drone"): number {
     : 0;
 }
 
+/** The rows whose sentence hands over an unnamed crewmember. */
+function joins(text: string): number {
+  return textRe(
+    "event_REBEL_TRANSPORT_DESTROYED_9_text",
+    "event_REBEL_TRANSPORT_CAPTURED_2_text",
+  ).test(text)
+    ? 1
+    : 0;
+}
+
 function open(g: Game) {
   const b = g.beacons.find((x) => x.kind !== "start" && x.kind !== "exit" && x.kind !== "boss");
   assert.ok(b);
@@ -75,7 +85,7 @@ describe("Pirate smuggler cargo", () => {
       assert.equal(g.scrap, 10 + paid[0]!);
       assert.equal(held(g, "weapon"), guns + gives(text, "weapon"), body);
       assert.equal(held(g, "drone"), kits + gives(text, "drone"), body);
-      assert.equal(g.crew.length, crew, body);
+      assert.equal(g.crew.length, crew + joins(text), body);
       assert.equal(g.beacons.filter((b) => b.visited).length, visited);
       const lines = resourceLines(body);
       if (text.startsWith(eventText("event_REBEL_TRANSPORT_DESTROYED_6_text"))) {
@@ -132,7 +142,7 @@ describe("Pirate smuggler cargo", () => {
       assert.equal(g.scrap, 10 + paid[0]!);
       assert.equal(held(g, "weapon"), guns + gives(text, "weapon"), body);
       assert.equal(held(g, "drone"), kits + gives(text, "drone"), body);
-      assert.equal(g.crew.length, crew);
+      assert.equal(g.crew.length, crew + joins(text));
       assert.equal(g.beacons.filter((b) => b.visited).length, visited);
       assert.equal(resourceLines(body).length, 0, body);
       if (text.startsWith(eventText("event_REBEL_TRANSPORT_CAPTURED_2_text")))

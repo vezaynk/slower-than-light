@@ -30,7 +30,7 @@ function marks(g: Game): { fire: number; breach: number } {
 }
 
 describe("Pirate ship selling drones", () => {
-  it("hails into a dock that sells five drone parts for 25 scrap and does not sell a schematic", () => {
+  it("hails into a dock that sells five drone parts for 25 scrap and a schematic for 25-35", () => {
     const g = createGame(1);
     open(g);
     assert.deepEqual(labels(g), [
@@ -48,10 +48,11 @@ describe("Pirate ship selling drones", () => {
     assert.equal(choiceDisabled(g, "q:pirate-drones:hack"), "Needs a Hacking system");
     choose(g, "q:pirate-drones:dock");
     assert.equal(g.event?.body, eventText("event_DOCK_DRONE_SALESMAN_text"));
-    assert.equal(
-      labels(g).some((l) => /schematic/i.test(l)),
-      false,
-    );
+    const schematic = g.event?.choices.find((c) => /^q:pirate-drones:schematic:\d+$/.test(c.id));
+    assert.ok(schematic, labels(g).join(" | "));
+    assert.match(schematic.label, /schematic/i);
+    const cost = Number(/^q:pirate-drones:schematic:(\d+)$/.exec(schematic.id)?.[1]);
+    assert.ok(cost >= 25 && cost <= 35, schematic.label);
     assert.equal(choiceDisabled(g, "c:pirate-ship-selling-drones:0"), "Need 25 scrap");
     assert.equal(choiceDisabled(g, "q:pirate-drones:upgrade"), "Needs Drone Control");
     g.scrap = 25;
@@ -61,6 +62,28 @@ describe("Pirate ship selling drones", () => {
     assert.equal(g.scrap, 0);
     assert.equal(g.player.parts, parts + 5);
     assert.notEqual(g.phase, "combat");
+  });
+
+  it("buying the shown schematic spends that scrap and grants a drone", () => {
+    const g = createGame(5);
+    open(g);
+    choose(g, "q:pirate-drones:hail");
+    choose(g, "q:pirate-drones:dock");
+    const schematic = g.event?.choices.find((c) => /^q:pirate-drones:schematic:\d+$/.test(c.id));
+    assert.ok(schematic);
+    const cost = Number(/^q:pirate-drones:schematic:(\d+)$/.exec(schematic.id)?.[1]);
+    g.scrap = cost - 1;
+    assert.equal(choiceDisabled(g, schematic.id), `Need ${cost} scrap`);
+    choose(g, schematic.id);
+    assert.equal(g.scrap, cost - 1);
+    g.scrap = cost;
+    const kits = g.player.kits.drones;
+    choose(g, schematic.id);
+    const body = g.event?.body ?? "";
+    assert.equal(g.scrap, 0);
+    assert.ok(body.includes(eventText("event_DOCK_DRONE_SALESMAN_c2_text")), body);
+    assert.match(body, /schematic fitted\.|stowed in cargo\.|already have|leave behind/);
+    assert.ok(g.player.kits.drones !== kits || /schematic/.test(body));
   });
 
   it("attack, leaving the dock, and buying nothing each fight a pirate, and jumping does nothing", () => {

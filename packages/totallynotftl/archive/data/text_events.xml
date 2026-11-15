@@ -188,6 +188,11 @@
   <text name="event_CRYSTAL_SAVED_3_text">Gain resources.</text>
   <text name="event_CRYSTAL_SAVED_4_text">Gain resources.</text>
   <text name="event_CRYSTAL_SAVED_5_text">Gain a Crystal weapon.</text>
+  <text name="event_CRYSTAL_SCRAP_EXCITED_c1_c1_choice">Gain 1 Crystal crew.</text>
+  <text name="event_CRYSTAL_SCRAP_EXCITED_c1_c1_text">Gain 1 Crystal crew.</text>
+  <text name="event_CRYSTAL_SCRAP_EXCITED_c1_c2_choice">1 in 2: Crystal Lockdown Bomb. 1 in 2: Crystal Burst Mark II.</text>
+  <text name="event_CRYSTAL_SCRAP_EXCITED_c1_c2_text">Gain a Crystal weapon.</text>
+  <text name="event_CRYSTAL_SCRAP_EXCITED_c1_text">Lose 35 scrap. Then choose.</text>
   <text name="event_CRYSTAL_SHIP_SURRENDER_1_text">The Crystal ship leaves. Nothing happens.</text>
   <text name="event_CRYSTAL_SHIP_SURRENDER_2_text">The Crystal ship leaves. Nothing happens.</text>
   <text name="event_CRYSTAL_SHIP_SURRENDER_3_text">The Crystal ship surrenders its cargo.</text>
@@ -276,6 +281,8 @@
   <text name="event_DISTRESS_TRAPPED_MINER_SHOOT_1_text">2 hull damage and 2 system damage. Gain scrap.</text>
   <text name="event_DISTRESS_TRAPPED_MINER_SHOOT_2_text">Gain scrap and supplies.</text>
   <text name="event_DOCK_DRONE_SALESMAN_c1_choice">Lose 25 scrap. Gain 5 drone parts.</text>
+  <text name="event_DOCK_DRONE_SALESMAN_c2_choice">Lose scrap. Gain a drone schematic.</text>
+  <text name="event_DOCK_DRONE_SALESMAN_c2_text">Gain a drone schematic.</text>
   <text name="event_DOCK_DRONE_SALESMAN_c3_choice">Lose 15-20 scrap. Drone Control +1.</text>
   <text name="event_DOCK_DRONE_SALESMAN_c6_choice">Fight the ship. 3 damage to random systems.</text>
   <text name="event_DOCK_DRONE_SALESMAN_c6_text">Fight the ship. 3 damage to random systems.</text>
@@ -489,6 +496,10 @@
   <text name="event_LANIUS_BEACON_EATER_ASK_1_c2_choice">3 in 4: nothing happens. 1 in 4: fight a Lanius ship.</text>
   <text name="event_LANIUS_BEACON_EATER_ASK_1_text">They ask for scrap.</text>
   <text name="event_LANIUS_BEACON_EATER_ASK_2_text">Fight a Lanius ship.</text>
+  <text name="event_LANIUS_BEACON_EATER_c4_c1_choice">Lose 30 scrap. Gain an augmentation.</text>
+  <text name="event_LANIUS_BEACON_EATER_c4_c1_text">Gain an augmentation.</text>
+  <text name="event_LANIUS_BEACON_EATER_c4_c2_choice">Lose 6 missiles. Gain an augmentation.</text>
+  <text name="event_LANIUS_BEACON_EATER_c4_c3_choice">Lose 6 drone parts. Gain an augmentation.</text>
   <text name="event_LANIUS_BEACON_EATER_c4_c4_choice">Nothing happens.</text>
   <text name="event_LANIUS_BEACON_EATER_c4_text">They ask for scrap, missiles, or drone parts.</text>
   <text name="event_LANIUS_BEACON_EATER_c5_text">Gain 1 Lanius crew.</text>
@@ -785,6 +796,10 @@
   <text name="event_NEBULA_TRADER_c1_choice">Make the trade shown.</text>
   <text name="event_NEBULA_TRADER_c2_choice">Nothing happens.</text>
   <text name="event_NEBULA_TRADER_text">Trade offer in a nebula: one resource for another.</text>
+  <text name="event_NEBULA_WEAPONS_TRADER_BUY_text">Lose 45 scrap. Gain a weapon.</text>
+  <text name="event_NEBULA_WEAPONS_TRADER_c3_choice">Lose 45 scrap. 1 in 2: gain a weapon. 1 in 2: no weapon.</text>
+  <text name="event_NEBULA_WEAPONS_TRADER_CHEAT_text">Lose 45 scrap. No weapon.</text>
+  <text name="event_NEBULA_WEAPONS_TRADER_LIST2_1_c1_choice">Lose 45 scrap. Gain the offered weapon.</text>
   <text name="event_NEBULA_WEAPONS_TRADER_LIST2_1_c2_choice">Nothing happens.</text>
   <text name="event_NEBULA_WEAPONS_TRADER_LIST2_1_c2_text">Nothing happens.</text>
   <text name="event_NEBULA_WEAPONS_TRADER_LIST2_1_text">Offer: a weapon for scrap.</text>
@@ -1180,6 +1195,9 @@
   <text name="event_TRADER_UPGRADES_LIST_4_text">Offer: Sensors +1 level for scrap.</text>
   <text name="event_TRADER_UPGRADES_LIST_5_text">Offer: reactor +1 for scrap.</text>
   <text name="event_WRECKAGE_EVENT_c1_text">Gain scrap and supplies.</text>
+  <text name="event_WRECKAGE_EVENT_c3_choice">Gain high resources, or a weapon and low scrap.</text>
+  <text name="event_WRECKAGE_EVENT_c3_high_text">Gain high resources and some scrap.</text>
+  <text name="event_WRECKAGE_EVENT_c3_weapon_text">Gain a weapon and low scrap.</text>
   <text name="event_WRECKAGE_INVESTIGATE_1_text">Nothing happens.</text>
   <text name="event_WRECKAGE_INVESTIGATE_5_text">Gain scrap and supplies.</text>
   <text name="event_WRECKAGE_INVESTIGATE_6_text">Fight a Mantis ship.</text>

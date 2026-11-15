@@ -58,6 +58,11 @@ describe("Battlefield wreckage Improved Sensors", () => {
     const parts = g.player.parts;
     const scrap = g.scrap;
     const weapons = g.player.weapons.length;
+    assert.equal(
+      g.event?.choices.some((c) => c.id === "c:battlefield-wreckage:3"),
+      true,
+    );
+    assert.equal(choiceDisabled(g, "c:battlefield-wreckage:3"), "Needs Sensors level 3");
     assert.equal(choiceDisabled(g, SCAN), null);
     choose(g, SCAN);
     assert.equal(g.phase, "event");
@@ -74,5 +79,39 @@ describe("Battlefield wreckage Improved Sensors", () => {
     assert.ok(dm === 0 || (dm >= 2 && dm <= 4));
     assert.ok(dp === 0 || dp === 1);
     assert.equal(g.player.weapons.length, weapons);
+  });
+
+  it("Sensors level 3 pays high resources or a weapon with low scrap", () => {
+    const ADVANCED = "c:battlefield-wreckage:3";
+    let high = false;
+    let weapon = false;
+    for (let seed = 1; seed <= 40 && (!high || !weapon); seed++) {
+      const g = createGame(seed);
+      g.player.systems.sensors.level = 3;
+      open(g);
+      assert.equal(
+        g.event?.choices.some((c) => c.id === ADVANCED),
+        true,
+      );
+      assert.equal(choiceDisabled(g, ADVANCED), null);
+      const scrap = g.scrap;
+      const guns = g.player.weapons.length;
+      choose(g, ADVANCED);
+      const body = g.event?.body ?? "";
+      assert.equal(g.phase, "event");
+      assert.equal(g.enemy, null);
+      if (body.includes(eventText("event_WRECKAGE_EVENT_c3_weapon_text"))) {
+        weapon = true;
+        assert.match(body, /mounted\.|stowed in cargo\.|choose what to leave behind/);
+        assert.equal(g.player.weapons.length, guns + (/mounted\./.test(body) ? 1 : 0));
+        assert.ok(g.scrap > scrap);
+      } else {
+        high = true;
+        assert.ok(body.includes(eventText("event_WRECKAGE_EVENT_c3_high_text")), body);
+        assert.equal(g.player.weapons.length, guns);
+        assert.ok(g.scrap > scrap);
+      }
+    }
+    assert.equal(high && weapon, true);
   });
 });

@@ -52,7 +52,7 @@ export const FILLER_PAGES: CitedEventDef[] = [
   },
   // WRECKAGE_EVENT. Investigate: nothing ({{DuplicateEvent|4}}), nothing (Slug ship), medium resources with some scrap,
   // a Mantis ship, a Rebel ship, a Zoltan ship. Improved Sensors: that same medium salvage, and no fight.
-  // Advanced Sensors can grant an unnamed weapon and prints no odds. Left unwired.
+  // Advanced Sensors is two results with no odds, granted from the card: high resources, or a weapon and low scrap.
   {
     dest: "Battlefield wreckage",
     slug: "battlefield-wreckage",
@@ -874,7 +874,7 @@ export const FILLER_PAGES: CitedEventDef[] = [
     ],
   },
   // TAVERN_HIRE. The intro varies. Don't hire anyone does nothing.
-  // Both hire prices grant an unnamed crewmember and stay unwired.
+  // Both hire prices are rolled onto the card: 25–45 and 25–55 scrap, race shown, skills not numbered.
   {
     dest: "Crew hiring station",
     slug: "crew-hiring-station",

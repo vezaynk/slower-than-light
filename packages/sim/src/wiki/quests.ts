@@ -49,8 +49,9 @@ import {
 import type { AugmentId, Beacon, Game, GameEvent, SkillName } from "../types.ts";
 import { grantUnlock } from "../unlocks.ts"; // @agent:unlocks
 import { noteReactorEvent } from "../rules/achievement-track.ts";
-import { grantRandomItem } from "../rules/bonus-item.ts";
+import { grantRandomItem, weaponLine } from "../rules/bonus-item.ts";
 import { locksOwned, ownedLock, eventMissileWeapon } from "./choice-locks.ts";
+import { CRYSTAL_SECTOR_WEAPONS } from "./cited-stores.ts";
 import { priceBand, priced, rollPrice } from "./event-prices.ts";
 import { rollBand, upgradeRows } from "./event-bands.ts";
 import { rollFuel } from "./fuel-gifts.ts";
@@ -1040,7 +1041,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
   },
   // Crystal ship attacking Federation loyalists, "You contact the Federation ship."
   // Two results and no odds. INFERRED: equal.
-  // The crewmember is unnamed and not granted. Low scrap with resources still is.
+  // The crewmember is unnamed: a random race for this sector.
   // "a random amount of resources with some scrap" is Rewards, Stuff. The unnamed bonus item is not granted.
   "q:crystal-loyalists:contact": (g) => {
     if (
@@ -1049,7 +1050,9 @@ const CHOICES: Record<string, (g: Game) => void> = {
         ["materials", 1],
       ] as const) === "survivor"
     ) {
-      result(g, eventText("event_CRYSTAL_FED_LIST_2_text"), rollStandard(g, "low"));
+      result(g, eventText("event_CRYSTAL_FED_LIST_2_text"), rollStandard(g, "low"), [
+        crew(g, randomRace(g)),
+      ]);
       return;
     }
     result(g, eventText("event_CRYSTAL_FED_LIST_1_text"), rollSurrenderOffer(g, undefined, true));
@@ -1362,7 +1365,7 @@ const CHOICES: Record<string, (g: Game) => void> = {
       "pirate-smuggler",
     );
   },
-  // Pirate ship attacking Crystal. Template:Crystal Ship Saved. The Crystal weapon is not named.
+  // Pirate ship attacking Crystal. Template:Crystal Ship Saved. The Crystal weapon is not named: a crystal-sector weapon.
   "q:crystal-pirate:contact": (g) => crystalContact(g),
   // Pirate ship selling drones. Hail opens the dock, the slug warning, and the hacking toll.
   "q:pirate-drones:hail": (g) => {
@@ -2143,7 +2146,7 @@ Fuel: ${n}.`,
   "c:rebel-ship-attacking-crystal-ship:2": (g) => {
     result(g, eventText("event_CRYSTAL_REBEL_CRYSTAL_c3_text"), undefined, ["Nothing happens."]);
   },
-  // Rebel ship attacking Crystal ship. Template:Crystal Ship Saved. The Crystal weapon is not named.
+  // Rebel ship attacking Crystal ship. Template:Crystal Ship Saved. The Crystal weapon is not named: a crystal-sector weapon.
   "q:rebel-crystal:contact": (g) => crystalContact(g),
   // Slug hacker (oxygen). "Try to squeeze some extra power to the system." One printed lead-in, then a Slug ship fight.
   // The page halves the Oxygen system, rounding down. This handler returns before citedChoose, so the half is applied here.
@@ -3455,6 +3458,16 @@ Fuel: ${n}.`,
     // > "Nothing happens." — [[Settlement mercenary work#Quest marker]]
     result(g, eventText("event_QUEST_STORE_RESCUE_c2_text"));
   },
+  // Crystal scrap collector. 35 scrap is already spent. Accept is one Crystal. The other payment is equal odds.
+  "q:crystal-collector:join": (g) => {
+    result(g, eventText("event_CRYSTAL_SCRAP_EXCITED_c1_c1_text"), undefined, [
+      crew(g, "Crystal"),
+    ]);
+  },
+  "q:crystal-collector:kind": (g) => {
+    const id = pick(g, ["BOMB_LOCK", "CRYSTAL_BURST_2"] as const);
+    result(g, eventText("event_CRYSTAL_SCRAP_EXCITED_c1_c2_text"), undefined, [weaponLine(g, id)]);
+  },
 };
 
 /** surrender.ts surrenderChoose calls this first. True when the id was a quest choice. */
@@ -3463,6 +3476,19 @@ export function questChoose(g: Game, id: string): boolean {
   if (checkpoint) {
     if (questChoiceDisabled(g, id)) return true;
     rebelCheckpointBribe(g, Number(checkpoint[1]));
+    return true;
+  }
+  // Pirate ship selling drones. The schematic price is the one shown on the button, 25–35.
+  const schematic = /^q:pirate-drones:schematic:(\d+)$/.exec(id);
+  if (schematic) {
+    const cost = Number(schematic[1]);
+    if (cost < 25 || cost > 35) return false;
+    if (questChoiceDisabled(g, id)) return true;
+    g.scrap -= cost;
+    result(g, eventText("event_DOCK_DRONE_SALESMAN_c2_text"), undefined, [
+      `Scrap: -${cost}.`,
+      grantRandomItem(g, "drone"),
+    ]);
     return true;
   }
   const run = CHOICES[id] ?? fromParts("choices", id);
@@ -3479,6 +3505,9 @@ export function questChoiceDisabled(g: Game, id: string): string | null {
   // Rebel checkpoint. The bribe amount is the one shown on the button.
   const checkpoint = /^q:rebel-checkpoint:bribe:(\d+)$/.exec(id);
   if (checkpoint && g.scrap < Number(checkpoint[1])) return `Need ${checkpoint[1]} scrap`;
+  // Pirate ship selling drones. The schematic price is the one shown on the button.
+  const schematic = /^q:pirate-drones:schematic:(\d+)$/.exec(id);
+  if (schematic && g.scrap < Number(schematic[1])) return `Need ${schematic[1]} scrap`;
   // Wiki citations:
   // > "(Engi Crew) Have your Engi crewmember contact them." — [[Engi fleet discussion]]
   // Lanius ship in rich debris field. Improved Piloting is level 2. Advanced Piloting is level 3.
@@ -3859,8 +3888,8 @@ function pirateBriberWin(g: Game, deadCrew: boolean) {
 
 /**
  * Template:Pirate Smuggler / Rebel Transport. The weapon and drone schematic are not named: Rewards, "Weapon": "A
- * random weapon & T scrap." / "Drone": "A random drone schematic & T scrap." (`item`). The crewmember is not named,
- * so none is granted. The map sentence is not a reveal.
+ * random weapon & T scrap." / "Drone": "A random drone schematic & T scrap." (`item`). The crewmember is not named:
+ * a random race for this sector (`crew`). The map sentence is not a reveal.
  * {{DuplicateEvent|2}} counts that result twice. The printed OR is the two sentences. INFERRED: those two
  * sentences are equal, and the other results are one each. A random scrap amount is low, medium, or high
  * scrap only, equal, because the page's code note says the lowercase "low" is treated as RANDOM.
@@ -3872,7 +3901,7 @@ type SmugglePay =
   | { k: "parts" };
 
 /** `textId` is the archive text id of the row's result. */
-type SmuggleRow = { textId: string; pay: SmugglePay; item?: "weapon" | "drone" };
+type SmuggleRow = { textId: string; pay: SmugglePay; item?: "weapon" | "drone"; crew?: true };
 
 function smugglePay(g: Game, pay: SmugglePay): SurrenderOffer {
   if (pay.k === "random") return scrapOnly(g, pick(g, ["low", "medium", "high"]));
@@ -3915,6 +3944,7 @@ const SMUGGLE_HULL: [SmuggleRow, number][] = [
     {
       textId: "event_REBEL_TRANSPORT_DESTROYED_9_text",
       pay: { k: "standard", tier: "low" },
+      crew: true,
     },
     1,
   ],
@@ -3990,6 +4020,7 @@ const SMUGGLE_CREW: [SmuggleRow, number][] = [
     {
       textId: "event_REBEL_TRANSPORT_CAPTURED_2_text",
       pay: { k: "scrap", tier: "high" },
+      crew: true,
     },
     1,
   ],
@@ -4005,19 +4036,17 @@ const SMUGGLE_CREW: [SmuggleRow, number][] = [
 /** Pirate smuggler. Template:Pirate Smuggler / Rebel Transport, destroyed and a crew kill. */
 function smuggleCargoWin(g: Game, deadCrew: boolean) {
   const row = weighted(g, deadCrew ? SMUGGLE_CREW : SMUGGLE_HULL);
-  result(
-    g,
-    eventText(row.textId),
-    smugglePay(g, row.pay),
-    row.item ? [grantRandomItem(g, row.item)] : [],
-  );
+  result(g, eventText(row.textId), smugglePay(g, row.pay), [
+    ...(row.item ? [grantRandomItem(g, row.item)] : []),
+    ...(row.crew ? [crew(g, randomRace(g))] : []),
+  ]);
 }
 
 const CRYSTAL_CONTACT = (): Choice[] => [opt("q:crystal-pirate:contact", "continue")];
 
 /**
  * Template:Crystal Ship Saved. {{DuplicateEvent|2}} on the reward and on nothing. The printed OR is the two
- * sentences. INFERRED: each sentence is one copy. The Crystal weapon is not named, so none is granted.
+ * sentences. INFERRED: each sentence is one copy. The Crystal weapon is not named: one of the crystal-sector weapons.
  * A random amount of resources is rollStandard with no tier.
  */
 const CRYSTAL_SAVED = (): [string, "stuff" | "nothing" | "weapon"][] => [
@@ -4028,6 +4057,11 @@ const CRYSTAL_SAVED = (): [string, "stuff" | "nothing" | "weapon"][] => [
   [eventText("event_CRYSTAL_SAVED_5_text"), "weapon"],
 ];
 
+/** Hidden Crystal Worlds: only crystal weapons, including the Lockdown Bomb. */
+function crystalWeapon(g: Game): string {
+  return weaponLine(g, pick(g, [...CRYSTAL_SECTOR_WEAPONS]));
+}
+
 function crystalContact(g: Game) {
   const [text, kind] = pick(g, CRYSTAL_SAVED());
   if (kind === "stuff") {
@@ -4035,18 +4069,24 @@ function crystalContact(g: Game) {
     return;
   }
   if (kind === "weapon") {
-    result(g, text, undefined, ["You receive a Crystal weapon."]);
+    result(g, text, undefined, [crystalWeapon(g)]);
     return;
   }
   result(g, text, undefined, ["Nothing happens."]);
 }
 
 /**
- * Pirate ship selling drones. The unnamed schematic is not offered. Five parts for 25 scrap stay on the static choice.
+ * Pirate ship selling drones. The schematic price is rolled when the dock opens, 25–35 inclusive, and shown on the
+ * button. Five parts for 25 scrap stay on the static choice.
  */
 function pirateDroneDock(g: Game) {
+  const cost = between(g, [25, 35]);
   card(g, eventText("event_DOCK_DRONE_SALESMAN_text"), [
     opt("c:pirate-ship-selling-drones:0", "event_DOCK_DRONE_SALESMAN_c1_choice"),
+    {
+      id: `q:pirate-drones:schematic:${cost}`,
+      label: `${eventText("event_DOCK_DRONE_SALESMAN_c2_choice")} [${cost} scrap]`,
+    },
     opt("q:pirate-drones:nothing", "event_DOCK_DRONE_SALESMAN_c6_choice"),
     opt("q:pirate-drones:upgrade", "event_DOCK_DRONE_SALESMAN_c3_choice"),
   ]);
@@ -4750,7 +4790,7 @@ export const PAGE_WINS: Record<string, Win> = {
   "pirate-ship-attacking-civilian": pirateCivilianWin,
   // Pirate briber. Destroyed pays random scrap only. A crew kill pays medium standard. Then the victim.
   "pirate-briber": pirateBriberWin,
-  // Pirate smuggler. Template:Pirate Smuggler / Rebel Transport. Unnamed weapon and schematic are random; crew is not granted.
+  // Pirate smuggler. Template:Pirate Smuggler / Rebel Transport. Unnamed weapon, schematic, and crew are granted.
   "pirate-smuggler": smuggleCargoWin,
   // Rebel transport ship. The same template. The 40 second run and the refusal to surrender stay in escape.ts and surrender.ts.
   "rebel-transport-ship": smuggleCargoWin,

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { choose, createGame, choiceDisabled } from "../sim.ts";
+import { choose, createGame, choiceDisabled, commitJump } from "../sim.ts";
 import type { Beacon, Game } from "../types.ts";
 import { fillerEvent, pageForRow } from "./filler-events.ts";
 
@@ -42,13 +42,14 @@ describe("Crew hiring station", () => {
       const offers = choices.slice(0, -1);
       assert.equal(offers.length, 2);
       const prices = offers.map((c) => {
-        const m = /^s:hire:(\d+):([A-Za-z]+)$/.exec(c.id);
+        const m = /^s:hire:(\d+):(\d+):([A-Za-z]+)$/.exec(c.id);
         assert.ok(m, c.id);
-        assert.equal(c.label, `${m[2]} crew. [${m[1]} scrap]`);
-        return Number(m[1]);
+        assert.equal(c.label, `${m[3]} crew. [${m[2]} scrap]`);
+        return Number(m[2]);
       });
       assert.ok(prices[0]! >= 25 && prices[0]! <= 45, String(prices[0]));
       assert.ok(prices[1]! >= 25 && prices[1]! <= 55, String(prices[1]));
+      assert.notEqual(offers[0]?.id, offers[1]?.id);
     }
     assert.equal(seen.size, new Set(INTROS).size);
   });
@@ -70,7 +71,7 @@ describe("Crew hiring station", () => {
     open(g);
     const offer = g.event?.choices.find((c) => c.id.startsWith("s:hire:"));
     assert.ok(offer);
-    const m = /^s:hire:(\d+):([A-Za-z]+)$/.exec(offer.id);
+    const m = /^s:hire:\d+:(\d+):([A-Za-z]+)$/.exec(offer.id);
     assert.ok(m);
     const price = Number(m[1]);
     const race = m[2]!;
@@ -85,5 +86,50 @@ describe("Crew hiring station", () => {
     assert.equal(g.scrap, 0);
     assert.equal(g.crew.filter((c) => c.side === "player").length, crew + 1);
     assert.match(g.event?.body ?? "", new RegExp(`Crew gained: ${race}`));
+  });
+
+  it("a jump to the packed station offers the two hires", () => {
+    for (const flag of ["TAVERN_HIRE", "filler:TAVERN_HIRE"]) {
+      const g = createGame(7);
+      const here = g.beacons.find((b) => b.id === g.here);
+      assert.ok(here?.links[0]);
+      const dest = g.beacons.find((b) => b.id === here!.links[0]);
+      assert.ok(dest);
+      dest.kind = "cache";
+      dest.flag = flag;
+      dest.name = "Crew hiring station";
+      dest.resolved = false;
+      dest.tier = "";
+      g.fuel = 3;
+      g.fleet = 0;
+      g.sector = 1;
+      g.phase = "map";
+      g.event = null;
+      commitJump(g, dest.id);
+      assert.equal(g.phase, "event", flag);
+      assert.equal(g.event?.title, "Crew hiring station");
+      const choices = g.event?.choices ?? [];
+      assert.equal(choices.at(-1)?.id, "c:crew-hiring-station:0");
+      const offers = choices.slice(0, -1);
+      assert.equal(offers.length, 2, flag);
+      assert.notEqual(offers[0]?.id, offers[1]?.id);
+      const prices = offers.map((c) => {
+        const m = /^s:hire:(\d+):(\d+):([A-Za-z]+)$/.exec(c.id);
+        assert.ok(m, `${flag} ${c.id}`);
+        assert.equal(c.label, `${m[3]} crew. [${m[2]} scrap]`);
+        return Number(m[2]);
+      });
+      assert.ok(prices[0]! >= 25 && prices[0]! <= 45);
+      assert.ok(prices[1]! >= 25 && prices[1]! <= 55);
+      const offer = offers[0]!;
+      const hired = /^s:hire:\d+:(\d+):([A-Za-z]+)$/.exec(offer.id);
+      assert.ok(hired);
+      g.scrap = Number(hired[1]);
+      const crew = g.crew.filter((c) => c.side === "player").length;
+      choose(g, offer.id);
+      assert.equal(g.scrap, 0);
+      assert.equal(g.crew.filter((c) => c.side === "player").length, crew + 1);
+      assert.match(g.event?.body ?? "", new RegExp(`Crew gained: ${hired[2]}`));
+    }
   });
 });

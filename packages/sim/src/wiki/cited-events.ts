@@ -47,6 +47,7 @@ import { grantRandomItem } from "../rules/bonus-item.ts";
 import { showArchivePage } from "../archive-pay.ts";
 import { queueSfx } from "../sfx-queue.ts";
 import { eventText } from "../event-text.ts";
+import { hireOffers } from "./filler-events.ts";
 
 /** Pirate engine hacker: "Fight the Pirate ship with your Engines limited to level 1." */
 export function citedEngineCap(id: string): number | null {
@@ -1299,6 +1300,22 @@ export function citedEvent(g: Game, b: Beacon): GameEvent | null {
       id: "c:battlefield-wreckage:3",
       label: eventText("event_WRECKAGE_EVENT_c3_choice"),
     });
+  }
+  // Crew hiring station. A jump resolves this page here and never reaches hireCard.
+  // The slot in the id keeps the two offers distinct when the price and the race match.
+  if (
+    (ev.title === "Crew hiring station" ||
+      ev.choices.some((c) => c.id === "c:crew-hiring-station:0")) &&
+    !ev.choices.some((c) => c.id.startsWith("s:hire:"))
+  ) {
+    const decline = ev.choices.find((c) => c.id === "c:crew-hiring-station:0");
+    ev.choices = [
+      ...hireOffers(g),
+      {
+        id: decline?.id ?? "c:crew-hiring-station:0",
+        label: decline?.label || "Nothing happens.",
+      },
+    ];
   }
   return ev;
 }

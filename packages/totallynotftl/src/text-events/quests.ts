@@ -74,7 +74,8 @@ export const TEXT: Record<string, string> = {
   event_CRYSTAL_SAVED_5_text: "Gain a Crystal weapon.",
   event_CRYSTAL_SCRAP_EXCITED_c1_c1_choice: "Gain 1 Crystal crew.",
   event_CRYSTAL_SCRAP_EXCITED_c1_c1_text: "Gain 1 Crystal crew.",
-  event_CRYSTAL_SCRAP_EXCITED_c1_c2_choice: "1 in 2: Crystal Lockdown Bomb. 1 in 2: Crystal Burst Mark II.",
+  event_CRYSTAL_SCRAP_EXCITED_c1_c2_choice:
+    "1 in 2: Crystal Lockdown Bomb. 1 in 2: Crystal Burst Mark II.",
   event_CRYSTAL_SCRAP_EXCITED_c1_c2_text: "Gain a Crystal weapon.",
   event_CRYSTAL_SCRAP_EXCITED_c1_text: "Lose 35 scrap. Then choose.",
   event_DEFENSE_ITEM_LIST_1_text: "No effect.",

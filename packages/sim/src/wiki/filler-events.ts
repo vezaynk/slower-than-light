@@ -366,21 +366,25 @@ function tradeIntro(g: Game, page: Page): GameEvent {
   };
 }
 
+/** Two hire buttons. The slot keeps the ids apart when the price and the race both match. */
+export function hireOffers(g: Game): { id: string; label: string }[] {
+  const prices = [between(g, [25, 45]), between(g, [25, 55])];
+  return prices.map((price, slot) => {
+    const race = randomRace(g);
+    return { id: `s:hire:${slot}:${price}:${race}`, label: `${race} crew. [${price} scrap]` };
+  });
+}
+
 function hireCard(g: Game, page: Page): GameEvent {
   const text = randOpening(g, page.slug);
   // Crew hiring station. Two offers, shown with race and price. Skills are named on the page and not numbered.
   // INFERRED: the first price is 25–45 and the second is 25–55, both inclusive. The race is the sector's random crew.
-  const low = between(g, [25, 45]);
-  const high = between(g, [25, 55]);
-  const first = randomRace(g);
-  const second = randomRace(g);
   const decline = page.choices.find((c) => c.id === "c:crew-hiring-station:0");
   return {
     title: page.dest,
     body: text,
     choices: [
-      { id: `s:hire:${low}:${first}`, label: `${first} crew. [${low} scrap]` },
-      { id: `s:hire:${high}:${second}`, label: `${second} crew. [${high} scrap]` },
+      ...hireOffers(g),
       {
         id: decline?.id ?? "c:crew-hiring-station:0",
         label: decline?.label ?? "Nothing happens.",
@@ -3609,7 +3613,7 @@ function chooseRolled(g: Game, id: string): boolean {
     ]);
     return true;
   }
-  const hire = id.match(/^s:hire:(\d+):([A-Za-z]+)$/);
+  const hire = id.match(/^s:hire:\d+:(\d+):([A-Za-z]+)$/);
   if (hire) {
     const n = Number(hire[1]);
     const race = hire[2]!;
@@ -3825,7 +3829,7 @@ export function fillerOwns(id: string): boolean {
     id === "c:pirate-ship-selling-weapon:2" ||
     id === "c:pirate-ship-selling-weapon:3" ||
     id.startsWith("s:pirate-weapon:") ||
-    /^s:hire:\d+:[A-Za-z]+$/.test(id) ||
+    /^s:hire:\d+:\d+:[A-Za-z]+$/.test(id) ||
     /^s:(refugee|refugee-distress|refugee-zoltan|refugee-distress-zoltan|refugee-pirate|refugee-distress-pirate|refugee-slug|refugee-distress-slug|friendly-ship-out-of-fuel|terraforming-scan|trade-scrap-for-upgrades|improve-reactor-for-supplies|unknown-disease|moon|confused-mantis|rock-slug):/.test(
       id,
     )
@@ -3947,7 +3951,7 @@ export function fillerChoiceDisabled(g: Game, id: string): string | null {
   // Slaver (hostile). Engines level=6+. INFERRED: the refusal line. The page names the system and prints no sentence.
   if (id === "c:battlefield-wreckage:3" && sensorsLevel(g) < 3) return "Needs Sensors level 3";
   if (id === "c:pirate-ship-selling-weapon:3" && g.scrap < 45) return "Need 45 scrap";
-  const hire = id.match(/^s:hire:(\d+):[A-Za-z]+$/);
+  const hire = id.match(/^s:hire:\d+:(\d+):[A-Za-z]+$/);
   if (hire && g.scrap < Number(hire[1])) return `Need ${hire[1]} scrap`;
   if (id === "s:lanius-beacon-eater:scrap" && g.scrap < 30) return "Need 30 scrap";
   if (id === "s:lanius-beacon-eater:missiles" && g.missiles < 6) return "Need 6 missiles";

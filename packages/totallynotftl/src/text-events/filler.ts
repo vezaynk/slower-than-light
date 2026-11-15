@@ -364,8 +364,7 @@ export const TEXT: Record<string, string> = {
   event_NEBULA_SLUG_HULLFIX_RESULT2_2_text: "They demand scrap.",
   event_NEBULA_SLUG_HULLFIX_c1_text: "Nothing happens.",
   event_NEBULA_WEAPONS_TRADER_BUY_text: "Lose 45 scrap. Gain a weapon.",
-  event_NEBULA_WEAPONS_TRADER_c3_choice:
-    "Lose 45 scrap. 1 in 2: gain a weapon. 1 in 2: no weapon.",
+  event_NEBULA_WEAPONS_TRADER_c3_choice: "Lose 45 scrap. 1 in 2: gain a weapon. 1 in 2: no weapon.",
   event_NEBULA_WEAPONS_TRADER_CHEAT_text: "Lose 45 scrap. No weapon.",
   event_NEBULA_WEAPONS_TRADER_LIST2_1_c1_choice: "Lose 45 scrap. Gain the offered weapon.",
   event_NEBULA_WEAPONS_TRADER_LIST2_1_c2_choice: "Nothing happens.",

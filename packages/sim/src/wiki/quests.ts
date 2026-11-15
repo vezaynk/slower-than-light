@@ -3460,9 +3460,7 @@ Fuel: ${n}.`,
   },
   // Crystal scrap collector. 35 scrap is already spent. Accept is one Crystal. The other payment is equal odds.
   "q:crystal-collector:join": (g) => {
-    result(g, eventText("event_CRYSTAL_SCRAP_EXCITED_c1_c1_text"), undefined, [
-      crew(g, "Crystal"),
-    ]);
+    result(g, eventText("event_CRYSTAL_SCRAP_EXCITED_c1_c1_text"), undefined, [crew(g, "Crystal")]);
   },
   "q:crystal-collector:kind": (g) => {
     const id = pick(g, ["BOMB_LOCK", "CRYSTAL_BURST_2"] as const);
